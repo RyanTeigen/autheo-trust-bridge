@@ -2,7 +2,9 @@
 import React from 'react';
 import HealthRecordCard, { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileSearch } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileSearch, Share } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface HealthRecordsListProps {
   records: Omit<HealthRecordCardProps, 'onToggleShare'>[];
@@ -15,6 +17,8 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
   onToggleShare,
   filter = 'all'
 }) => {
+  const { toast } = useToast();
+
   // Apply filters based on the selected tab
   const filteredRecords = React.useMemo(() => {
     switch (filter) {
@@ -32,6 +36,18 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
     }
   }, [records, filter]);
 
+  const handleDirectShare = (recordId: string) => {
+    // This would normally navigate to the shared records page with the record pre-selected
+    // For now, we'll just show a toast with information
+    toast({
+      title: "Share record",
+      description: "Redirecting to sharing controls for this record.",
+    });
+    
+    // In a real implementation, this would use React Router to navigate
+    window.location.href = '/shared-records';
+  };
+
   if (filteredRecords.length === 0) {
     return (
       <Alert variant="default" className="bg-slate-50">
@@ -46,11 +62,20 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {filteredRecords.map(record => (
-        <HealthRecordCard
-          key={record.id}
-          {...record}
-          onToggleShare={onToggleShare}
-        />
+        <div key={record.id} className="relative">
+          <HealthRecordCard
+            {...record}
+            onToggleShare={onToggleShare}
+          />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="absolute top-2 right-2"
+            onClick={() => handleDirectShare(record.id)}
+          >
+            <Share className="h-4 w-4" />
+          </Button>
+        </div>
       ))}
     </div>
   );
