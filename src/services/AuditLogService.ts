@@ -119,7 +119,7 @@ export const AuditLogService = {
    * Log a security event (login, logout, failed attempt)
    */
   logSecurityEvent: (
-    type: 'login' | 'logout' | 'breach',
+    type: 'login' | 'logout' | 'breach' | 'access',
     action: string,
     status: 'success' | 'warning' | 'error',
     details?: string
