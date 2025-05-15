@@ -45,18 +45,36 @@ const patientNameMap: Record<string, string> = {
 const PatientRecordsPage = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const { toast } = useToast();
+  const [accessStartTime, setAccessStartTime] = useState<number | null>(null);
 
   // Log page access when component mounts
   useEffect(() => {
+    const startTime = Date.now();
+    setAccessStartTime(startTime);
+    
     AuditLogService.logSecurityEvent(
       'access',
       'Accessed patient records page',
       'success',
       'Initial page load'
     );
+    
+    // Cleanup function - log when user leaves the page
+    return () => {
+      if (accessStartTime) {
+        const duration = Date.now() - accessStartTime;
+        AuditLogService.logSecurityEvent(
+          'access',
+          'Exited patient records page',
+          'success',
+          `Duration: ${duration}ms`
+        );
+      }
+    };
   }, []);
 
   const handleSelectPatient = (patientId: string) => {
+    const startTime = Date.now();
     const patientName = patientNameMap[patientId] || 'Unknown Patient';
     
     setSelectedPatientId(patientId);
@@ -65,13 +83,17 @@ const PatientRecordsPage = () => {
       description: `Patient ID: ${patientId}`,
     });
     
-    // Log this access in the audit system
+    // Calculate how long it took the user to select a patient
+    const selectionTime = accessStartTime ? Date.now() - accessStartTime : null;
+    
+    // Log this access in the audit system with duration
     AuditLogService.logPatientAccess(
       patientId,
       patientName,
       'Viewed patient record',
       'success',
-      'Selected from patient search'
+      `Selected from patient search${selectionTime ? `. Selection time: ${selectionTime}ms` : ''}`,
+      selectionTime || undefined
     );
   };
 

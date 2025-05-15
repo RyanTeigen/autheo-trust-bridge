@@ -1,8 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableRow 
+} from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { Shield, ShieldAlert, User, FileText, Clock } from 'lucide-react';
+import { Shield, ShieldAlert, User, FileText, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 export type AuditLogType = 'access' | 'disclosure' | 'breach' | 'admin' | 'amendment' | 'login' | 'logout';
 
@@ -16,6 +23,11 @@ export interface AuditLogItemProps {
   status: 'success' | 'warning' | 'error';
   details?: string;
   ipAddress?: string;
+  resourceId?: string;
+  duration?: number;
+  location?: string;
+  browser?: string;
+  os?: string;
   className?: string;
 }
 
@@ -28,8 +40,15 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
   status,
   details,
   ipAddress,
+  resourceId,
+  duration,
+  location,
+  browser,
+  os,
   className,
 }) => {
+  const [expanded, setExpanded] = useState(false);
+
   const getStatusColor = () => {
     switch (status) {
       case 'success': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
@@ -62,6 +81,10 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
     }
   };
 
+  const toggleExpanded = () => {
+    setExpanded(!expanded);
+  };
+
   return (
     <div className={cn("p-4 border rounded-md bg-card text-card-foreground", className)}>
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
@@ -91,6 +114,68 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
           <span>User: {user}</span>
           {ipAddress && <span>IP: {ipAddress}</span>}
         </div>
+      </div>
+      
+      <div className="mt-2">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-xs w-full flex items-center justify-center"
+          onClick={toggleExpanded}
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="h-4 w-4 mr-1" /> Hide Details
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-4 w-4 mr-1" /> View Details
+            </>
+          )}
+        </Button>
+        
+        {expanded && (
+          <div className="mt-2 border-t pt-2">
+            <Table>
+              <TableBody>
+                {resourceId && (
+                  <TableRow>
+                    <TableCell className="py-1 font-medium">Resource ID</TableCell>
+                    <TableCell className="py-1">{resourceId}</TableCell>
+                  </TableRow>
+                )}
+                {duration !== undefined && (
+                  <TableRow>
+                    <TableCell className="py-1 font-medium">Duration</TableCell>
+                    <TableCell className="py-1">{duration}ms</TableCell>
+                  </TableRow>
+                )}
+                {browser && (
+                  <TableRow>
+                    <TableCell className="py-1 font-medium">Browser</TableCell>
+                    <TableCell className="py-1">{browser}</TableCell>
+                  </TableRow>
+                )}
+                {os && (
+                  <TableRow>
+                    <TableCell className="py-1 font-medium">OS</TableCell>
+                    <TableCell className="py-1">{os}</TableCell>
+                  </TableRow>
+                )}
+                {location && (
+                  <TableRow>
+                    <TableCell className="py-1 font-medium">Location</TableCell>
+                    <TableCell className="py-1">{location}</TableCell>
+                  </TableRow>
+                )}
+                <TableRow>
+                  <TableCell className="py-1 font-medium">Timestamp</TableCell>
+                  <TableCell className="py-1">{new Date(timestamp).toISOString()}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </div>
   );

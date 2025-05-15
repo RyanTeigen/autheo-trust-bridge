@@ -11,6 +11,11 @@ export interface AuditLogEntry {
   status: 'success' | 'warning' | 'error';
   details?: string;
   ipAddress?: string;
+  resourceId?: string;
+  duration?: number;
+  location?: string;
+  browser?: string;
+  os?: string;
 }
 
 // In a real application, this would be persisted to a secure database
@@ -32,6 +37,20 @@ const generateId = (): string => {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
+// Get browser and OS information
+const getBrowserInfo = (): { browser: string; os: string } => {
+  // In a real app, this would use proper user-agent parsing
+  return {
+    browser: 'Chrome',
+    os: 'Windows'
+  };
+};
+
+// Get user's location (in a real app, this could be more precise)
+const getUserLocation = (): string => {
+  return 'New York, NY'; // Example location
+};
+
 export const AuditLogService = {
   /**
    * Log a patient record access event
@@ -41,8 +60,10 @@ export const AuditLogService = {
     patientName: string, 
     action: string, 
     status: 'success' | 'warning' | 'error' = 'success',
-    details?: string
+    details?: string,
+    duration?: number
   ): void => {
+    const browserInfo = getBrowserInfo();
     const logEntry: AuditLogEntry = {
       id: generateId(),
       type: 'access',
@@ -50,9 +71,14 @@ export const AuditLogService = {
       user: getCurrentUser(),
       action: action,
       resource: `Patient: ${patientName} (${patientId})`,
+      resourceId: patientId,
       status: status,
       details: details,
       ipAddress: getIpAddress(),
+      duration: duration,
+      location: getUserLocation(),
+      browser: browserInfo.browser,
+      os: browserInfo.os
     };
     
     auditLogs.unshift(logEntry);
@@ -72,6 +98,7 @@ export const AuditLogService = {
     reason: string,
     status: 'success' | 'warning' | 'error' = 'success'
   ): void => {
+    const browserInfo = getBrowserInfo();
     const logEntry: AuditLogEntry = {
       id: generateId(),
       type: 'disclosure',
@@ -79,9 +106,13 @@ export const AuditLogService = {
       user: getCurrentUser(),
       action: `Disclosed patient data to ${recipient}`,
       resource: `Patient: ${patientName} (${patientId})`,
+      resourceId: patientId,
       status: status,
       details: `Reason: ${reason}`,
       ipAddress: getIpAddress(),
+      location: getUserLocation(),
+      browser: browserInfo.browser,
+      os: browserInfo.os
     };
     
     auditLogs.unshift(logEntry);
@@ -99,6 +130,7 @@ export const AuditLogService = {
     newValue: string,
     status: 'success' | 'warning' | 'error' = 'success'
   ): void => {
+    const browserInfo = getBrowserInfo();
     const logEntry: AuditLogEntry = {
       id: generateId(),
       type: 'amendment',
@@ -106,9 +138,13 @@ export const AuditLogService = {
       user: getCurrentUser(),
       action: `Modified ${field}`,
       resource: `Patient: ${patientName} (${patientId})`,
+      resourceId: patientId,
       status: status,
       details: `Changed from "${oldValue}" to "${newValue}"`,
       ipAddress: getIpAddress(),
+      location: getUserLocation(),
+      browser: browserInfo.browser,
+      os: browserInfo.os
     };
     
     auditLogs.unshift(logEntry);
@@ -124,6 +160,7 @@ export const AuditLogService = {
     status: 'success' | 'warning' | 'error',
     details?: string
   ): void => {
+    const browserInfo = getBrowserInfo();
     const logEntry: AuditLogEntry = {
       id: generateId(),
       type: type,
@@ -134,6 +171,9 @@ export const AuditLogService = {
       status: status,
       details: details,
       ipAddress: getIpAddress(),
+      location: getUserLocation(),
+      browser: browserInfo.browser,
+      os: browserInfo.os
     };
     
     auditLogs.unshift(logEntry);
@@ -149,6 +189,7 @@ export const AuditLogService = {
     status: 'success' | 'warning' | 'error' = 'success',
     details?: string
   ): void => {
+    const browserInfo = getBrowserInfo();
     const logEntry: AuditLogEntry = {
       id: generateId(),
       type: 'admin',
@@ -159,6 +200,9 @@ export const AuditLogService = {
       status: status,
       details: details,
       ipAddress: getIpAddress(),
+      location: getUserLocation(),
+      browser: browserInfo.browser,
+      os: browserInfo.os
     };
     
     auditLogs.unshift(logEntry);
@@ -178,6 +222,46 @@ export const AuditLogService = {
   getLogsByType: (type: AuditLogType): AuditLogEntry[] => {
     return auditLogs.filter(log => log.type === type);
   },
+
+  /**
+   * Get logs by status
+   */
+  getLogsByStatus: (status: 'success' | 'warning' | 'error'): AuditLogEntry[] => {
+    return auditLogs.filter(log => log.status === status);
+  },
+
+  /**
+   * Get logs by resource ID
+   */
+  getLogsByResourceId: (resourceId: string): AuditLogEntry[] => {
+    return auditLogs.filter(log => log.resourceId === resourceId);
+  },
+
+  /**
+   * Get logs by user
+   */
+  getLogsByUser: (user: string): AuditLogEntry[] => {
+    return auditLogs.filter(log => log.user === user);
+  },
+
+  /**
+   * Get logs by date range
+   */
+  getLogsByDateRange: (startDate: Date, endDate: Date): AuditLogEntry[] => {
+    return auditLogs.filter(log => {
+      const logDate = new Date(log.timestamp);
+      return logDate >= startDate && logDate <= endDate;
+    });
+  },
+
+  /**
+   * Clear all logs
+   * In a real HIPAA-compliant system, this would be restricted or unavailable
+   * as audit logs should typically be immutable
+   */
+  clearLogs: (): void => {
+    auditLogs = [];
+  }
 };
 
 export default AuditLogService;
