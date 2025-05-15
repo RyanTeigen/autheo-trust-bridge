@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import PatientSearch from '@/components/emr/PatientSearch';
 import PatientDetails from '@/components/emr/PatientDetails';
 import HealthDataChart from '@/components/emr/HealthDataChart';
+import { AuditLogService } from '@/services/AuditLogService';
 
 // Mock health data for visualization
 const mockBloodPressureData = [
@@ -32,16 +33,65 @@ const mockGlucoseData = [
   { date: '2025-05-10', value: 98 },
 ];
 
+// Mock patient mapping - in a real app this would be fetched from an API
+const patientNameMap: Record<string, string> = {
+  'PAT001': 'John Smith',
+  'PAT002': 'Maria Garcia',
+  'PAT003': 'Robert Johnson',
+  'PAT004': 'Jessica Williams',
+  'PAT005': 'David Lee',
+};
+
 const PatientRecordsPage = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Log page access when component mounts
+  useEffect(() => {
+    AuditLogService.logSecurityEvent(
+      'access',
+      'Accessed patient records page',
+      'success',
+      'Initial page load'
+    );
+  }, []);
+
   const handleSelectPatient = (patientId: string) => {
+    const patientName = patientNameMap[patientId] || 'Unknown Patient';
+    
     setSelectedPatientId(patientId);
     toast({
       title: "Patient Selected",
       description: `Patient ID: ${patientId}`,
     });
+    
+    // Log this access in the audit system
+    AuditLogService.logPatientAccess(
+      patientId,
+      patientName,
+      'Viewed patient record',
+      'success',
+      'Selected from patient search'
+    );
+  };
+
+  const handleTimeRangeChange = (range: string) => {
+    if (selectedPatientId) {
+      const patientName = patientNameMap[selectedPatientId] || 'Unknown Patient';
+      
+      toast({
+        title: "Time Range Changed",
+        description: `New range: ${range}`,
+      });
+      
+      // Log this access in the audit system
+      AuditLogService.logPatientAccess(
+        selectedPatientId,
+        patientName,
+        `Changed data view time range to ${range}`,
+        'success'
+      );
+    }
   };
 
   return (
@@ -80,12 +130,7 @@ const PatientRecordsPage = () => {
                 minValue={90}
                 maxValue={140}
                 timeRange="1m"
-                onTimeRangeChange={(range) => {
-                  toast({
-                    title: "Time Range Changed",
-                    description: `New range: ${range}`,
-                  });
-                }}
+                onTimeRangeChange={handleTimeRangeChange}
               />
               
               <HealthDataChart 
@@ -97,12 +142,7 @@ const PatientRecordsPage = () => {
                 minValue={70}
                 maxValue={120}
                 timeRange="1m"
-                onTimeRangeChange={(range) => {
-                  toast({
-                    title: "Time Range Changed",
-                    description: `New range: ${range}`,
-                  });
-                }}
+                onTimeRangeChange={handleTimeRangeChange}
               />
             </div>
           </div>

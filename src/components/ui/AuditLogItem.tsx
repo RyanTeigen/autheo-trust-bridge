@@ -2,8 +2,9 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { Shield, ShieldAlert, User, FileText, Clock } from 'lucide-react';
 
-export type AuditLogType = 'access' | 'disclosure' | 'breach' | 'admin' | 'amendment';
+export type AuditLogType = 'access' | 'disclosure' | 'breach' | 'admin' | 'amendment' | 'login' | 'logout';
 
 export interface AuditLogItemProps {
   id: string;
@@ -13,6 +14,8 @@ export interface AuditLogItemProps {
   action: string;
   resource: string;
   status: 'success' | 'warning' | 'error';
+  details?: string;
+  ipAddress?: string;
   className?: string;
 }
 
@@ -23,6 +26,8 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
   action,
   resource,
   status,
+  details,
+  ipAddress,
   className,
 }) => {
   const getStatusColor = () => {
@@ -40,6 +45,20 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
       case 'breach': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
       case 'admin': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
       case 'amendment': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300';
+      case 'login': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'logout': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    }
+  };
+
+  const getTypeIcon = () => {
+    switch (type) {
+      case 'access': return <FileText className="h-4 w-4 mr-1" />;
+      case 'disclosure': return <User className="h-4 w-4 mr-1" />;
+      case 'breach': return <ShieldAlert className="h-4 w-4 mr-1" />;
+      case 'admin': return <Shield className="h-4 w-4 mr-1" />;
+      case 'amendment': return <FileText className="h-4 w-4 mr-1" />;
+      case 'login': return <User className="h-4 w-4 mr-1" />;
+      case 'logout': return <User className="h-4 w-4 mr-1" />;
     }
   };
 
@@ -49,7 +68,10 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
         <div className="flex-1">
           <div className="flex flex-wrap gap-2 mb-2">
             <Badge variant="outline" className={getTypeColor()}>
-              {type}
+              <span className="flex items-center">
+                {getTypeIcon()}
+                {type}
+              </span>
             </Badge>
             <Badge variant="outline" className={getStatusColor()}>
               {status}
@@ -57,10 +79,17 @@ export const AuditLogItem: React.FC<AuditLogItemProps> = ({
           </div>
           <p className="font-medium">{action}</p>
           <p className="text-sm text-muted-foreground mt-1">Resource: {resource}</p>
+          {details && (
+            <p className="text-sm text-muted-foreground mt-1">{details}</p>
+          )}
         </div>
         <div className="flex flex-col items-start md:items-end text-sm text-muted-foreground">
-          <span>{new Date(timestamp).toLocaleString()}</span>
+          <span className="flex items-center">
+            <Clock className="h-4 w-4 mr-1" />
+            {new Date(timestamp).toLocaleString()}
+          </span>
           <span>User: {user}</span>
+          {ipAddress && <span>IP: {ipAddress}</span>}
         </div>
       </div>
     </div>

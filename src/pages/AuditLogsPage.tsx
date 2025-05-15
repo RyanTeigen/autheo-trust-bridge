@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Search, Filter, Download, Clock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Download, Clock, Shield, File } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,80 +13,46 @@ import {
 } from '@/components/ui/select';
 import AuditLogItem, { AuditLogItemProps, AuditLogType } from '@/components/ui/AuditLogItem';
 import { useToast } from '@/hooks/use-toast';
+import { AuditLogService } from '@/services/AuditLogService';
 
 const AuditLogsPage = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
+  const [timeframe, setTimeframe] = useState<string>('24h');
+  const [auditLogs, setAuditLogs] = useState<AuditLogItemProps[]>([]);
   
-  // Mock data for demo
-  const auditLogs: AuditLogItemProps[] = [
-    {
-      id: '1',
-      type: 'access',
-      timestamp: new Date().toISOString(),
-      user: 'Dr. Sarah Johnson',
-      action: 'Viewed patient record',
-      resource: 'Patient #12345',
-      status: 'success',
-    },
-    {
-      id: '2',
-      type: 'disclosure',
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      user: 'Patient Jane Smith',
-      action: 'Shared lab results',
-      resource: 'Lab Report #789',
-      status: 'success',
-    },
-    {
-      id: '3',
-      type: 'breach',
-      timestamp: new Date(Date.now() - 7200000).toISOString(),
-      user: 'Unknown',
-      action: 'Failed login attempt',
-      resource: 'Admin Portal',
-      status: 'error',
-    },
-    {
-      id: '4',
-      type: 'admin',
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-      user: 'Admin Michael Brown',
-      action: 'Updated system policies',
-      resource: 'Retention Policy',
-      status: 'success',
-    },
-    {
-      id: '5',
-      type: 'amendment',
-      timestamp: new Date(Date.now() - 172800000).toISOString(),
-      user: 'Patient Robert Davis',
-      action: 'Requested record amendment',
-      resource: 'Allergy Information',
-      status: 'warning',
-    },
-    {
-      id: '6',
-      type: 'access',
-      timestamp: new Date(Date.now() - 259200000).toISOString(),
-      user: 'Dr. Emily Wilson',
-      action: 'Emergency access',
-      resource: 'Patient #67890',
-      status: 'warning',
-    },
-    {
-      id: '7',
-      type: 'disclosure',
-      timestamp: new Date(Date.now() - 345600000).toISOString(),
-      user: 'System',
-      action: 'Automatic data sync',
-      resource: 'Epic EMR',
-      status: 'success',
-    },
-  ];
+  // Load audit logs on component mount
+  useEffect(() => {
+    // Log the access to the audit logs page itself
+    AuditLogService.logAdminAction(
+      'Viewed audit logs',
+      'Audit Logs Page',
+      'success'
+    );
+    
+    // Get the logs from our service
+    // In a real app, this would fetch from an API with pagination
+    const logs = AuditLogService.getLogs();
+    setAuditLogs(logs);
 
-  // Filter logs based on search query and type
+    // If no logs exist yet in our mock system, add some sample logs
+    if (logs.length === 0) {
+      // Add some sample audit logs for demonstration
+      AuditLogService.logPatientAccess('PAT001', 'John Smith', 'Viewed patient record', 'success');
+      AuditLogService.logPatientAccess('PAT002', 'Maria Garcia', 'Updated medication list', 'success');
+      AuditLogService.logDisclosure('PAT003', 'Robert Johnson', 'Dr. Williams', 'Referral for specialist consultation');
+      AuditLogService.logAmendment('PAT001', 'John Smith', 'Allergy List', 'None', 'Penicillin');
+      AuditLogService.logSecurityEvent('login', 'User login', 'success');
+      AuditLogService.logSecurityEvent('login', 'Failed login attempt', 'error', '3 incorrect password attempts');
+      AuditLogService.logAdminAction('Updated system settings', 'Retention Policy', 'success');
+      
+      // Update our state with the newly created logs
+      setAuditLogs(AuditLogService.getLogs());
+    }
+  }, []);
+
+  // Filter logs based on search query, type, and timeframe
   const filteredLogs = auditLogs.filter(log => {
     const matchesSearch = 
       searchQuery === '' || 
@@ -96,14 +62,62 @@ const AuditLogsPage = () => {
       
     const matchesType = filterType === 'all' || log.type === filterType;
     
-    return matchesSearch && matchesType;
+    // Apply timeframe filter - this would be more sophisticated in a real app
+    const logDate = new Date(log.timestamp);
+    const now = new Date();
+    
+    let matchesTimeframe = true;
+    if (timeframe === '24h') {
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      matchesTimeframe = logDate >= yesterday;
+    } else if (timeframe === '7d') {
+      const lastWeek = new Date(now);
+      lastWeek.setDate(now.getDate() - 7);
+      matchesTimeframe = logDate >= lastWeek;
+    } else if (timeframe === '30d') {
+      const lastMonth = new Date(now);
+      lastMonth.setDate(now.getDate() - 30);
+      matchesTimeframe = logDate >= lastMonth;
+    }
+    
+    return matchesSearch && matchesType && matchesTimeframe;
   });
 
   const handleDownload = () => {
+    // In a real app, this would generate a properly formatted audit log export
+    // that complies with HIPAA requirements
+    
+    // Log this administrative action
+    AuditLogService.logAdminAction(
+      'Exported audit logs',
+      'Audit System',
+      'success',
+      `${filteredLogs.length} logs exported`
+    );
+    
     toast({
       title: "Export Started",
-      description: "Audit logs are being prepared for download.",
+      description: `${filteredLogs.length} audit logs are being prepared for download.`,
     });
+  };
+
+  const getComplianceStatus = () => {
+    // A simple way to show compliance status - in a real app this would be more sophisticated
+    if (auditLogs.length > 0) {
+      return (
+        <div className="flex items-center">
+          <Shield className="h-5 w-5 text-green-500 mr-2" />
+          <span className="text-sm font-medium">HIPAA Compliant Audit System Active</span>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center">
+        <Shield className="h-5 w-5 text-amber-500 mr-2" />
+        <span className="text-sm font-medium">No audit records - Compliance at risk</span>
+      </div>
+    );
   };
 
   return (
@@ -114,16 +128,30 @@ const AuditLogsPage = () => {
           <p className="text-muted-foreground">
             Complete, immutable record of all system activity
           </p>
+          {getComplianceStatus()}
         </div>
-        <Button variant="outline" onClick={handleDownload} className="flex items-center gap-2">
-          <Download className="h-4 w-4" />
-          Export Logs
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button variant="outline" onClick={handleDownload} className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export Logs
+          </Button>
+          <Select value={timeframe} onValueChange={setTimeframe}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Last 24 hours" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="24h">Last 24 hours</SelectItem>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="all">All time</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Audit Trail</CardTitle>
+          <CardTitle>HIPAA Audit Trail</CardTitle>
           <CardDescription>
             Tamper-proof record of all data access, disclosures, and system events
           </CardDescription>
@@ -155,6 +183,8 @@ const AuditLogsPage = () => {
                   <SelectItem value="breach">Security Events</SelectItem>
                   <SelectItem value="admin">Admin Actions</SelectItem>
                   <SelectItem value="amendment">Amendments</SelectItem>
+                  <SelectItem value="login">Login Events</SelectItem>
+                  <SelectItem value="logout">Logout Events</SelectItem>
                 </SelectContent>
               </Select>
             </div>
