@@ -12,7 +12,7 @@ const ComplianceProgressIndicator: React.FC<ComplianceProgressIndicatorProps> = 
   score, 
   className 
 }) => {
-  const getColor = () => {
+  const getColorClass = () => {
     if (score >= 90) return 'bg-green-500';
     if (score >= 70) return 'bg-amber-500';
     return 'bg-red-500';
@@ -24,11 +24,12 @@ const ComplianceProgressIndicator: React.FC<ComplianceProgressIndicatorProps> = 
         <span className="text-sm font-medium">Compliance Score</span>
         <span className="text-sm font-bold">{score}%</span>
       </div>
-      <Progress 
-        value={score} 
-        className="h-2" 
-        indicatorClassName={getColor()} 
-      />
+      <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+        <div 
+          className={`h-full absolute top-0 left-0 transition-all ${getColorClass()}`}
+          style={{ width: `${score}%` }}
+        />
+      </div>
     </div>
   );
 };

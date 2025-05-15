@@ -25,7 +25,8 @@ import {
 } from 'lucide-react';
 
 export const AppSidebar: React.FC = () => {
-  const { collapsed } = useSidebar();
+  const sidebar = useSidebar();
+  const isCollapsed = sidebar?.isCollapsed || false;
   
   // Navigation link styling helper
   const getLinkClass = ({ isActive }: { isActive: boolean }) => {
@@ -87,14 +88,14 @@ export const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar
-      className={`border-r ${collapsed ? 'w-14' : 'w-60'}`}
-      collapsible
+      className={`border-r ${isCollapsed ? 'w-14' : 'w-60'}`}
+      variant="icon"
     >
       <SidebarContent className="py-4">
         {/* Admin Navigation */}
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {!collapsed && "Administration"}
+            {!isCollapsed && "Administration"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -103,7 +104,7 @@ export const AppSidebar: React.FC = () => {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} end className={getLinkClass}>
                       <item.icon className="h-5 w-5 mr-2 flex-shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -115,7 +116,7 @@ export const AppSidebar: React.FC = () => {
         {/* Patient Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {!collapsed && "Patient Access"}
+            {!isCollapsed && "Patient Access"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -124,7 +125,7 @@ export const AppSidebar: React.FC = () => {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} className={getLinkClass}>
                       <item.icon className="h-5 w-5 mr-2 flex-shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -136,7 +137,7 @@ export const AppSidebar: React.FC = () => {
         {/* Settings Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {!collapsed && "System"}
+            {!isCollapsed && "System"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -145,7 +146,7 @@ export const AppSidebar: React.FC = () => {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} className={getLinkClass}>
                       <item.icon className="h-5 w-5 mr-2 flex-shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, UserRound, SidebarTrigger } from 'lucide-react';
+import { Bell, UserRound, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SidebarTrigger as SidebarTriggerComponent } from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   DropdownMenu,
@@ -19,9 +19,9 @@ export const AppHeader: React.FC = () => {
   return (
     <header className="h-16 border-b flex items-center justify-between px-4">
       <div className="flex items-center">
-        <SidebarTriggerComponent className="mr-4">
-          <SidebarTrigger className="h-5 w-5" />
-        </SidebarTriggerComponent>
+        <SidebarTrigger className="mr-4">
+          <Menu className="h-5 w-5" />
+        </SidebarTrigger>
         <Link to="/" className="flex items-center">
           <AutheoLogo className="h-8 w-auto mr-2" />
           <span className="font-bold text-xl text-autheo-primary">Autheo</span>

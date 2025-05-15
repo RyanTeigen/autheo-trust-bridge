@@ -7,7 +7,7 @@ import { AppHeader } from './AppHeader';
 
 const MainLayout: React.FC = () => {
   return (
-    <SidebarProvider collapsedWidth={56}>
+    <SidebarProvider>
       <div className="min-h-screen flex flex-col w-full">
         <AppHeader />
         <div className="flex flex-1 w-full">
