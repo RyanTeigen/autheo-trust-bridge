@@ -1,31 +1,56 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SOAPNoteForm from '@/components/emr/SOAPNoteForm';
+import RecentNotesList from '@/components/emr/RecentNotesList';
 
 const MedicalNotesPage = () => {
+  const [activeTab, setActiveTab] = useState('create');
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-2">Medical Notes</h1>
         <p className="text-muted-foreground">
-          Manage clinical notes and patient documentation
+          Create and manage clinical documentation for patient records
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Clinical Documentation</CardTitle>
-          <CardDescription>
-            Create and manage medical notes for patient records
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            This section will provide tools for creating, editing, and managing clinical notes.
-            Implementation coming in the next development phase.
-          </p>
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create">Create New Note</TabsTrigger>
+          <TabsTrigger value="recent">Recent Notes</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="create" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>SOAP Note Documentation</CardTitle>
+              <CardDescription>
+                Create a structured clinical note following the SOAP format
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SOAPNoteForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="recent" className="space-y-6 mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Clinical Notes</CardTitle>
+              <CardDescription>
+                View and manage recently created clinical documentation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RecentNotesList />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
