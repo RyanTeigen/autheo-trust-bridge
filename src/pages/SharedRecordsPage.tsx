@@ -102,7 +102,7 @@ const SharedRecordsPage = () => {
       sharedDate: new Date().toISOString().slice(0, 10),
       expiryDate: values.expiryDate ? values.expiryDate.toISOString().slice(0, 10) : '',
       accessLevel: values.accessLevel,
-      status: 'active'
+      status: 'active' as const  // Explicitly typing as a literal to fix the issue
     };
     
     // Add the new record to the list
@@ -121,7 +121,7 @@ const SharedRecordsPage = () => {
   const handleRevokeAccess = (id: string) => {
     // Update the status of the record to expired
     const updatedRecords = sharedRecords.map(record => 
-      record.id === id ? { ...record, status: 'expired' } : record
+      record.id === id ? { ...record, status: 'expired' as const } : record
     );
     
     setSharedRecords(updatedRecords);
