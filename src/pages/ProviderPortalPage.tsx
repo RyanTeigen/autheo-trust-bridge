@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarIcon, ClipboardCheck, Clock, FileText, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import PatientSearch from '@/components/emr/PatientSearch';
+import Badge from '@/components/emr/Badge';
 
 // Mock data for scheduled appointments
 const mockAppointments = [
