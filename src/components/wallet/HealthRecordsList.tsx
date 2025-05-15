@@ -1,6 +1,8 @@
 
 import React from 'react';
 import HealthRecordCard, { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileSearch } from 'lucide-react';
 
 interface HealthRecordsListProps {
   records: Omit<HealthRecordCardProps, 'onToggleShare'>[];
@@ -29,6 +31,17 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
         return records;
     }
   }, [records, filter]);
+
+  if (filteredRecords.length === 0) {
+    return (
+      <Alert variant="default" className="bg-slate-50">
+        <FileSearch className="h-4 w-4" />
+        <AlertDescription>
+          No records found. {filter !== 'all' && `Try switching to a different filter or tab.`}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
