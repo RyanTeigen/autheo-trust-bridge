@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import ProviderDashboard from '@/components/emr/ProviderDashboard';
 
 const ProviderPortalPage = () => {
   return (
@@ -20,10 +21,7 @@ const ProviderPortalPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            This provider portal will allow healthcare providers to access patient records
-            they've been granted permission to view. Coming in the next development phase.
-          </p>
+          <ProviderDashboard />
         </CardContent>
       </Card>
     </div>

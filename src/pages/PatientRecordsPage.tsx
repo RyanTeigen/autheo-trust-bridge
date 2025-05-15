@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import PatientRecord from '@/components/emr/PatientRecord';
 
 const PatientRecordsPage = () => {
   const { toast } = useToast();
@@ -11,22 +13,22 @@ const PatientRecordsPage = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-2">Patient Records</h1>
         <p className="text-muted-foreground">
-          Securely access and manage patient health information
+          View and manage patient health information
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Provider Access</CardTitle>
+          <CardTitle>Patient Dashboard</CardTitle>
           <CardDescription>
-            Manage patient records with appropriate authorization
+            Access your comprehensive health record
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            This section will display patient records that you have been granted access to.
-            Implementation coming in the next development phase.
-          </p>
+          <PatientRecord 
+            id="P12345"
+            patientName="John Doe"
+          />
         </CardContent>
       </Card>
     </div>

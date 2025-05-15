@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import HealthRecordCard, { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
 import { useToast } from '@/hooks/use-toast';
+import HealthRecordsList from '@/components/wallet/HealthRecordsList';
+import { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
 
 const WalletPage = () => {
   const { toast } = useToast();
@@ -116,58 +117,35 @@ const WalletPage = () => {
             </TabsList>
             
             <TabsContent value="all" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {healthRecords.map(record => (
-                  <HealthRecordCard
-                    key={record.id}
-                    {...record}
-                    onToggleShare={handleToggleShare}
-                  />
-                ))}
-              </div>
+              <HealthRecordsList 
+                records={healthRecords} 
+                onToggleShare={handleToggleShare} 
+                filter="all" 
+              />
             </TabsContent>
             
             <TabsContent value="shared" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {healthRecords
-                  .filter(record => record.isShared)
-                  .map(record => (
-                    <HealthRecordCard
-                      key={record.id}
-                      {...record}
-                      onToggleShare={handleToggleShare}
-                    />
-                  ))}
-              </div>
+              <HealthRecordsList 
+                records={healthRecords} 
+                onToggleShare={handleToggleShare} 
+                filter="shared" 
+              />
             </TabsContent>
             
             <TabsContent value="private" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {healthRecords
-                  .filter(record => !record.isShared)
-                  .map(record => (
-                    <HealthRecordCard
-                      key={record.id}
-                      {...record}
-                      onToggleShare={handleToggleShare}
-                    />
-                  ))}
-              </div>
+              <HealthRecordsList 
+                records={healthRecords} 
+                onToggleShare={handleToggleShare} 
+                filter="private" 
+              />
             </TabsContent>
             
             <TabsContent value="recent" className="mt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {healthRecords
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  .slice(0, 3)
-                  .map(record => (
-                    <HealthRecordCard
-                      key={record.id}
-                      {...record}
-                      onToggleShare={handleToggleShare}
-                    />
-                  ))}
-              </div>
+              <HealthRecordsList 
+                records={healthRecords} 
+                onToggleShare={handleToggleShare} 
+                filter="recent" 
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
