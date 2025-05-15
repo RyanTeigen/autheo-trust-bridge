@@ -26,7 +26,7 @@ import {
 
 export const AppSidebar: React.FC = () => {
   const sidebar = useSidebar();
-  const isCollapsed = sidebar?.isCollapsed || false;
+  const isCollapsed = sidebar?.state === "collapsed";
   
   // Navigation link styling helper
   const getLinkClass = ({ isActive }: { isActive: boolean }) => {
@@ -89,7 +89,7 @@ export const AppSidebar: React.FC = () => {
   return (
     <Sidebar
       className={`border-r ${isCollapsed ? 'w-14' : 'w-60'}`}
-      variant="icon"
+      variant="sidebar"
     >
       <SidebarContent className="py-4">
         {/* Admin Navigation */}
