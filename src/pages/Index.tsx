@@ -1,208 +1,204 @@
 
 import React from 'react';
-import { Activity, ClipboardCheck, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Heart, ClipboardCheck, Shield, Wallet, Users, FileCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import ComplianceProgressIndicator from '@/components/ui/ComplianceProgressIndicator';
-import AuditLogItem from '@/components/ui/AuditLogItem';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 
 const Index = () => {
-  // Mock data for demo
+  const { toast } = useToast();
+
+  // Mock health records count
+  const healthRecords = {
+    total: 17,
+    shared: 5,
+    pending: 2
+  };
+
+  // Mock compliance score
   const complianceScore = 92;
-  const recentAudits = [
-    {
-      id: '1',
-      type: 'access' as const,
-      timestamp: new Date().toISOString(),
-      user: 'Dr. Sarah Johnson',
-      action: 'Viewed patient record',
-      resource: 'Patient #12345',
-      status: 'success' as const,
-    },
-    {
-      id: '2',
-      type: 'disclosure' as const,
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      user: 'Patient Jane Smith',
-      action: 'Shared lab results',
-      resource: 'Lab Report #789',
-      status: 'success' as const,
-    },
-    {
-      id: '3',
-      type: 'breach' as const,
-      timestamp: new Date(Date.now() - 7200000).toISOString(),
-      user: 'Unknown',
-      action: 'Failed login attempt',
-      resource: 'Admin Portal',
-      status: 'error' as const,
-    },
-  ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">My Health Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome to Autheo Trust & Compliance Auditor
+          Securely manage and share your health records
         </p>
       </div>
 
-      {/* Metrics Section */}
+      {/* Key Metrics Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Compliance Status</CardTitle>
+            <CardTitle className="text-sm font-medium">Health Records</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
-              <ShieldCheck className="h-8 w-8 text-green-500 mr-3" />
+              <Heart className="h-8 w-8 text-red-500 mr-3" />
+              <div>
+                <div className="text-2xl font-bold">{healthRecords.total}</div>
+                <p className="text-xs text-muted-foreground">Total Records</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Shared Records</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <FileCheck className="h-8 w-8 text-green-500 mr-3" />
+              <div>
+                <div className="text-2xl font-bold">{healthRecords.shared}</div>
+                <p className="text-xs text-muted-foreground">Active Shares</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Smart Wallet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Wallet className="h-8 w-8 text-autheo-primary mr-3" />
+              <div>
+                <div className="text-2xl font-bold">Secured</div>
+                <p className="text-xs text-muted-foreground">Decentralized Storage</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">HIPAA Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center">
+              <Shield className="h-8 w-8 text-amber-500 mr-3" />
               <div>
                 <div className="text-2xl font-bold">{complianceScore}%</div>
-                <p className="text-xs text-muted-foreground">HIPAA Compliant</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Patient Records</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Activity className="h-8 w-8 text-autheo-primary mr-3" />
-              <div>
-                <div className="text-2xl font-bold">1,284</div>
-                <p className="text-xs text-muted-foreground">Total Patient Records</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Audit Logs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <ClipboardCheck className="h-8 w-8 text-autheo-secondary mr-3" />
-              <div>
-                <div className="text-2xl font-bold">5,394</div>
-                <p className="text-xs text-muted-foreground">Events in last 24hrs</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Security Incidents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <AlertTriangle className="h-8 w-8 text-amber-500 mr-3" />
-              <div>
-                <div className="text-2xl font-bold">3</div>
-                <p className="text-xs text-muted-foreground">Open incidents</p>
+                <p className="text-xs text-muted-foreground">Compliance Score</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Compliance Progress */}
+      {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>HIPAA Compliance Status</CardTitle>
+          <CardTitle>Quick Actions</CardTitle>
           <CardDescription>
-            Real-time compliance status across all HIPAA requirements
+            Manage your health records securely
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6">
-            <ComplianceProgressIndicator score={complianceScore} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button asChild className="w-full">
+              <Link to="/wallet" className="flex items-center justify-center">
+                <Heart className="mr-2 h-4 w-4" />
+                View Health Records
+              </Link>
+            </Button>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Privacy Rule</span>
-                  <span className="text-sm font-medium">100%</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 rounded-full" style={{ width: '100%' }}></div>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Security Rule</span>
-                  <span className="text-sm font-medium">94%</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 rounded-full" style={{ width: '94%' }}></div>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Breach Notification</span>
-                  <span className="text-sm font-medium">100%</span>
-                </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 rounded-full" style={{ width: '100%' }}></div>
-                </div>
-              </div>
+            <Button asChild variant="outline" className="w-full">
+              <Link to="/provider-portal" className="flex items-center justify-center">
+                <Users className="mr-2 h-4 w-4" />
+                Provider Access
+              </Link>
+            </Button>
+            
+            <Button asChild variant="secondary" className="w-full">
+              <Link to="/compliance" className="flex items-center justify-center">
+                <ClipboardCheck className="mr-2 h-4 w-4" />
+                Compliance Report
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Right of Access</span>
-                  <span className="text-sm font-medium">100%</span>
+      {/* Recent Activity and Record Summary */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Recent Health Records</CardTitle>
+            <CardDescription>
+              Your latest medical information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-3 border rounded-md flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Annual Physical</p>
+                  <p className="text-sm text-muted-foreground">Dr. Emily Chen - 05/10/2025</p>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-green-500 rounded-full" style={{ width: '100%' }}></div>
-                </div>
+                <Button size="sm" variant="ghost">View</Button>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Minimum Necessary</span>
-                  <span className="text-sm font-medium">83%</span>
+              <div className="p-3 border rounded-md flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Blood Test Results</p>
+                  <p className="text-sm text-muted-foreground">Metro Lab - 05/02/2025</p>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '83%' }}></div>
-                </div>
+                <Button size="sm" variant="ghost">View</Button>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm">Accounting of Disclosures</span>
-                  <span className="text-sm font-medium">78%</span>
+              <div className="p-3 border rounded-md flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Vaccination Record</p>
+                  <p className="text-sm text-muted-foreground">City Health Clinic - 04/22/2025</p>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-500 rounded-full" style={{ width: '78%' }}></div>
-                </div>
+                <Button size="sm" variant="ghost">View</Button>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recent Audit Logs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>
-            Last 24 hours of audit logs and compliance events
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentAudits.map((audit) => (
-              <AuditLogItem key={audit.id} {...audit} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Approved Access</CardTitle>
+            <CardDescription>
+              Providers with access to your records
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-3 border rounded-md flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Dr. Emily Chen</p>
+                  <p className="text-sm text-muted-foreground">Primary Care - Full Access</p>
+                </div>
+                <Button size="sm" variant="outline">Manage</Button>
+              </div>
+              
+              <div className="p-3 border rounded-md flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Dr. James Wilson</p>
+                  <p className="text-sm text-muted-foreground">Cardiology - Limited Access</p>
+                </div>
+                <Button size="sm" variant="outline">Manage</Button>
+              </div>
+              
+              <div className="p-3 border rounded-md flex justify-between items-center">
+                <div>
+                  <p className="font-medium">Metro General Hospital</p>
+                  <p className="text-sm text-muted-foreground">Emergency - Temporary Access</p>
+                </div>
+                <Button size="sm" variant="outline">Manage</Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

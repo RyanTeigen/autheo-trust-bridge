@@ -21,7 +21,9 @@ import {
   Activity,
   Settings,
   Shield,
-  Wallet
+  Wallet,
+  BookOpen,
+  Heart
 } from 'lucide-react';
 
 export const AppSidebar: React.FC = () => {
@@ -37,29 +39,11 @@ export const AppSidebar: React.FC = () => {
     }`;
   };
 
-  const adminItems = [
-    { 
-      title: "Dashboard", 
-      path: "/", 
-      icon: Activity 
-    },
-    { 
-      title: "Compliance", 
-      path: "/compliance", 
-      icon: Shield 
-    },
-    { 
-      title: "Audit Logs", 
-      path: "/audit-logs", 
-      icon: ClipboardCheck 
-    }
-  ];
-
   const patientItems = [
     { 
-      title: "My Data", 
-      path: "/my-data", 
-      icon: Database 
+      title: "My Health Records", 
+      path: "/", 
+      icon: Heart 
     },
     { 
       title: "Smart Wallet", 
@@ -73,11 +57,34 @@ export const AppSidebar: React.FC = () => {
     }
   ];
 
-  const settingsItems = [
+  const providerItems = [
     { 
-      title: "Users", 
-      path: "/users", 
+      title: "Patient Records", 
+      path: "/patient-records", 
+      icon: Database 
+    },
+    { 
+      title: "Provider Portal", 
+      path: "/provider-portal", 
       icon: Users 
+    },
+    { 
+      title: "Medical Notes", 
+      path: "/medical-notes", 
+      icon: BookOpen 
+    }
+  ];
+
+  const complianceItems = [
+    { 
+      title: "Compliance", 
+      path: "/compliance", 
+      icon: Shield 
+    },
+    { 
+      title: "Audit Logs", 
+      path: "/audit-logs", 
+      icon: ClipboardCheck 
     },
     { 
       title: "Settings", 
@@ -92,14 +99,14 @@ export const AppSidebar: React.FC = () => {
       variant="sidebar"
     >
       <SidebarContent className="py-4">
-        {/* Admin Navigation */}
+        {/* Patient Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {!isCollapsed && "Administration"}
+            {!isCollapsed && "Patient Access"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {adminItems.map((item) => (
+              {patientItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} end className={getLinkClass}>
@@ -113,14 +120,14 @@ export const AppSidebar: React.FC = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Patient Navigation */}
+        {/* Provider Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {!isCollapsed && "Patient Access"}
+            {!isCollapsed && "Provider Access"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {patientItems.map((item) => (
+              {providerItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} className={getLinkClass}>
@@ -134,14 +141,14 @@ export const AppSidebar: React.FC = () => {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Settings Navigation */}
+        {/* Compliance Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-4">
-            {!isCollapsed && "System"}
+            {!isCollapsed && "Compliance"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {settingsItems.map((item) => (
+              {complianceItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} className={getLinkClass}>

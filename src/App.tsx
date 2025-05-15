@@ -10,6 +10,11 @@ import CompliancePage from "./pages/CompliancePage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import WalletPage from "./pages/WalletPage";
 import NotFound from "./pages/NotFound";
+import PatientRecordsPage from "./pages/PatientRecordsPage";
+import ProviderPortalPage from "./pages/ProviderPortalPage";
+import MedicalNotesPage from "./pages/MedicalNotesPage";
+import SharedRecordsPage from "./pages/SharedRecordsPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient();
 
@@ -22,9 +27,14 @@ const App = () => (
         <Routes>
           <Route element={<MainLayout />}>
             <Route path="/" element={<Index />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/shared-records" element={<SharedRecordsPage />} />
+            <Route path="/patient-records" element={<PatientRecordsPage />} />
+            <Route path="/provider-portal" element={<ProviderPortalPage />} />
+            <Route path="/medical-notes" element={<MedicalNotesPage />} />
             <Route path="/compliance" element={<CompliancePage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />
-            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
