@@ -108,6 +108,16 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
   const appointments = upcomingAppointments?.length > 0 ? upcomingAppointments : defaultAppointments;
   const meds = medications?.length > 0 ? medications : defaultMedications;
   
+  // Mock data for health records summary
+  const healthRecordsData = {
+    total: 24,
+    shared: 8,
+    pending: 2
+  };
+
+  // Mock compliance score
+  const complianceScore = 92;
+
   const handleReschedule = (id: string) => {
     toast({
       title: "Appointment Rescheduling",
@@ -144,7 +154,10 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
             <CardDescription className="text-slate-300">Your recent health measurements</CardDescription>
           </CardHeader>
           <CardContent className="p-4">
-            <KeyMetrics />
+            <KeyMetrics 
+              healthRecords={healthRecordsData} 
+              complianceScore={complianceScore} 
+            />
             
             <div className="mt-4 grid grid-cols-2 gap-3">
               {metrics.map((metric, idx) => (
