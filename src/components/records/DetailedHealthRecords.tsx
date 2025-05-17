@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -111,7 +112,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
       <CardHeader>
         <CardTitle>My Health Records</CardTitle>
         <CardDescription>
@@ -120,7 +121,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="metrics" className="w-full">
-          <TabsList className="grid grid-cols-6 mb-4">
+          <TabsList className="grid grid-cols-6 mb-4 bg-slate-100 dark:bg-slate-800">
             <TabsTrigger value="metrics" className="flex items-center gap-1">
               <ChartBar className="h-4 w-4" /> Metrics
             </TabsTrigger>
@@ -156,12 +157,12 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {medications.length > 0 ? (
                 medications.map(med => (
-                  <Card key={med.id} className="overflow-hidden">
-                    <CardHeader className="pb-2 bg-slate-50">
+                  <Card key={med.id} className="overflow-hidden bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50">
+                    <CardHeader className="pb-2 bg-blue-100/70 dark:bg-blue-800/30">
                       <div className="flex justify-between items-start">
                         <div>
                           <CardTitle className="text-lg">{med.name}</CardTitle>
-                          <CardDescription>{med.dosage}, {med.frequency}</CardDescription>
+                          <CardDescription className="text-blue-700 dark:text-blue-300">{med.dosage}, {med.frequency}</CardDescription>
                         </div>
                         {getRefillStatusBadge(med.refillDate)}
                       </div>
@@ -169,21 +170,21 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
                     <CardContent className="pt-4 text-sm">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-muted-foreground">Started</p>
-                          <p className="font-medium flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <p className="text-blue-600 dark:text-blue-400">Started</p>
+                          <p className="font-medium flex items-center gap-1 text-blue-800 dark:text-blue-200">
+                            <Calendar className="h-3.5 w-3.5 text-blue-500" />
                             {new Date(med.startDate).toLocaleDateString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Refill Due</p>
-                          <p className="font-medium flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <p className="text-blue-600 dark:text-blue-400">Refill Due</p>
+                          <p className="font-medium flex items-center gap-1 text-blue-800 dark:text-blue-200">
+                            <Calendar className="h-3.5 w-3.5 text-blue-500" />
                             {new Date(med.refillDate).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
-                      <p className="mt-2 text-xs text-muted-foreground">
+                      <p className="mt-2 text-xs text-blue-600 dark:text-blue-400">
                         Prescribed by {med.prescribedBy}
                       </p>
                     </CardContent>
@@ -202,8 +203,8 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {diagnoses.length > 0 ? (
                 diagnoses.map(diagnosis => (
-                  <Card key={diagnosis.id} className="overflow-hidden">
-                    <CardHeader className="pb-2 bg-slate-50">
+                  <Card key={diagnosis.id} className="overflow-hidden bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/50">
+                    <CardHeader className="pb-2 bg-purple-100/70 dark:bg-purple-800/30">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{diagnosis.condition}</CardTitle>
                         {getDiagnosisStatusBadge(diagnosis.status)}
@@ -212,21 +213,21 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
                     <CardContent className="pt-4 text-sm">
                       <div className="flex justify-between">
                         <div>
-                          <p className="text-muted-foreground">Diagnosed</p>
-                          <p className="font-medium flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <p className="text-purple-600 dark:text-purple-400">Diagnosed</p>
+                          <p className="font-medium flex items-center gap-1 text-purple-800 dark:text-purple-200">
+                            <Calendar className="h-3.5 w-3.5 text-purple-500" />
                             {new Date(diagnosis.diagnosedDate).toLocaleDateString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Diagnosed By</p>
-                          <p className="font-medium">{diagnosis.diagnosedBy}</p>
+                          <p className="text-purple-600 dark:text-purple-400">Diagnosed By</p>
+                          <p className="font-medium text-purple-800 dark:text-purple-200">{diagnosis.diagnosedBy}</p>
                         </div>
                       </div>
                       {diagnosis.notes && (
                         <div className="mt-2">
-                          <p className="text-muted-foreground">Notes</p>
-                          <p className="mt-1 p-2 bg-slate-50 rounded">{diagnosis.notes}</p>
+                          <p className="text-purple-600 dark:text-purple-400">Notes</p>
+                          <p className="mt-1 p-2 bg-purple-100/50 dark:bg-purple-900/40 rounded text-purple-800 dark:text-purple-200">{diagnosis.notes}</p>
                         </div>
                       )}
                     </CardContent>
@@ -245,36 +246,36 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {immunizations.length > 0 ? (
                 immunizations.map(immunization => (
-                  <Card key={immunization.id} className="overflow-hidden">
-                    <CardHeader className="pb-2 bg-slate-50">
+                  <Card key={immunization.id} className="overflow-hidden bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/50">
+                    <CardHeader className="pb-2 bg-green-100/70 dark:bg-green-800/30">
                       <CardTitle className="text-lg">{immunization.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-4 text-sm">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-muted-foreground">Date</p>
-                          <p className="font-medium flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <p className="text-green-600 dark:text-green-400">Date</p>
+                          <p className="font-medium flex items-center gap-1 text-green-800 dark:text-green-200">
+                            <Calendar className="h-3.5 w-3.5 text-green-500" />
                             {new Date(immunization.date).toLocaleDateString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Administered By</p>
-                          <p className="font-medium">{immunization.administeredBy}</p>
+                          <p className="text-green-600 dark:text-green-400">Administered By</p>
+                          <p className="font-medium text-green-800 dark:text-green-200">{immunization.administeredBy}</p>
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4 mt-2">
                         {immunization.lotNumber && (
                           <div>
-                            <p className="text-muted-foreground">Lot Number</p>
-                            <p className="font-medium">{immunization.lotNumber}</p>
+                            <p className="text-green-600 dark:text-green-400">Lot Number</p>
+                            <p className="font-medium text-green-800 dark:text-green-200">{immunization.lotNumber}</p>
                           </div>
                         )}
                         {immunization.nextDose && (
                           <div>
-                            <p className="text-muted-foreground">Next Dose</p>
-                            <p className="font-medium">{new Date(immunization.nextDose).toLocaleDateString()}</p>
+                            <p className="text-green-600 dark:text-green-400">Next Dose</p>
+                            <p className="font-medium text-green-800 dark:text-green-200">{new Date(immunization.nextDose).toLocaleDateString()}</p>
                           </div>
                         )}
                       </div>
@@ -294,8 +295,8 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {medicalTests.length > 0 ? (
                 medicalTests.map(test => (
-                  <Card key={test.id} className="overflow-hidden">
-                    <CardHeader className="pb-2 bg-slate-50">
+                  <Card key={test.id} className="overflow-hidden bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50">
+                    <CardHeader className="pb-2 bg-amber-100/70 dark:bg-amber-800/30">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{test.name}</CardTitle>
                         {getTestStatusBadge(test.status)}
@@ -304,22 +305,22 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
                     <CardContent className="pt-4 text-sm">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-muted-foreground">Date</p>
-                          <p className="font-medium flex items-center gap-1">
-                            <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <p className="text-amber-600 dark:text-amber-400">Date</p>
+                          <p className="font-medium flex items-center gap-1 text-amber-800 dark:text-amber-200">
+                            <Calendar className="h-3.5 w-3.5 text-amber-500" />
                             {new Date(test.date).toLocaleDateString()}
                           </p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Ordered By</p>
-                          <p className="font-medium">{test.orderedBy}</p>
+                          <p className="text-amber-600 dark:text-amber-400">Ordered By</p>
+                          <p className="font-medium text-amber-800 dark:text-amber-200">{test.orderedBy}</p>
                         </div>
                       </div>
                       
                       {test.results && test.status === 'completed' && (
                         <div className="mt-3">
-                          <p className="text-muted-foreground">Results</p>
-                          <p className="mt-1 p-2 bg-slate-50 rounded">{test.results}</p>
+                          <p className="text-amber-600 dark:text-amber-400">Results</p>
+                          <p className="mt-1 p-2 bg-amber-100/50 dark:bg-amber-900/40 rounded text-amber-800 dark:text-amber-200">{test.results}</p>
                         </div>
                       )}
                     </CardContent>

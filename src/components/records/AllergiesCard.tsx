@@ -51,19 +51,19 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
+    <Card className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800/50">
+      <CardHeader className="bg-red-100/70 dark:bg-red-800/30">
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Pill className="h-5 w-5" /> Allergies
             </CardTitle>
-            <CardDescription>Your allergies and reactions</CardDescription>
+            <CardDescription className="text-red-700 dark:text-red-300">Your allergies and reactions</CardDescription>
           </div>
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-1"
+            className="gap-1 bg-red-100/50 hover:bg-red-200/70 dark:bg-red-800/50 dark:hover:bg-red-700/60"
             onClick={handleShare}
           >
             <Share className="h-4 w-4" />
@@ -75,15 +75,15 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
         {allergies.length > 0 ? (
           <div className="space-y-3">
             {allergies.map((allergy) => (
-              <div key={allergy.id} className="rounded-lg border p-3">
+              <div key={allergy.id} className="rounded-lg border border-red-200 dark:border-red-800/50 p-3 bg-red-50/50 dark:bg-red-900/30">
                 <div className="flex justify-between items-start mb-1">
-                  <h3 className="font-medium text-lg">{allergy.name}</h3>
+                  <h3 className="font-medium text-lg text-red-800 dark:text-red-200">{allergy.name}</h3>
                   {getSeverityBadge(allergy.severity)}
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">
+                <p className="text-sm text-red-700 dark:text-red-300 mb-2">
                   <span className="font-medium">Reaction:</span> {allergy.reaction}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-red-600 dark:text-red-400">
                   Diagnosed on {new Date(allergy.diagnosed).toLocaleDateString()}
                 </p>
               </div>
@@ -91,7 +91,7 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
           </div>
         ) : (
           <div className="py-8 text-center">
-            <p className="text-muted-foreground">No allergies recorded</p>
+            <p className="text-red-600 dark:text-red-400">No allergies recorded</p>
           </div>
         )}
       </CardContent>
