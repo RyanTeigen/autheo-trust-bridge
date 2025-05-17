@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { AuditLogService } from '@/services/AuditLogService';
+import { supabase } from '@/integrations/supabase/client';
 
 const formSchema = z.object({
   patientId: z.string().min(1, { message: "Patient ID is required" }),
@@ -27,6 +28,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const SOAPNoteForm = () => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -43,46 +45,97 @@ const SOAPNoteForm = () => {
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    // In a real application, this would save to a database
-    console.log('SOAP Note Created:', values);
-    
-    // Log the creation for HIPAA compliance
-    AuditLogService.logPatientAccess(
-      values.patientId,
-      values.patientName,
-      'Created SOAP note',
-      'success',
-      values.shareWithPatient ? 'Note shared with patient' : 'Note created for internal use'
-    );
-    
-    // Save to localStorage for demo purposes
-    const existingNotes = JSON.parse(localStorage.getItem('soapNotes') || '[]');
-    const newNote = {
-      id: Date.now().toString(),
-      ...values,
-      createdAt: new Date().toISOString(),
-    };
-    localStorage.setItem('soapNotes', JSON.stringify([newNote, ...existingNotes]));
-    
-    // Show success message
-    toast({
-      title: "SOAP Note Created",
-      description: `Clinical documentation for ${values.patientName} has been saved${values.shareWithPatient ? ' and shared' : ''}.`,
-    });
-    
-    // Reset form for next entry
-    form.reset({
-      patientId: '',
-      patientName: '',
-      visitDate: new Date().toISOString().split('T')[0],
-      providerName: 'Dr. Sarah Johnson',
-      subjective: '',
-      objective: '',
-      assessment: '',
-      plan: '',
-      shareWithPatient: false,
-    });
+  const onSubmit = async (values: FormValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      // Get the current authenticated user
+      const { data: { session } } = await supabase.auth.getSession();
+      const providerId = session?.user?.id;
+      
+      if (!providerId) {
+        toast({
+          title: "Authentication Error",
+          description: "You must be logged in to create notes.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Insert the SOAP note into Supabase
+      const { data, error } = await supabase
+        .from('soap_notes')
+        .insert({
+          patient_id: values.patientId,
+          provider_id: providerId,
+          visit_date: values.visitDate,
+          subjective: values.subjective,
+          objective: values.objective,
+          assessment: values.assessment,
+          plan: values.plan,
+          share_with_patient: values.shareWithPatient,
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error("Error saving note:", error);
+        toast({
+          title: "Error Saving Note",
+          description: error.message || "Failed to save clinical documentation",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Log the creation for HIPAA compliance
+      AuditLogService.logPatientAccess(
+        values.patientId,
+        values.patientName,
+        'Created SOAP note',
+        'success',
+        values.shareWithPatient ? 'Note shared with patient' : 'Note created for internal use'
+      );
+      
+      // Also log to Supabase audit logs
+      await supabase.from('audit_logs')
+        .insert({
+          user_id: providerId,
+          action: 'Created SOAP note',
+          resource: `Patient: ${values.patientName} (${values.patientId})`,
+          resource_id: values.patientId,
+          status: 'success',
+          details: values.shareWithPatient ? 'Note shared with patient' : 'Note created for internal use'
+        });
+      
+      // Show success message
+      toast({
+        title: "SOAP Note Created",
+        description: `Clinical documentation for ${values.patientName} has been saved${values.shareWithPatient ? ' and shared' : ''}.`,
+      });
+      
+      // Reset form for next entry
+      form.reset({
+        patientId: '',
+        patientName: '',
+        visitDate: new Date().toISOString().split('T')[0],
+        providerName: 'Dr. Sarah Johnson',
+        subjective: '',
+        objective: '',
+        assessment: '',
+        plan: '',
+        shareWithPatient: false,
+      });
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -259,8 +312,8 @@ const SOAPNoteForm = () => {
           <Button type="button" variant="outline" onClick={() => form.reset()}>
             Reset
           </Button>
-          <Button type="submit">
-            Save SOAP Note
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save SOAP Note"}
           </Button>
         </div>
       </form>
