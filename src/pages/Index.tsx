@@ -92,13 +92,19 @@ const Index = () => {
         <HealthRecordsSummary records={recordItems} />
       </div>
       
-      {/* Decentralized Features Section */}
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-4">Decentralized Features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <SelfSovereignIdentity />
-          <DistributedStorage />
-          <ZeroKnowledgeVerification />
+      {/* Decentralized Features Section - Improved Layout */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold tracking-tight">Decentralized Features</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="h-full">
+            <SelfSovereignIdentity />
+          </div>
+          <div className="h-full">
+            <ZeroKnowledgeVerification />
+          </div>
+          <div className="h-full">
+            <DistributedStorage />
+          </div>
         </div>
       </div>
       
