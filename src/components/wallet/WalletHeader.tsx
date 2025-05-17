@@ -1,19 +1,23 @@
 
 import React, { useState } from 'react';
-import { Wallet, Shield, Users, FileText, ChevronRight, CreditCard, FileCheck } from 'lucide-react';
+import { Wallet, Shield, Users, FileText, ChevronRight, CreditCard, FileCheck, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 
 interface WalletHeaderProps {
   activeSection?: string;
   onSectionChange?: (section: string) => void;
+  onSearchChange?: (query: string) => void;
 }
 
 const WalletHeader: React.FC<WalletHeaderProps> = ({ 
   activeSection = 'records',
-  onSectionChange
+  onSectionChange,
+  onSearchChange
 }) => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
   
   const sections = [
     { id: 'records', label: 'Records', icon: FileText },
@@ -30,6 +34,14 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
     
     if (route) {
       navigate(route);
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (onSearchChange) {
+      onSearchChange(value);
     }
   };
 
@@ -62,6 +74,19 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
           </Button>
         ))}
       </div>
+
+      {onSearchChange && (
+        <div className="relative mt-3 mb-3">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+          <Input
+            type="text"
+            placeholder="Search records..."
+            className="pl-9 pr-4 py-2 w-full"
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+        </div>
+      )}
       
       <div className="text-xs text-slate-500 flex items-center">
         <span className="font-medium">Current view:</span>

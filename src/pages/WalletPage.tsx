@@ -10,8 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 
 const WalletPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { toggleRecordSharing } = useHealthRecords();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [activeSection, setActiveSection] = useState('records');
+  const [sortBy, setSortBy] = useState<'date' | 'provider' | 'category'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  const { toggleRecordSharing, summary } = useHealthRecords();
   const { toast } = useToast();
+  
+  // Get available categories from the summary
+  const categories = ['all', ...Object.keys(summary.categories)];
   
   // Determine if wallet has been initialized (example logic, modify as needed)
   const [isWalletInitialized, setIsWalletInitialized] = useState(true);
@@ -35,17 +43,32 @@ const WalletPage = () => {
 
   return (
     <div className="space-y-6">
-      <WalletHeader onSearchChange={handleSearchChange} />
+      <WalletHeader 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection}
+        onSearchChange={handleSearchChange} 
+      />
       
       {!isWalletInitialized && <WalletInfoAlert />}
       
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
           <div className="space-y-6">
-            <WalletFilters />
+            <WalletFilters 
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+              categories={categories}
+            />
             <WalletTabsContainer 
               handleToggleShare={handleToggleShare}
               searchQuery={searchQuery}
+              selectedCategory={selectedCategory}
             />
           </div>
         </div>

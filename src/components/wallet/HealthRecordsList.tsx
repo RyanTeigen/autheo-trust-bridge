@@ -11,18 +11,29 @@ import { useNavigate } from 'react-router-dom';
 interface HealthRecordsListProps {
   onToggleShare: (id: string, shared: boolean) => void;
   filter?: 'all' | 'shared' | 'private' | 'recent';
+  searchQuery?: string;
 }
 
 const HealthRecordsList: React.FC<HealthRecordsListProps> = ({ 
   onToggleShare,
-  filter = 'all'
+  filter = 'all',
+  searchQuery = ''
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { getRecordsByFilter } = useHealthRecords();
 
   // Get records based on the filter
-  const filteredRecords = getRecordsByFilter(filter);
+  let filteredRecords = getRecordsByFilter(filter);
+  
+  // Additional filtering based on searchQuery if provided
+  if (searchQuery) {
+    filteredRecords = filteredRecords.filter(record => 
+      record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      record.details.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
 
   const handleDirectShare = (recordId: string) => {
     // Navigate to the shared records page with the record pre-selected

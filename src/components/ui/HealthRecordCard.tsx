@@ -5,32 +5,23 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { HealthRecord } from '@/contexts/HealthRecordsContext';
 
-export type RecordCategory = 'medication' | 'condition' | 'lab' | 'imaging' | 'note' | 'visit';
+export type RecordCategory = 'medication' | 'condition' | 'lab' | 'imaging' | 'note' | 'visit' | 'immunization' | 'allergy';
 
 export interface HealthRecordCardProps {
-  id: string;
-  title: string;
-  date: string;
-  provider: string;
-  category: RecordCategory;
-  details: string;
-  isShared: boolean;
+  record: HealthRecord;
   onToggleShare: (id: string, shared: boolean) => void;
   className?: string;
 }
 
 export const HealthRecordCard: React.FC<HealthRecordCardProps> = ({
-  id,
-  title,
-  date,
-  provider,
-  category,
-  details,
-  isShared,
+  record,
   onToggleShare,
   className,
 }) => {
+  const { id, title, date, provider, category, details, isShared } = record;
+
   const getCategoryColor = () => {
     switch (category) {
       case 'medication': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
@@ -39,6 +30,9 @@ export const HealthRecordCard: React.FC<HealthRecordCardProps> = ({
       case 'imaging': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300';
       case 'note': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'visit': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300';
+      case 'immunization': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300';
+      case 'allergy': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+      default: return 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-300';
     }
   };
 
