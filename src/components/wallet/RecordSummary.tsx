@@ -37,31 +37,31 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ stats }) => {
   return (
     <Card className="border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div className="h-2 bg-gradient-to-r from-autheo-secondary to-autheo-accent" />
-      <CardHeader className="pb-3 border-b border-slate-100">
-        <CardTitle className="text-lg flex items-center gap-2">
+      <CardHeader className="pb-2 pt-3 border-b border-slate-100">
+        <CardTitle className="text-lg flex items-center gap-1.5">
           <div className="p-1.5 rounded-md bg-autheo-secondary/10">
-            <Wallet className="h-5 w-5 text-autheo-secondary" />
+            <Wallet className="h-4 w-4 text-autheo-secondary" />
           </div>
           Records Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5 pt-5">
-        <div className="flex items-center space-x-4">
-          <div className="p-2.5 bg-blue-50 rounded-full">
-            <FileText className="h-5 w-5 text-blue-600" />
+      <CardContent className="space-y-3 pt-3 px-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-blue-50 rounded-full">
+            <FileText className="h-4 w-4 text-blue-600" />
           </div>
           <div>
             <p className="text-sm font-medium text-slate-600">Total Records</p>
-            <p className="text-2xl font-bold">{total}</p>
+            <p className="text-xl font-bold">{total}</p>
           </div>
         </div>
         
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs">
             <span className="text-slate-600">Shared with providers</span>
             <span className="font-medium">{shared}/{total}</span>
           </div>
-          <Progress value={sharedPercentage} className="h-2.5 rounded-full" 
+          <Progress value={sharedPercentage} className="h-2 rounded-full" 
             style={{ 
               background: 'rgb(241 245 249)',
               '--progress-background': 'linear-gradient(to right, #5EEBC4, #4A6BF5)'
@@ -71,29 +71,29 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ stats }) => {
         </div>
         
         {sortedCategories.length > 0 && (
-          <div className="space-y-3 bg-slate-50 p-3 rounded-lg">
-            <p className="text-sm font-medium">Top Categories</p>
-            <div className="space-y-2.5">
+          <div className="space-y-2 bg-slate-50 p-2 rounded-lg">
+            <p className="text-xs font-medium">Top Categories</p>
+            <div className="space-y-1.5">
               {sortedCategories.map(([category, count]) => (
                 <div key={category} className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className={`w-2.5 h-2.5 rounded-full mr-2 ${getCategoryColor(category).replace('text', 'bg')}`} />
-                    <span className="text-sm capitalize text-slate-700">{category}</span>
+                    <div className={`w-2 h-2 rounded-full mr-1.5 ${getCategoryColor(category).replace('text', 'bg')}`} />
+                    <span className="text-xs capitalize text-slate-700">{category}</span>
                   </div>
-                  <span className="text-sm font-medium">{count}</span>
+                  <span className="text-xs font-medium">{count}</span>
                 </div>
               ))}
             </div>
           </div>
         )}
         
-        <div className="flex items-center space-x-4">
-          <div className="p-2.5 bg-purple-50 rounded-full">
-            <Users className="h-5 w-5 text-purple-600" />
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-purple-50 rounded-full">
+            <Users className="h-4 w-4 text-purple-600" />
           </div>
           <div>
-            <p className="text-sm text-slate-600">Provider Access</p>
-            <p className="text-sm font-medium">{shared > 0 ? 'Active' : 'None'}</p>
+            <p className="text-xs text-slate-600">Provider Access</p>
+            <p className="text-xs font-medium">{shared > 0 ? 'Active' : 'None'}</p>
           </div>
         </div>
       </CardContent>

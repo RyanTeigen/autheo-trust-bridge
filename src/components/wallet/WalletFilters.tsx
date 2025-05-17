@@ -29,28 +29,28 @@ const WalletFilters: React.FC<WalletFiltersProps> = ({
   categories
 }) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4 bg-slate-50 p-3 rounded-lg">
+    <div className="flex flex-col md:flex-row gap-2 bg-slate-50 p-2 rounded-lg">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Search records..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 border-slate-200 bg-white"
+          className="pl-8 border-slate-200 bg-white h-8 text-sm"
         />
       </div>
       
-      <div className="flex gap-2 flex-wrap md:flex-nowrap">
+      <div className="flex gap-1.5 flex-wrap md:flex-nowrap">
         <Select 
           value={selectedCategory} 
           onValueChange={(value) => setSelectedCategory(value)}
         >
-          <SelectTrigger className="w-[180px] bg-white border-slate-200">
+          <SelectTrigger className="w-[150px] bg-white border-slate-200 h-8 text-sm">
             <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
             {categories.map(category => (
-              <SelectItem key={category} value={category}>
+              <SelectItem key={category} value={category} className="text-sm">
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </SelectItem>
             ))}
@@ -61,21 +61,21 @@ const WalletFilters: React.FC<WalletFiltersProps> = ({
           value={sortBy} 
           onValueChange={(value: 'date' | 'provider' | 'category') => setSortBy(value)}
         >
-          <SelectTrigger className="w-[160px] bg-white border-slate-200">
+          <SelectTrigger className="w-[130px] bg-white border-slate-200 h-8 text-sm">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="date">Sort by Date</SelectItem>
-            <SelectItem value="provider">Sort by Provider</SelectItem>
-            <SelectItem value="category">Sort by Category</SelectItem>
+            <SelectItem value="date" className="text-sm">Sort by Date</SelectItem>
+            <SelectItem value="provider" className="text-sm">Sort by Provider</SelectItem>
+            <SelectItem value="category" className="text-sm">Sort by Category</SelectItem>
           </SelectContent>
         </Select>
         
         <Button
           variant="outline"
-          size="icon"
+          size="sm"
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-          className="bg-white border-slate-200"
+          className="bg-white border-slate-200 h-8 w-8 p-0"
         >
           {sortOrder === 'asc' ? '↑' : '↓'}
         </Button>

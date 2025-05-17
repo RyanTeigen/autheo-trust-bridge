@@ -19,17 +19,17 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
   return (
     <>
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4 rounded-xl bg-slate-50">
-          <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+        <TabsList className="grid grid-cols-4 mb-3 rounded-lg bg-slate-50">
+          <TabsTrigger value="all" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm py-1.5">
             All Records
           </TabsTrigger>
-          <TabsTrigger value="shared" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="shared" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm py-1.5">
             Shared
           </TabsTrigger>
-          <TabsTrigger value="private" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="private" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm py-1.5">
             Private
           </TabsTrigger>
-          <TabsTrigger value="recent" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+          <TabsTrigger value="recent" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm py-1.5">
             Recent
           </TabsTrigger>
         </TabsList>
@@ -66,8 +66,8 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
           />
         </TabsContent>
       </Tabs>
-      <div className="flex justify-between mt-4">
-        <div className="text-sm text-muted-foreground">
+      <div className="flex justify-between mt-3">
+        <div className="text-xs text-muted-foreground">
           {processedRecords.length} records found
         </div>
         {processedRecords.length === 0 && searchQuery && (

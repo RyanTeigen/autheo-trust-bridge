@@ -50,9 +50,9 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
 
   if (filteredRecords.length === 0) {
     return (
-      <Alert variant="default" className="bg-slate-50 border-dashed">
+      <Alert variant="default" className="bg-slate-50 border-dashed text-sm p-3">
         <FileSearch className="h-4 w-4" />
-        <AlertDescription>
+        <AlertDescription className="text-sm">
           No records found. {filter !== 'all' && `Try switching to a different filter or tab.`}
         </AlertDescription>
       </Alert>
@@ -60,7 +60,7 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {filteredRecords.map(record => (
         <div key={record.id} className="relative group">
           <HealthRecordCard
@@ -71,10 +71,10 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
           <Button 
             variant="ghost" 
             size="sm" 
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 p-0"
             onClick={() => handleDirectShare(record.id)}
           >
-            <Share className="h-4 w-4" />
+            <Share className="h-3.5 w-3.5" />
           </Button>
         </div>
       ))}

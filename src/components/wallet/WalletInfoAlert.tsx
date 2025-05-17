@@ -5,10 +5,10 @@ import { ShieldCheck } from 'lucide-react';
 
 const WalletInfoAlert: React.FC = () => {
   return (
-    <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-autheo-secondary shadow-sm">
-      <ShieldCheck className="h-5 w-5 text-autheo-secondary" />
-      <AlertTitle className="font-medium text-slate-800">Smart Wallet Active</AlertTitle>
-      <AlertDescription className="text-slate-600">
+    <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-l-autheo-secondary shadow-sm p-3">
+      <ShieldCheck className="h-4 w-4 text-autheo-secondary" />
+      <AlertTitle className="font-medium text-slate-800 text-sm">Smart Wallet Active</AlertTitle>
+      <AlertDescription className="text-slate-600 text-xs">
         Your Smart Wallet is secured with quantum-resistant encryption. 
         You control who sees your data and when.
       </AlertDescription>
