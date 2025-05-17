@@ -1,11 +1,11 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CalendarIcon, ClipboardCheck, Clock, FileText, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import PatientSearch from '@/components/emr/PatientSearch';
-import Badge from '@/components/emr/Badge';
+import ProviderDashboard from '@/components/provider/ProviderDashboard';
+import ProviderSchedule from '@/components/provider/ProviderSchedule';
+import PageHeader from '@/components/dashboard/PageHeader';
 
 // Mock data for scheduled appointments
 const mockAppointments = [
@@ -43,12 +43,10 @@ const ProviderPortalPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Provider Portal</h1>
-        <p className="text-muted-foreground">
-          Access and manage patient health records
-        </p>
-      </div>
+      <PageHeader 
+        title="Provider Portal"
+        description="Access and manage patient health records"
+      />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3">
@@ -58,140 +56,23 @@ const ProviderPortalPage = () => {
         </TabsList>
         
         <TabsContent value="dashboard" className="space-y-6 mt-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="md:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle>Today's Schedule</CardTitle>
-                <CardDescription>
-                  {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockAppointments.slice(0, 3).map((appointment) => (
-                    <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-md">
-                      <div className="flex items-center gap-4">
-                        <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center">
-                          <Clock className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <p className="font-medium">{appointment.patientName}</p>
-                          <p className="text-sm text-muted-foreground">{appointment.time} - {appointment.type}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={appointment.status === 'Checked In' ? 'default' : 'outline'}>
-                          {appointment.status}
-                        </Badge>
-                        <Button variant="outline" size="sm" onClick={handleAction}>View</Button>
-                      </div>
-                    </div>
-                  ))}
-                  <Button variant="ghost" className="w-full" onClick={handleAction}>
-                    View All Appointments
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button className="w-full flex items-center justify-start" onClick={handleAction}>
-                  <Users className="mr-2 h-4 w-4" />
-                  New Patient Intake
-                </Button>
-                <Button className="w-full flex items-center justify-start" variant="outline" onClick={handleAction}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  Schedule Appointment
-                </Button>
-                <Button className="w-full flex items-center justify-start" variant="outline" onClick={handleAction}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Create Progress Note
-                </Button>
-                <Button className="w-full flex items-center justify-start" variant="outline" onClick={handleAction}>
-                  <ClipboardCheck className="mr-2 h-4 w-4" />
-                  Create Prescription
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle>Recent Patients</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockRecentPatients.map((patient) => (
-                  <div key={patient.id} className="flex items-center justify-between p-3 border rounded-md">
-                    <div>
-                      <p className="font-medium">{patient.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Last visit: {new Date(patient.lastVisit).toLocaleDateString()} - {patient.reason}
-                      </p>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => handleSelectPatient(patient.id)}>
-                      Open Record
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ProviderDashboard 
+            appointments={mockAppointments} 
+            recentPatients={mockRecentPatients}
+            onSelectPatient={handleSelectPatient}
+            onAction={handleAction}
+          />
         </TabsContent>
         
         <TabsContent value="patients" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Search</CardTitle>
-              <CardDescription>
-                Find and manage patient records
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PatientSearch onSelectPatient={handleSelectPatient} />
-            </CardContent>
-          </Card>
+          <PatientSearch onSelectPatient={handleSelectPatient} />
         </TabsContent>
         
         <TabsContent value="schedule" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Appointment Schedule</CardTitle>
-              <CardDescription>
-                Manage your daily appointments
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockAppointments.map((appointment) => (
-                  <div key={appointment.id} className="flex items-center justify-between p-3 border rounded-md">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-muted h-10 w-10 rounded-full flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{appointment.patientName}</p>
-                        <p className="text-sm text-muted-foreground">{appointment.time} - {appointment.type}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={appointment.status === 'Checked In' ? 'default' : 'outline'}>
-                        {appointment.status}
-                      </Badge>
-                      <Button variant="outline" size="sm" onClick={handleAction}>Check In</Button>
-                      <Button variant="ghost" size="sm" onClick={handleAction}>
-                        <FileText className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ProviderSchedule 
+            appointments={mockAppointments} 
+            onAction={handleAction} 
+          />
         </TabsContent>
       </Tabs>
     </div>
