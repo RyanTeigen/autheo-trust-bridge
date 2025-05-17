@@ -18,7 +18,7 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
 
   return (
     <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid grid-cols-4 mb-4">
+      <TabsList className="grid grid-cols-4 mb-4 bg-slate-100 dark:bg-slate-800">
         <TabsTrigger value="all">All Records</TabsTrigger>
         <TabsTrigger value="shared">Shared</TabsTrigger>
         <TabsTrigger value="private">Private</TabsTrigger>

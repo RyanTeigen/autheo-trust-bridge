@@ -6,7 +6,7 @@ import HealthRecordsTab from '@/components/shared-records/HealthRecordsTab';
 import { SharedRecord } from '@/components/shared-records/types';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 interface SharedRecordsContentProps {
   handleShareHealthInfo: () => void;
@@ -87,44 +87,45 @@ const SharedRecordsContent: React.FC<SharedRecordsContentProps> = ({
   
   return (
     <div className="space-y-6">
-      <Card className="bg-white">
+      <Card>
         <CardHeader>
           <CardTitle>Shared Records</CardTitle>
           <CardDescription>
             Manage your health information and sharing preferences
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-6 bg-slate-100 dark:bg-slate-800">
+              <TabsTrigger value="access" className="px-6">Access Management</TabsTrigger>
+              <TabsTrigger value="records" className="px-6">My Health Records</TabsTrigger>
+            </TabsList>
+            
+            {/* Access Management Tab */}
+            <TabsContent value="access" className="mt-0">
+              <AccessManagementTab 
+                sharedRecords={sharedRecords}
+                onAddRecord={handleAddRecord}
+                onRevokeAccess={handleRevokeAccess}
+              />
+            </TabsContent>
+            
+            {/* Health Records Tab */}
+            <TabsContent value="records" className="mt-0">
+              <HealthRecordsTab 
+                mockMedications={medications}
+                mockDiagnoses={diagnoses}
+                mockImmunizations={immunizations}
+                mockMedicalTests={medicalTests}
+                mockAllergies={allergies}
+                shareHealthDialog={shareHealthDialog}
+                setShareHealthDialog={setShareHealthDialog}
+                handleShareHealthInfo={handleShareHealthInfo}
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
       </Card>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6 bg-slate-100 dark:bg-slate-800">
-          <TabsTrigger value="access" className="px-6">Access Management</TabsTrigger>
-          <TabsTrigger value="records" className="px-6">My Health Records</TabsTrigger>
-        </TabsList>
-        
-        {/* Access Management Tab */}
-        <TabsContent value="access" className="mt-0">
-          <AccessManagementTab 
-            sharedRecords={sharedRecords}
-            onAddRecord={handleAddRecord}
-            onRevokeAccess={handleRevokeAccess}
-          />
-        </TabsContent>
-        
-        {/* Health Records Tab */}
-        <TabsContent value="records" className="mt-0">
-          <HealthRecordsTab 
-            mockMedications={medications}
-            mockDiagnoses={diagnoses}
-            mockImmunizations={immunizations}
-            mockMedicalTests={medicalTests}
-            mockAllergies={allergies}
-            shareHealthDialog={shareHealthDialog}
-            setShareHealthDialog={setShareHealthDialog}
-            handleShareHealthInfo={handleShareHealthInfo}
-          />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

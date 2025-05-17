@@ -30,7 +30,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-autheo-primary">My Health Information</h2>
         
         <ShareHealthInfoDialog 
@@ -48,11 +48,11 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
         </Button>
       </div>
       
-      <Card className="bg-slate-800 border-slate-700 text-slate-100">
-        <CardHeader className="border-b border-slate-700">
+      <Card>
+        <CardHeader className="border-b">
           <CardTitle className="text-autheo-primary">Health Records</CardTitle>
         </CardHeader>
-        <CardContent className="bg-slate-800 p-0">
+        <CardContent className="p-0">
           <DetailedHealthRecords 
             medications={mockMedications}
             diagnoses={mockDiagnoses}
