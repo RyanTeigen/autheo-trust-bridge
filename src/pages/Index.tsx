@@ -36,6 +36,35 @@ const Index = () => {
     }
   ];
   
+  // Sample data for health records
+  const healthRecords = {
+    total: 24,
+    shared: 8,
+    pending: 2
+  };
+  
+  // Sample health record items
+  const recordItems = [
+    {
+      title: "Annual Physical",
+      provider: "Dr. Sarah Johnson",
+      date: "2025-02-15"
+    },
+    {
+      title: "Blood Work Results",
+      provider: "Metro Lab Services",
+      date: "2025-01-28"
+    },
+    {
+      title: "Cardiology Consult",
+      provider: "Dr. James Wilson",
+      date: "2024-12-10"
+    }
+  ];
+  
+  // Sample compliance score
+  const complianceScore = 98;
+  
   return (
     <div className="container px-4 py-6 space-y-8">
       <PageHeader
@@ -44,13 +73,16 @@ const Index = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <KeyMetrics />
+        <KeyMetrics 
+          healthRecords={healthRecords} 
+          complianceScore={complianceScore} 
+        />
         <QuickActions />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <ApprovedAccess providers={approvedProviders} />
-        <HealthRecordsSummary />
+        <HealthRecordsSummary records={recordItems} />
       </div>
       
       {/* Decentralized Features Section */}
