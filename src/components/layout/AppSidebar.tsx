@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -23,7 +24,8 @@ import {
   Wallet,
   BookOpen,
   Heart,
-  CalendarIcon
+  CalendarIcon,
+  LayoutDashboard
 } from 'lucide-react';
 
 export const AppSidebar: React.FC = () => {
@@ -44,6 +46,11 @@ export const AppSidebar: React.FC = () => {
       title: "My Health Records", 
       path: "/", 
       icon: Heart 
+    },
+    {
+      title: "Patient Dashboard",
+      path: "/patient-dashboard",
+      icon: LayoutDashboard
     },
     { 
       title: "Smart Wallet", 

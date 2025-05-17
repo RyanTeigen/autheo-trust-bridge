@@ -16,6 +16,7 @@ import MedicalNotesPage from "./pages/MedicalNotesPage";
 import SharedRecordsPage from "./pages/SharedRecordsPage";
 import SettingsPage from "./pages/SettingsPage";
 import SchedulingPage from "./pages/SchedulingPage";
+import PatientDashboardPage from "./pages/PatientDashboardPage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/audit-logs" element={<AuditLogsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/scheduling" element={<SchedulingPage />} />
+            <Route path="/patient-dashboard" element={<PatientDashboardPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
