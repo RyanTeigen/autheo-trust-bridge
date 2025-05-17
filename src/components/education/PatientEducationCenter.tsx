@@ -168,7 +168,7 @@ const PatientEducationCenter: React.FC = () => {
               <TabsTrigger value="conditions" className="data-[state=active]:bg-slate-800 data-[state=active]:text-autheo-primary">
                 My Conditions
               </TabsTrigger>
-            </Tabs>
+            </TabsList>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredResources.length > 0 ? (
