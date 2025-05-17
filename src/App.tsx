@@ -15,6 +15,7 @@ import ProviderPortalPage from "./pages/ProviderPortalPage";
 import MedicalNotesPage from "./pages/MedicalNotesPage";
 import SharedRecordsPage from "./pages/SharedRecordsPage";
 import SettingsPage from "./pages/SettingsPage";
+import SchedulingPage from "./pages/SchedulingPage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/compliance" element={<CompliancePage />} />
             <Route path="/audit-logs" element={<AuditLogsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/scheduling" element={<SchedulingPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

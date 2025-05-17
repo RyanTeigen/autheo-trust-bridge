@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
@@ -23,7 +22,8 @@ import {
   Shield,
   Wallet,
   BookOpen,
-  Heart
+  Heart,
+  CalendarIcon
 } from 'lucide-react';
 
 export const AppSidebar: React.FC = () => {
@@ -54,6 +54,11 @@ export const AppSidebar: React.FC = () => {
       title: "Shared Records", 
       path: "/shared-records", 
       icon: FileCheck 
+    },
+    {
+      title: "Appointments",
+      path: "/scheduling",
+      icon: CalendarIcon
     }
   ];
 
@@ -109,7 +114,7 @@ export const AppSidebar: React.FC = () => {
               {patientItems.map((item) => (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.path} end className={getLinkClass}>
+                    <NavLink to={item.path} end={item.path === "/"} className={getLinkClass}>
                       <item.icon className="h-5 w-5 mr-2 flex-shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Heart, Users, ClipboardCheck } from 'lucide-react';
+import { Heart, Users, ClipboardCheck, CalendarIcon } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -35,6 +35,13 @@ const QuickActions: React.FC<QuickActionsProps> = ({ className }) => {
           </Button>
           
           <Button asChild variant="secondary" className="w-full justify-start">
+            <Link to="/scheduling" className="flex items-center">
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              <span className="whitespace-nowrap">Appointment Scheduling</span>
+            </Link>
+          </Button>
+          
+          <Button asChild variant="outline" className="w-full justify-start">
             <Link to="/compliance" className="flex items-center">
               <ClipboardCheck className="mr-2 h-4 w-4" />
               <span className="whitespace-nowrap">Compliance Report</span>
