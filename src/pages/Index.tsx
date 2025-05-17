@@ -1,53 +1,71 @@
 
 import React from 'react';
-import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/dashboard/PageHeader';
 import KeyMetrics from '@/components/dashboard/KeyMetrics';
 import QuickActions from '@/components/dashboard/QuickActions';
 import HealthRecordsSummary from '@/components/dashboard/HealthRecordsSummary';
 import ApprovedAccess from '@/components/dashboard/ApprovedAccess';
 
+// New decentralized components
+import DistributedStorage from '@/components/decentralized/DistributedStorage';
+import SmartContracts from '@/components/decentralized/SmartContracts';
+import ZeroKnowledgeVerification from '@/components/decentralized/ZeroKnowledgeVerification';
+import InteroperabilityStandards from '@/components/decentralized/InteroperabilityStandards';
+import SelfSovereignIdentity from '@/components/decentralized/SelfSovereignIdentity';
+
 const Index = () => {
-  const { toast } = useToast();
-
-  // Mock health records count
-  const healthRecords = {
-    total: 17,
-    shared: 5,
-    pending: 2
-  };
-
-  // Mock compliance score
-  const complianceScore = 92;
-
-  // Mock recent health records
-  const recentRecords = [
-    { title: "Annual Physical", provider: "Dr. Emily Chen", date: "05/10/2025" },
-    { title: "Blood Test Results", provider: "Metro Lab", date: "05/02/2025" },
-    { title: "Vaccination Record", provider: "City Health Clinic", date: "04/22/2025" }
+  // Sample data for the approved providers
+  const approvedProviders = [
+    {
+      id: "provider1",
+      name: "Dr. Sarah Johnson",
+      role: "Primary Care Physician",
+      accessLevel: "Full",
+      grantedOn: "2024-12-01",
+      expiresOn: "2025-12-01",
+      dataCategories: ["Medications", "Conditions", "Labs", "Allergies"]
+    },
+    {
+      id: "provider2",
+      name: "Dr. James Wilson",
+      role: "Cardiologist",
+      accessLevel: "Limited",
+      grantedOn: "2025-01-15",
+      expiresOn: "2025-04-15",
+      dataCategories: ["Medications", "Labs"]
+    }
   ];
-
-  // Mock providers with access
-  const providersWithAccess = [
-    { name: "Dr. Emily Chen", role: "Primary Care", accessLevel: "Full Access" },
-    { name: "Dr. James Wilson", role: "Cardiology", accessLevel: "Limited Access" },
-    { name: "Metro General Hospital", role: "Emergency", accessLevel: "Temporary Access" }
-  ];
-
+  
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="My Health Dashboard" 
-        description="Securely manage and share your health records"
+    <div className="container px-4 py-6 space-y-8">
+      <PageHeader
+        title="Decentralized Health Dashboard"
+        description="Secure, patient-owned medical records with blockchain-enabled privacy"
       />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <KeyMetrics />
+        <QuickActions />
+      </div>
       
-      <KeyMetrics healthRecords={healthRecords} complianceScore={complianceScore} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ApprovedAccess providers={approvedProviders} />
+        <HealthRecordsSummary />
+      </div>
       
-      <QuickActions />
+      {/* Decentralized Features Section */}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Decentralized Features</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <SelfSovereignIdentity />
+          <DistributedStorage />
+          <ZeroKnowledgeVerification />
+        </div>
+      </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <HealthRecordsSummary records={recentRecords} />
-        <ApprovedAccess providers={providersWithAccess} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SmartContracts />
+        <InteroperabilityStandards />
       </div>
     </div>
   );
