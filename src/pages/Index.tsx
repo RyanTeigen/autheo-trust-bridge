@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { Heart, ClipboardCheck, Shield, Wallet, Users, FileCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
-import AutheoScreenshot from '../components/ui/AutheoScreenshot';
 
 const Index = () => {
   const { toast } = useToast();
@@ -27,11 +25,6 @@ const Index = () => {
         <p className="text-muted-foreground">
           Securely manage and share your health records
         </p>
-      </div>
-
-      {/* Autheo Screenshot */}
-      <div className="w-full flex justify-center mb-8">
-        <AutheoScreenshot />
       </div>
 
       {/* Key Metrics Section */}
