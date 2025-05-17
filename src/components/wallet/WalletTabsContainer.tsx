@@ -19,11 +19,19 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
   return (
     <>
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="all">All Records</TabsTrigger>
-          <TabsTrigger value="shared">Shared</TabsTrigger>
-          <TabsTrigger value="private">Private</TabsTrigger>
-          <TabsTrigger value="recent">Recent</TabsTrigger>
+        <TabsList className="grid grid-cols-4 mb-4 rounded-xl bg-slate-50">
+          <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            All Records
+          </TabsTrigger>
+          <TabsTrigger value="shared" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Shared
+          </TabsTrigger>
+          <TabsTrigger value="private" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Private
+          </TabsTrigger>
+          <TabsTrigger value="recent" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            Recent
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="all" className="mt-0">

@@ -47,21 +47,31 @@ export const HealthRecordCard: React.FC<HealthRecordCardProps> = ({
   };
 
   return (
-    <Card className={cn("w-full", className)}>
+    <Card className={cn(
+      "w-full overflow-hidden",
+      isShared ? "border-l-4 border-l-autheo-primary" : "",
+      className
+    )}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <div>
-            <Badge variant="outline" className={getCategoryColor()}>
+            <Badge variant="outline" className={cn("font-medium", getCategoryColor())}>
               {category}
             </Badge>
-            <CardTitle className="mt-2">{title}</CardTitle>
+            <CardTitle className="mt-2 text-xl">{title}</CardTitle>
           </div>
           <div className="flex items-center space-x-2">
-            <Label htmlFor={`share-${id}`} className="text-xs">Share</Label>
+            <Label htmlFor={`share-${id}`} className={cn(
+              "text-xs transition-colors",
+              isShared ? "text-autheo-primary" : "text-muted-foreground"
+            )}>
+              {isShared ? "Shared" : "Share"}
+            </Label>
             <Switch 
               id={`share-${id}`} 
               checked={isShared} 
               onCheckedChange={handleToggle}
+              className={isShared ? "data-[state=checked]:bg-autheo-primary" : ""}
             />
           </div>
         </div>
@@ -71,7 +81,7 @@ export const HealthRecordCard: React.FC<HealthRecordCardProps> = ({
           {details}
         </p>
       </CardContent>
-      <CardFooter className="flex justify-between text-xs text-muted-foreground">
+      <CardFooter className="flex justify-between text-xs text-muted-foreground bg-slate-50 py-2">
         <span>{new Date(date).toLocaleDateString()}</span>
         <span>{provider}</span>
       </CardFooter>

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
 import RecordSummary from '@/components/wallet/RecordSummary';
@@ -153,15 +153,15 @@ const WalletPage = () => {
     <div className="space-y-6">
       <WalletHeader />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="md:col-span-2">
-          <CardHeader>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-2 border-slate-200">
+          <CardHeader className="pb-2">
             <CardTitle>Your Health Records</CardTitle>
             <CardDescription>
-              Manage your complete medical history and control sharing preferences
+              Manage your medical history and control sharing preferences
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <WalletFilters
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -182,7 +182,7 @@ const WalletPage = () => {
           </CardContent>
         </Card>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           <RecordSummary stats={recordStats} />
           <WalletInfoAlert />
           <DataVaultCard />

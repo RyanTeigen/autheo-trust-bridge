@@ -29,23 +29,23 @@ const WalletFilters: React.FC<WalletFiltersProps> = ({
   categories
 }) => {
   return (
-    <div className="flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col md:flex-row gap-4 bg-slate-50 p-3 rounded-lg">
       <div className="relative flex-1">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Search records..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-8"
+          className="pl-9 border-slate-200 bg-white"
         />
       </div>
       
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap md:flex-nowrap">
         <Select 
           value={selectedCategory} 
           onValueChange={(value) => setSelectedCategory(value)}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px] bg-white border-slate-200">
             <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
@@ -61,7 +61,7 @@ const WalletFilters: React.FC<WalletFiltersProps> = ({
           value={sortBy} 
           onValueChange={(value: 'date' | 'provider' | 'category') => setSortBy(value)}
         >
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-[160px] bg-white border-slate-200">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -75,6 +75,7 @@ const WalletFilters: React.FC<WalletFiltersProps> = ({
           variant="outline"
           size="icon"
           onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+          className="bg-white border-slate-200"
         >
           {sortOrder === 'asc' ? '↑' : '↓'}
         </Button>
