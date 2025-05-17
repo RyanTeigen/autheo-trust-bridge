@@ -9,6 +9,7 @@ import WalletTabsContainer from '@/components/wallet/WalletTabsContainer';
 import DataVaultCard from '@/components/wallet/DataVaultCard';
 import WalletInfoAlert from '@/components/wallet/WalletInfoAlert';
 import DecentralizedFeatures from '@/components/wallet/DecentralizedFeatures';
+import InsuranceCard from '@/components/wallet/InsuranceCard';
 
 const WalletPage = () => {
   const { toast } = useToast();
@@ -16,6 +17,7 @@ const WalletPage = () => {
   const [sortBy, setSortBy] = useState<'date' | 'provider' | 'category'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [activeWalletTab, setActiveWalletTab] = useState('records');
 
   // Mock data for demo
   const [healthRecords, setHealthRecords] = useState<Omit<HealthRecordCardProps, 'onToggleShare'>[]>([
@@ -149,6 +151,11 @@ const WalletPage = () => {
     });
   };
 
+  // Handle tab changes in the wallet
+  const handleTabChange = (tab: string) => {
+    setActiveWalletTab(tab);
+  };
+
   return (
     <div className="space-y-3">
       <WalletHeader />
@@ -156,29 +163,44 @@ const WalletPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Card className="md:col-span-2 border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
           <CardHeader className="pb-2 pt-3 border-b border-slate-100">
-            <CardTitle className="text-xl">Your Health Records</CardTitle>
+            <CardTitle className="text-xl">
+              {activeWalletTab === 'records' ? 'Your Health Records' : 
+               activeWalletTab === 'insurance' ? 'Insurance Information' : 'Your Health Records'}
+            </CardTitle>
             <CardDescription className="text-sm">
-              Manage your medical history and control sharing preferences
+              {activeWalletTab === 'records' ? 'Manage your medical history and control sharing preferences' : 
+               activeWalletTab === 'insurance' ? 'Securely store and share your insurance information' : 
+               'Manage your medical history and control sharing preferences'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 pt-3 pb-3">
-            <WalletFilters
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              sortOrder={sortOrder}
-              setSortOrder={setSortOrder}
-              categories={categories}
-            />
+            {activeWalletTab === 'records' && (
+              <>
+                <WalletFilters
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={setSelectedCategory}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  sortOrder={sortOrder}
+                  setSortOrder={setSortOrder}
+                  categories={categories}
+                />
+                
+                <WalletTabsContainer
+                  processedRecords={processedRecords}
+                  handleToggleShare={handleToggleShare}
+                  searchQuery={searchQuery}
+                />
+              </>
+            )}
             
-            <WalletTabsContainer
-              processedRecords={processedRecords}
-              handleToggleShare={handleToggleShare}
-              searchQuery={searchQuery}
-            />
+            {activeWalletTab === 'insurance' && (
+              <div className="py-2">
+                <InsuranceCard />
+              </div>
+            )}
           </CardContent>
         </Card>
         

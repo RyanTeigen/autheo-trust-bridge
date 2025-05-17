@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Wallet, Shield, Users, FileText, ChevronRight } from 'lucide-react';
+import { Wallet, Shield, Users, FileText, ChevronRight, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -10,6 +10,7 @@ const WalletHeader: React.FC = () => {
   
   const sections = [
     { id: 'records', label: 'Records', icon: FileText },
+    { id: 'insurance', label: 'Insurance', icon: CreditCard },
     { id: 'shared', label: 'Shared', icon: Users, route: '/shared-records' },
     { id: 'security', label: 'Security', icon: Shield },
   ];

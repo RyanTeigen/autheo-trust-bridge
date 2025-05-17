@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ShieldCheck, ChevronDown, ChevronUp, Info } from 'lucide-react';
+import { ShieldCheck, ChevronDown, ChevronUp, Info, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const WalletInfoAlert: React.FC = () => {
@@ -48,6 +48,10 @@ const WalletInfoAlert: React.FC = () => {
             <div className="flex items-start gap-1.5">
               <Info className="h-3 w-3 text-autheo-secondary mt-0.5 flex-shrink-0" />
               <p><span className="font-medium">Distributed Storage</span>: Your data is encrypted and stored across multiple secure nodes</p>
+            </div>
+            <div className="flex items-start gap-1.5">
+              <CreditCard className="h-3 w-3 text-autheo-secondary mt-0.5 flex-shrink-0" />
+              <p><span className="font-medium">Insurance Verification</span>: Verify and share insurance information securely with providers</p>
             </div>
           </div>
         </div>
