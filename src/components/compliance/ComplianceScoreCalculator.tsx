@@ -25,6 +25,7 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
   const [breachScore, setBreachScore] = useState(95);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [calculatedScore, setCalculatedScore] = useState(0);
   
   // Compliance score is weighted average
   const calculateComplianceScore = () => {
@@ -44,15 +45,19 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
       breachScore * weights.breach
     );
     
-    if (onScoreCalculated) {
-      onScoreCalculated(weightedScore);
-    }
-    
-    // Generate AI recommendations based on scores
-    generateRecommendations();
-    
     return weightedScore;
   };
+  
+  // Use effect to calculate the score when inputs change
+  useEffect(() => {
+    const newScore = calculateComplianceScore();
+    setCalculatedScore(newScore);
+    
+    // Only notify parent component if callback exists
+    if (onScoreCalculated) {
+      onScoreCalculated(newScore);
+    }
+  }, [privacyScore, securityScore, adminScore, physicalScore, breachScore, onScoreCalculated]);
   
   const resetScores = () => {
     setPrivacyScore(90);
@@ -95,10 +100,10 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
     }
   };
   
-  // Handle changes in scores for real-time updates
-  useEffect(() => {
-    calculateComplianceScore();
-  }, [privacyScore, securityScore, adminScore, physicalScore, breachScore]);
+  // Handle button click to generate recommendations
+  const handleGenerateRecommendations = () => {
+    generateRecommendations();
+  };
   
   return (
     <Card className={className}>
@@ -199,7 +204,7 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
         )}
         
         <div className="mt-6 pt-4 border-t">
-          <ComplianceProgressIndicator score={calculateComplianceScore()} />
+          <ComplianceProgressIndicator score={calculatedScore} />
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
