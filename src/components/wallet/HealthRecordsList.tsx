@@ -50,7 +50,7 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
       {filteredRecords.map(record => (
         <div key={record.id} className="relative group">
           <HealthRecordCard
-            {...record}
+            record={record}
             onToggleShare={onToggleShare}
             className="transition-all duration-200 hover:border-autheo-primary hover:shadow-md"
           />
