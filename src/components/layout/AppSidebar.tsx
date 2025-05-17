@@ -52,16 +52,6 @@ export const AppSidebar: React.FC = () => {
       path: "/patient-dashboard",
       icon: LayoutDashboard
     },
-    { 
-      title: "Smart Wallet", 
-      path: "/wallet", 
-      icon: Wallet 
-    },
-    { 
-      title: "Shared Records", 
-      path: "/shared-records", 
-      icon: FileCheck 
-    },
     {
       title: "Appointments",
       path: "/scheduling",
