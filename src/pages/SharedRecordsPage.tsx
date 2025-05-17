@@ -8,7 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Allergy, Calendar as CalendarIcon, ChartBar, Clock, Lock, Plus, Search, Share, User, Users } from 'lucide-react';
+import { Calendar as CalendarIcon, ChartBar, Clock, Lock, Pill, File, Plus, Search, Share, Syringe, TestTube, User, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -328,6 +328,16 @@ const SharedRecordsPage = () => {
     </Card>
   );
   
+  // Function to handle sharing health information
+  const handleShareHealthInfo = () => {
+    setShareHealthDialog(false);
+    
+    toast({
+      title: "Health information shared",
+      description: "Your health information has been shared with the selected healthcare provider.",
+    });
+  };
+  
   return (
     <div className="space-y-6">
       <div>
@@ -633,7 +643,7 @@ const SharedRecordsPage = () => {
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="allergies" defaultChecked />
                       <label htmlFor="allergies" className="text-sm flex items-center gap-1">
-                        <Allergy className="h-4 w-4" /> Allergies
+                        <Pill className="h-4 w-4" /> Allergies
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -645,7 +655,7 @@ const SharedRecordsPage = () => {
                     <div className="flex items-center space-x-2">
                       <input type="checkbox" id="diagnoses" defaultChecked />
                       <label htmlFor="diagnoses" className="text-sm flex items-center gap-1">
-                        <FileX className="h-4 w-4" /> Diagnoses
+                        <File className="h-4 w-4" /> Diagnoses
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">

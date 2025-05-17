@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pill, FileX, Syringe, TestTube, Calendar, ChartBar, Allergy } from 'lucide-react';
+import { Pill, File, Syringe, TestTube, Calendar, ChartBar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
 import AllergiesCard from '@/components/records/AllergiesCard';
@@ -126,13 +125,13 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
               <ChartBar className="h-4 w-4" /> Metrics
             </TabsTrigger>
             <TabsTrigger value="allergies" className="flex items-center gap-1">
-              <Allergy className="h-4 w-4" /> Allergies
+              <Pill className="h-4 w-4" /> Allergies
             </TabsTrigger>
             <TabsTrigger value="medications" className="flex items-center gap-1">
               <Pill className="h-4 w-4" /> Medications
             </TabsTrigger>
             <TabsTrigger value="diagnoses" className="flex items-center gap-1">
-              <FileX className="h-4 w-4" /> Diagnoses
+              <File className="h-4 w-4" /> Diagnoses
             </TabsTrigger>
             <TabsTrigger value="immunizations" className="flex items-center gap-1">
               <Syringe className="h-4 w-4" /> Immunizations

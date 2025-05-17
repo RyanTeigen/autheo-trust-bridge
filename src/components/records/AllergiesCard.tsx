@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Allergy, Share } from 'lucide-react';
+import { Pill, Share } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AllergyItem {
@@ -56,7 +56,7 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Allergy className="h-5 w-5" /> Allergies
+              <Pill className="h-5 w-5" /> Allergies
             </CardTitle>
             <CardDescription>Your allergies and reactions</CardDescription>
           </div>
