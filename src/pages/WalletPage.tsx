@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +8,7 @@ import WalletFilters from '@/components/wallet/WalletFilters';
 import WalletTabsContainer from '@/components/wallet/WalletTabsContainer';
 import DataVaultCard from '@/components/wallet/DataVaultCard';
 import WalletInfoAlert from '@/components/wallet/WalletInfoAlert';
+import DecentralizedFeatures from '@/components/wallet/DecentralizedFeatures';
 
 const WalletPage = () => {
   const { toast } = useToast();
@@ -150,18 +150,18 @@ const WalletPage = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <WalletHeader />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Card className="md:col-span-2 border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
-          <CardHeader className="pb-2 pt-4 border-b border-slate-100">
+          <CardHeader className="pb-2 pt-3 border-b border-slate-100">
             <CardTitle className="text-xl">Your Health Records</CardTitle>
             <CardDescription className="text-sm">
               Manage your medical history and control sharing preferences
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 pt-4 pb-4">
+          <CardContent className="space-y-3 pt-3 pb-3">
             <WalletFilters
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
@@ -182,11 +182,15 @@ const WalletPage = () => {
           </CardContent>
         </Card>
         
-        <div className="space-y-4">
+        <div className="space-y-3">
           <RecordSummary stats={recordStats} />
           <WalletInfoAlert />
           <DataVaultCard />
         </div>
+      </div>
+      
+      <div className="mt-4">
+        <DecentralizedFeatures />
       </div>
     </div>
   );
