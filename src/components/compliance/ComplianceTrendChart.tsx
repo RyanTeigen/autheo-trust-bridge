@@ -1,8 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface ComplianceMetric {
   date: string;
@@ -20,6 +23,21 @@ interface ComplianceTrendChartProps {
 }
 
 const ComplianceTrendChart: React.FC<ComplianceTrendChartProps> = ({ data, className }) => {
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['overall']);
+  const [timeRange, setTimeRange] = useState<'6m' | '1y' | 'all'>('6m');
+  
+  // Filter data based on time range
+  const filteredData = React.useMemo(() => {
+    if (timeRange === 'all') return data;
+    
+    const now = new Date();
+    const monthsToGoBack = timeRange === '6m' ? 6 : 12;
+    const cutoffDate = new Date(now.setMonth(now.getMonth() - monthsToGoBack));
+    
+    // This is a simplified filter that assumes the dates are in chronological order
+    return data.slice(-monthsToGoBack);
+  }, [data, timeRange]);
+  
   // Configuration for the chart colors and labels
   const chartConfig = {
     overall: {
@@ -66,18 +84,73 @@ const ComplianceTrendChart: React.FC<ComplianceTrendChartProps> = ({ data, class
     },
   };
 
+  const toggleMetric = (metric: string) => {
+    if (selectedMetrics.includes(metric)) {
+      setSelectedMetrics(selectedMetrics.filter(m => m !== metric));
+    } else {
+      setSelectedMetrics([...selectedMetrics, metric]);
+    }
+  };
+
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle>Compliance Trends</CardTitle>
-        <CardDescription>HIPAA compliance metrics over time</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle>Compliance Trends</CardTitle>
+          <CardDescription>HIPAA compliance metrics over time</CardDescription>
+        </div>
+        <div className="flex gap-1">
+          <Button 
+            variant={timeRange === '6m' ? "secondary" : "outline"} 
+            size="sm" 
+            onClick={() => setTimeRange('6m')}
+          >
+            6M
+          </Button>
+          <Button 
+            variant={timeRange === '1y' ? "secondary" : "outline"} 
+            size="sm" 
+            onClick={() => setTimeRange('1y')}
+          >
+            1Y
+          </Button>
+          <Button 
+            variant={timeRange === 'all' ? "secondary" : "outline"} 
+            size="sm" 
+            onClick={() => setTimeRange('all')}
+          >
+            All
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="pt-2">
+        <div className="flex flex-wrap gap-2 mb-4">
+          {Object.entries(chartConfig).map(([key, config]) => (
+            <div key={key} className="flex items-center space-x-2">
+              <Checkbox 
+                id={`metric-${key}`} 
+                checked={selectedMetrics.includes(key)}
+                onCheckedChange={() => toggleMetric(key)}
+              />
+              <Label 
+                htmlFor={`metric-${key}`}
+                className="text-sm flex items-center gap-1"
+              >
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: config.theme.light }}
+                ></div>
+                {config.label}
+              </Label>
+            </div>
+          ))}
+        </div>
+        
         <div className="h-[300px]">
           <ChartContainer config={chartConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
-                data={data}
+                data={filteredData}
                 margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
               >
                 <defs>
@@ -104,6 +177,8 @@ const ComplianceTrendChart: React.FC<ComplianceTrendChartProps> = ({ data, class
                   ))}
                 </defs>
                 
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.3} />
+                
                 <XAxis 
                   dataKey="date" 
                   tick={{ fontSize: 12 }} 
@@ -128,58 +203,17 @@ const ComplianceTrendChart: React.FC<ComplianceTrendChartProps> = ({ data, class
                   )}
                 />
                 
-                <Area
-                  type="monotone"
-                  dataKey="overall"
-                  stroke="var(--color-overall)"
-                  strokeWidth={2}
-                  fill="url(#gradient-overall)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="privacyRule"
-                  stroke="var(--color-privacyRule)"
-                  strokeWidth={2}
-                  fill="url(#gradient-privacyRule)"
-                  stackId="1"
-                  hide
-                />
-                <Area
-                  type="monotone"
-                  dataKey="securityRule"
-                  stroke="var(--color-securityRule)"
-                  strokeWidth={2}
-                  fill="url(#gradient-securityRule)"
-                  stackId="1"
-                  hide
-                />
-                <Area
-                  type="monotone"
-                  dataKey="breachNotification"
-                  stroke="var(--color-breachNotification)"
-                  strokeWidth={2}
-                  fill="url(#gradient-breachNotification)"
-                  stackId="1"
-                  hide
-                />
-                <Area
-                  type="monotone"
-                  dataKey="administrative"
-                  stroke="var(--color-administrative)"
-                  strokeWidth={2}
-                  fill="url(#gradient-administrative)"
-                  stackId="1"
-                  hide
-                />
-                <Area
-                  type="monotone"
-                  dataKey="physical"
-                  stroke="var(--color-physical)"
-                  strokeWidth={2}
-                  fill="url(#gradient-physical)"
-                  stackId="1"
-                  hide
-                />
+                {Object.keys(chartConfig).map((key) => (
+                  <Area
+                    key={key}
+                    type="monotone"
+                    dataKey={key}
+                    stroke={`var(--color-${key})`}
+                    strokeWidth={2}
+                    fill={`url(#gradient-${key})`}
+                    hide={!selectedMetrics.includes(key)}
+                  />
+                ))}
               </AreaChart>
             </ResponsiveContainer>
           </ChartContainer>

@@ -1,10 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { Calculator, RefreshCcw } from 'lucide-react';
+import { Calculator, RefreshCcw, Lightbulb } from 'lucide-react';
 import ComplianceProgressIndicator from '@/components/ui/ComplianceProgressIndicator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 interface ComplianceScoreCalculatorProps {
   className?: string;
@@ -15,11 +17,14 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
   className,
   onScoreCalculated 
 }) => {
+  const { toast } = useToast();
   const [privacyScore, setPrivacyScore] = useState(90);
   const [securityScore, setSecurityScore] = useState(85);
   const [adminScore, setAdminScore] = useState(75);
   const [physicalScore, setPhysicalScore] = useState(80);
   const [breachScore, setBreachScore] = useState(95);
+  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [showRecommendations, setShowRecommendations] = useState(false);
   
   // Compliance score is weighted average
   const calculateComplianceScore = () => {
@@ -43,6 +48,9 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
       onScoreCalculated(weightedScore);
     }
     
+    // Generate AI recommendations based on scores
+    generateRecommendations();
+    
     return weightedScore;
   };
   
@@ -52,7 +60,45 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
     setAdminScore(75);
     setPhysicalScore(80);
     setBreachScore(95);
+    setRecommendations([]);
+    setShowRecommendations(false);
   };
+  
+  const generateRecommendations = () => {
+    const newRecommendations: string[] = [];
+    
+    // Intelligent recommendations based on score values
+    if (adminScore < 80) {
+      newRecommendations.push("Schedule administrative safeguard training with staff to improve documentation compliance.");
+    }
+    
+    if (physicalScore < 85) {
+      newRecommendations.push("Conduct a physical security audit to identify facility vulnerabilities.");
+    }
+    
+    if (securityScore < 90) {
+      newRecommendations.push("Implement multi-factor authentication across all systems containing PHI.");
+    }
+    
+    if (privacyScore < 95) {
+      newRecommendations.push("Review Notice of Privacy Practices for potential updates based on recent regulatory changes.");
+    }
+    
+    if (newRecommendations.length > 0) {
+      setRecommendations(newRecommendations);
+      setShowRecommendations(true);
+      
+      toast({
+        title: "Recommendations Generated",
+        description: `${newRecommendations.length} improvement suggestions available`,
+      });
+    }
+  };
+  
+  // Handle changes in scores for real-time updates
+  useEffect(() => {
+    calculateComplianceScore();
+  }, [privacyScore, securityScore, adminScore, physicalScore, breachScore]);
   
   return (
     <Card className={className}>
@@ -138,6 +184,20 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
           </div>
         </div>
         
+        {showRecommendations && recommendations.length > 0 && (
+          <div className="mt-4 space-y-2 bg-muted p-3 rounded-lg">
+            <div className="flex items-center text-sm font-medium">
+              <Lightbulb className="h-4 w-4 mr-2 text-amber-500" />
+              AI-Generated Recommendations
+            </div>
+            <ul className="space-y-1 pl-6 list-disc text-sm">
+              {recommendations.map((rec, index) => (
+                <li key={index}>{rec}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
         <div className="mt-6 pt-4 border-t">
           <ComplianceProgressIndicator score={calculateComplianceScore()} />
         </div>
@@ -147,7 +207,13 @@ const ComplianceScoreCalculator: React.FC<ComplianceScoreCalculatorProps> = ({
           <RefreshCcw className="h-4 w-4 mr-1" />
           Reset
         </Button>
-        <Button size="sm">Calculate Impact</Button>
+        <Button 
+          size="sm" 
+          onClick={() => setShowRecommendations(!showRecommendations)}
+        >
+          <Lightbulb className="h-4 w-4 mr-1" />
+          {showRecommendations ? "Hide Recommendations" : "Show Recommendations"}
+        </Button>
       </CardFooter>
     </Card>
   );
