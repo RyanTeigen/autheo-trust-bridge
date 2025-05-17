@@ -9,12 +9,14 @@ const DataVaultCard: React.FC = () => {
   const { toast } = useToast();
   
   return (
-    <Card className="border-slate-200 overflow-hidden">
+    <Card className="border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div className="h-2 bg-gradient-to-r from-autheo-primary to-autheo-secondary" />
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <WalletCards className="h-5 w-5 text-autheo-primary" />
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <div className="p-1.5 rounded-md bg-autheo-primary/10">
+              <WalletCards className="h-5 w-5 text-autheo-primary" />
+            </div>
             Health Data Vault
           </CardTitle>
         </div>
@@ -23,7 +25,8 @@ const DataVaultCard: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">
-        <Button className="w-full flex items-center justify-center gap-2" 
+        <Button 
+          className="w-full flex items-center justify-center gap-2 shadow-sm" 
           variant="autheo" 
           onClick={() => 
             toast({
@@ -34,7 +37,8 @@ const DataVaultCard: React.FC = () => {
           <PlusCircle className="h-4 w-4" />
           Import from Provider
         </Button>
-        <Button className="w-full flex items-center justify-center gap-2" 
+        <Button 
+          className="w-full flex items-center justify-center gap-2 border-slate-200 hover:bg-slate-50 transition-colors" 
           variant="outline" 
           onClick={() => 
             toast({

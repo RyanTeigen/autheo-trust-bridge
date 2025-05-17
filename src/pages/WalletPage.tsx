@@ -154,14 +154,14 @@ const WalletPage = () => {
       <WalletHeader />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2 border-slate-200">
-          <CardHeader className="pb-2">
+        <Card className="md:col-span-2 border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">
+          <CardHeader className="pb-2 border-b border-slate-100">
             <CardTitle>Your Health Records</CardTitle>
             <CardDescription>
               Manage your medical history and control sharing preferences
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 pt-6">
             <WalletFilters
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}

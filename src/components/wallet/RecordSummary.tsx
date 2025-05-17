@@ -35,17 +35,19 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ stats }) => {
   };
 
   return (
-    <Card className="border-slate-200 overflow-hidden">
+    <Card className="border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div className="h-2 bg-gradient-to-r from-autheo-secondary to-autheo-accent" />
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 border-b border-slate-100">
         <CardTitle className="text-lg flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-autheo-secondary" />
+          <div className="p-1.5 rounded-md bg-autheo-secondary/10">
+            <Wallet className="h-5 w-5 text-autheo-secondary" />
+          </div>
           Records Summary
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-5 pt-5">
         <div className="flex items-center space-x-4">
-          <div className="p-2 bg-blue-50 rounded-full">
+          <div className="p-2.5 bg-blue-50 rounded-full">
             <FileText className="h-5 w-5 text-blue-600" />
           </div>
           <div>
@@ -59,7 +61,7 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ stats }) => {
             <span className="text-slate-600">Shared with providers</span>
             <span className="font-medium">{shared}/{total}</span>
           </div>
-          <Progress value={sharedPercentage} className="h-2" 
+          <Progress value={sharedPercentage} className="h-2.5 rounded-full" 
             style={{ 
               background: 'rgb(241 245 249)',
               '--progress-background': 'linear-gradient(to right, #5EEBC4, #4A6BF5)'
@@ -69,13 +71,13 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ stats }) => {
         </div>
         
         {sortedCategories.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-3 bg-slate-50 p-3 rounded-lg">
             <p className="text-sm font-medium">Top Categories</p>
             <div className="space-y-2.5">
               {sortedCategories.map(([category, count]) => (
                 <div key={category} className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className={`w-2 h-2 rounded-full mr-2 ${getCategoryColor(category).replace('text', 'bg')}`} />
+                    <div className={`w-2.5 h-2.5 rounded-full mr-2 ${getCategoryColor(category).replace('text', 'bg')}`} />
                     <span className="text-sm capitalize text-slate-700">{category}</span>
                   </div>
                   <span className="text-sm font-medium">{count}</span>
@@ -86,7 +88,7 @@ const RecordSummary: React.FC<RecordSummaryProps> = ({ stats }) => {
         )}
         
         <div className="flex items-center space-x-4">
-          <div className="p-2 bg-purple-50 rounded-full">
+          <div className="p-2.5 bg-purple-50 rounded-full">
             <Users className="h-5 w-5 text-purple-600" />
           </div>
           <div>
