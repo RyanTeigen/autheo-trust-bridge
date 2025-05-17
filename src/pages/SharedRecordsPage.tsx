@@ -224,7 +224,7 @@ const SharedRecordsPage = () => {
       
       {/* Top-level tab system */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-6">
+        <TabsList className="mb-6 bg-slate-100 dark:bg-slate-800">
           <TabsTrigger value="access" className="px-6">Access Management</TabsTrigger>
           <TabsTrigger value="records" className="px-6">My Health Records</TabsTrigger>
         </TabsList>

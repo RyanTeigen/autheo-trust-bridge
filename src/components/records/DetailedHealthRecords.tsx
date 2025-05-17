@@ -157,7 +157,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {medications.length > 0 ? (
                 medications.map(med => (
-                  <Card key={med.id} className="overflow-hidden bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50">
+                  <Card key={med.id} className="overflow-hidden bg-blue-50/80 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800/50">
                     <CardHeader className="pb-2 bg-blue-100/70 dark:bg-blue-800/30">
                       <div className="flex justify-between items-start">
                         <div>
@@ -203,7 +203,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {diagnoses.length > 0 ? (
                 diagnoses.map(diagnosis => (
-                  <Card key={diagnosis.id} className="overflow-hidden bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/50">
+                  <Card key={diagnosis.id} className="overflow-hidden bg-purple-50/80 dark:bg-purple-900/20 border-purple-100 dark:border-purple-800/50">
                     <CardHeader className="pb-2 bg-purple-100/70 dark:bg-purple-800/30">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{diagnosis.condition}</CardTitle>
@@ -246,7 +246,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {immunizations.length > 0 ? (
                 immunizations.map(immunization => (
-                  <Card key={immunization.id} className="overflow-hidden bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-800/50">
+                  <Card key={immunization.id} className="overflow-hidden bg-green-50/80 dark:bg-green-900/20 border-green-100 dark:border-green-800/50">
                     <CardHeader className="pb-2 bg-green-100/70 dark:bg-green-800/30">
                       <CardTitle className="text-lg">{immunization.name}</CardTitle>
                     </CardHeader>
@@ -295,7 +295,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
             <div className="space-y-4">
               {medicalTests.length > 0 ? (
                 medicalTests.map(test => (
-                  <Card key={test.id} className="overflow-hidden bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50">
+                  <Card key={test.id} className="overflow-hidden bg-amber-50/80 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50">
                     <CardHeader className="pb-2 bg-amber-100/70 dark:bg-amber-800/30">
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{test.name}</CardTitle>

@@ -56,7 +56,7 @@ const AccessManagementTab: React.FC<AccessManagementTabProps> = ({
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
             placeholder="Search shared records..." 
-            className="pl-8" 
+            className="pl-8 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -68,14 +68,14 @@ const AccessManagementTab: React.FC<AccessManagementTabProps> = ({
           onSubmit={handleSubmit}
         />
         
-        <Button onClick={() => setDialogOpen(true)} className="whitespace-nowrap">
+        <Button onClick={() => setDialogOpen(true)} className="bg-autheo-primary hover:bg-autheo-primary/90 text-gray-900">
           <Plus className="h-4 w-4 mr-1" />
           Share New Records
         </Button>
       </div>
       
       <Tabs defaultValue="active" className="w-full mt-6">
-        <TabsList className="grid grid-cols-3 w-full md:w-[400px]">
+        <TabsList className="grid grid-cols-3 w-full md:w-[400px] bg-slate-100 dark:bg-slate-800">
           <TabsTrigger value="active">
             Active
             {activeRecords.length > 0 && (
