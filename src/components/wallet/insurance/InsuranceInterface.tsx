@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Tab, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import PaymentContract from './PaymentContract';
 import ClaimsHistory from './ClaimsHistory';
 import BlockchainInterface from './BlockchainInterface';

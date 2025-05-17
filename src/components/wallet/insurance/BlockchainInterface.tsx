@@ -62,7 +62,7 @@ const BlockchainInterface: React.FC = () => {
     
     // Simulate refreshing data
     setTimeout(() => {
-      const newTransaction = {
+      const newTransaction: Transaction = {
         id: `tx-${transactions.length + 1}`,
         timestamp: new Date().toISOString(),
         type: Math.random() > 0.5 ? 'verification' : 'contract',
