@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileCode, Check, Clock } from 'lucide-react';
+import { FileCode, Check, Clock, DollarSign, Coins } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { TransactionInfo, AutheoCoinInfo } from '@/components/wallet/insurance/types';
 
 interface SmartContract {
   id: string;
@@ -39,6 +40,37 @@ const SmartContracts = () => {
       status: 'pending'
     }
   ]);
+
+  const [showTransactionDemo, setShowTransactionDemo] = useState(false);
+  const [amount, setAmount] = useState('10.00');
+  const [processing, setProcessing] = useState(false);
+
+  // Demo Autheo coin info
+  const [autheoInfo, setAutheoInfo] = useState<AutheoCoinInfo>({
+    balance: 100,
+    conversionRate: 10 // 1 USD = 10 Autheo coins
+  });
+  
+  const [recentTransactions, setRecentTransactions] = useState<TransactionInfo[]>([
+    {
+      id: 'tx001',
+      amount: 25.00,
+      fee: 0.50,
+      timestamp: '2025-05-16T14:32:00Z',
+      status: 'completed',
+      description: 'Co-pay for Dr. Chen visit',
+      autheoCoinsUsed: 250
+    },
+    {
+      id: 'tx002',
+      amount: 75.00,
+      fee: 1.50,
+      timestamp: '2025-05-10T09:15:00Z',
+      status: 'completed',
+      description: 'Lab test payment',
+      autheoCoinsUsed: 750
+    }
+  ]);
   
   const handleActivate = (id: string) => {
     setContracts(contracts.map(contract => 
@@ -64,6 +96,55 @@ const SmartContracts = () => {
     }
   };
 
+  const processTransaction = () => {
+    const amountValue = parseFloat(amount);
+    if (isNaN(amountValue) || amountValue <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Please enter a valid payment amount",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setProcessing(true);
+
+    // Calculate fee (2% of transaction)
+    const fee = parseFloat((amountValue * 0.02).toFixed(2));
+    const autheoCoinsNeeded = Math.round(amountValue * autheoInfo.conversionRate);
+    
+    // Simulate backend processing
+    setTimeout(() => {
+      // In a real app, this would interact with the blockchain
+      const newTransaction: TransactionInfo = {
+        id: `tx${Math.random().toString(36).substring(2, 8)}`,
+        amount: amountValue,
+        fee: fee,
+        timestamp: new Date().toISOString(),
+        status: 'completed',
+        description: 'Healthcare service payment',
+        autheoCoinsUsed: autheoCoinsNeeded
+      };
+      
+      // Update transactions list
+      setRecentTransactions([newTransaction, ...recentTransactions]);
+      
+      // Update Autheo coin balance
+      setAutheoInfo({
+        ...autheoInfo,
+        balance: autheoInfo.balance - autheoCoinsNeeded
+      });
+      
+      toast({
+        title: "Transaction Complete",
+        description: `$${amountValue} processed with $${fee} fee using Autheo coin`,
+      });
+      
+      setProcessing(false);
+      setShowTransactionDemo(false);
+    }, 2000);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -76,42 +157,136 @@ const SmartContracts = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {contracts.map((contract) => (
-            <div key={contract.id} className="border rounded-lg p-3">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-medium">{contract.name}</h3>
-                {getStatusBadge(contract.status)}
+        {showTransactionDemo ? (
+          <div className="space-y-4">
+            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+              <h3 className="text-sm font-medium mb-2">Transaction Demo</h3>
+              <div className="text-xs text-slate-500 mb-3">
+                This demonstrates how USD transactions are processed using Autheo coins in the background
               </div>
-              <p className="text-sm text-muted-foreground mb-2">{contract.description}</p>
-              {contract.expiresAt && (
-                <div className="text-xs text-muted-foreground">
-                  Expires: {new Date(contract.expiresAt).toLocaleDateString()}
+              
+              <div className="flex items-center gap-2 mb-4">
+                <div className="bg-green-100 text-green-800 p-1.5 rounded-full">
+                  <Coins className="h-4 w-4" />
                 </div>
-              )}
-              {contract.status === 'pending' && (
-                <div className="mt-2">
-                  <Button 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => handleActivate(contract.id)}
-                  >
-                    Activate Contract
-                  </Button>
+                <div>
+                  <div className="text-sm font-medium">Autheo Coin Balance</div>
+                  <div className="text-xl">{autheoInfo.balance} AUTHEO</div>
+                  <div className="text-xs text-slate-500">Current rate: 1 USD = {autheoInfo.conversionRate} AUTHEO</div>
                 </div>
-              )}
+              </div>
+              
+              <div className="mb-4">
+                <label className="text-sm font-medium mb-1 block">Payment Amount (USD)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5">$</span>
+                  <input
+                    type="text"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full pl-7 pr-3 py-2 border rounded-md"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex flex-col gap-2 text-sm mb-4">
+                <div className="flex justify-between">
+                  <span>Amount:</span>
+                  <span>${amount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Fee (2%):</span>
+                  <span>${(parseFloat(amount || '0') * 0.02).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-medium">
+                  <span>Autheo coins required:</span>
+                  <span>{Math.round(parseFloat(amount || '0') * autheoInfo.conversionRate)} AUTHEO</span>
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="w-1/2"
+                  onClick={() => setShowTransactionDemo(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="w-1/2 bg-autheo-primary"
+                  onClick={processTransaction}
+                  disabled={processing}
+                >
+                  {processing ? 'Processing...' : 'Process Payment'}
+                </Button>
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="contracts-list space-y-4">
+              {contracts.map((contract) => (
+                <div key={contract.id} className="border rounded-lg p-3">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium">{contract.name}</h3>
+                    {getStatusBadge(contract.status)}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">{contract.description}</p>
+                  {contract.expiresAt && (
+                    <div className="text-xs text-muted-foreground">
+                      Expires: {new Date(contract.expiresAt).toLocaleDateString()}
+                    </div>
+                  )}
+                  {contract.status === 'pending' && (
+                    <div className="mt-2">
+                      <Button 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => handleActivate(contract.id)}
+                      >
+                        Activate Contract
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-6">
+              <h3 className="text-sm font-medium mb-2">Recent Transactions</h3>
+              <div className="space-y-2">
+                {recentTransactions.map(tx => (
+                  <div key={tx.id} className="bg-slate-50 border border-slate-200 p-3 rounded-lg">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">${tx.amount.toFixed(2)}</div>
+                        <div className="text-xs text-slate-500">{tx.description}</div>
+                      </div>
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <Check className="h-3 w-3 mr-1" /> 
+                        Processed
+                      </Badge>
+                    </div>
+                    <div className="text-xs text-slate-500 mt-1 flex justify-between">
+                      <span>Fee: ${tx.fee.toFixed(2)}</span>
+                      <span>Autheo coins: {tx.autheoCoinsUsed}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full" onClick={() => 
-          toast({
-            title: "Feature in Development",
-            description: "Create custom smart contracts feature coming soon",
-          })
-        }>
-          Create New Contract
+        <Button 
+          variant="outline" 
+          className="w-full flex items-center gap-2" 
+          onClick={() => showTransactionDemo ? setShowTransactionDemo(false) : setShowTransactionDemo(true)}
+        >
+          <DollarSign className="h-4 w-4" />
+          {showTransactionDemo ? 'Hide Transaction Demo' : 'Demo Transaction Processing'}
         </Button>
       </CardFooter>
     </Card>
