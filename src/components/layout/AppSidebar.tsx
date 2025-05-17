@@ -34,7 +34,7 @@ export const AppSidebar: React.FC = () => {
   const getLinkClass = ({ isActive }: { isActive: boolean }) => {
     return `flex items-center p-2 w-full rounded-md ${
       isActive 
-      ? 'bg-autheo-light text-autheo-primary font-medium' 
+      ? 'bg-gradient-to-r from-autheo-primary/20 to-autheo-secondary/20 text-autheo-primary font-medium' 
       : 'text-foreground hover:bg-muted/50'
     }`;
   };
@@ -95,13 +95,13 @@ export const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar
-      className={`border-r ${isCollapsed ? 'w-14' : 'w-60'}`}
+      className={`border-r ${isCollapsed ? 'w-14' : 'w-60'} bg-autheo-dark/95 backdrop-blur-sm border-border`}
       variant="sidebar"
     >
       <SidebarContent className="py-4">
         {/* Patient Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4">
+          <SidebarGroupLabel className="px-4 text-autheo-primary/80">
             {!isCollapsed && "Patient Access"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -122,7 +122,7 @@ export const AppSidebar: React.FC = () => {
 
         {/* Provider Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4">
+          <SidebarGroupLabel className="px-4 text-autheo-primary/80">
             {!isCollapsed && "Provider Access"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -143,7 +143,7 @@ export const AppSidebar: React.FC = () => {
 
         {/* Compliance Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="px-4">
+          <SidebarGroupLabel className="px-4 text-autheo-primary/80">
             {!isCollapsed && "Compliance"}
           </SidebarGroupLabel>
           <SidebarGroupContent>

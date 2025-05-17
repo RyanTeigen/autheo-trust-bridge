@@ -3,7 +3,7 @@ import React from 'react';
 import { Badge as ShadcnBadge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
-type VariantType = 'default' | 'outline' | 'secondary' | 'destructive' | 'success';
+type VariantType = 'default' | 'outline' | 'secondary' | 'destructive' | 'success' | 'autheo';
 
 interface BadgeProps {
   variant?: VariantType;
@@ -11,14 +11,21 @@ interface BadgeProps {
   className?: string;
 }
 
-// We're extending the shadcn Badge component to add a success variant
+// Extending the shadcn Badge component to add custom variants
 const Badge: React.FC<BadgeProps> = ({ variant = 'default', children, className }) => {
-  const variantClasses = variant === 'success' 
-    ? 'bg-green-100 text-green-800 hover:bg-green-100 hover:text-green-800 border-green-200'
-    : '';
+  let variantClasses = '';
+  
+  if (variant === 'success') {
+    variantClasses = 'bg-green-100 text-green-800 hover:bg-green-100 hover:text-green-800 border-green-200';
+  } else if (variant === 'autheo') {
+    variantClasses = 'bg-gradient-to-r from-autheo-primary to-autheo-secondary text-autheo-dark hover:opacity-90';
+  }
     
   return (
-    <ShadcnBadge variant={variant === 'success' ? 'outline' : variant} className={cn(variantClasses, className)}>
+    <ShadcnBadge 
+      variant={variant === 'success' || variant === 'autheo' ? 'outline' : variant} 
+      className={cn(variantClasses, className)}
+    >
       {children}
     </ShadcnBadge>
   );

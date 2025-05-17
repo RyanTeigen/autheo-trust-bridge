@@ -17,9 +17,9 @@ import AutheoLogo from '../ui/AutheoLogo';
 
 export const AppHeader: React.FC = () => {
   return (
-    <header className="h-16 border-b flex items-center justify-between px-4">
+    <header className="h-16 border-b flex items-center justify-between px-4 bg-autheo-dark border-border">
       <div className="flex items-center">
-        <SidebarTrigger className="mr-4">
+        <SidebarTrigger className="mr-4 text-autheo-primary">
           <Menu className="h-5 w-5" />
         </SidebarTrigger>
         <Link to="/" className="flex items-center">
@@ -29,7 +29,7 @@ export const AppHeader: React.FC = () => {
       </div>
       
       <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative text-autheo-primary">
           <Bell className="h-5 w-5" />
           <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500"></span>
         </Button>
@@ -39,7 +39,7 @@ export const AppHeader: React.FC = () => {
             <Button variant="ghost" className="relative rounded-full h-8 w-8 p-0">
               <Avatar className="h-8 w-8">
                 <AvatarImage src="/placeholder.svg" alt="User" />
-                <AvatarFallback className="bg-autheo-primary text-white">
+                <AvatarFallback className="bg-autheo-primary text-autheo-dark">
                   <UserRound className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>

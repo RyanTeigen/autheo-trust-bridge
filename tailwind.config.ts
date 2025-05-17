@@ -64,11 +64,15 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				autheo: {
-					primary: '#0284c7', // sky-600
-					secondary: '#0891b2', // cyan-600
-					accent: '#14b8a6', // teal-500
-					light: '#e0f2fe', // sky-100
-					dark: '#0c4a6e', // sky-900
+					primary: '#5EEBC4', // Autheo teal/mint green
+					secondary: '#4A6BF5', // Autheo blue accent
+					accent: '#7880FF', // Autheo purple accent
+					light: '#B5F9E4', // Lighter teal
+					dark: '#121212', // Autheo dark background
+					gradient: {
+						from: '#5EEBC4',
+						to: '#4A6BF5'
+					}
 				}
 			},
 			borderRadius: {
