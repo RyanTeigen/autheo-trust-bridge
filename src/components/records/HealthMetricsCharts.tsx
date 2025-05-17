@@ -76,17 +76,17 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
   };
   
   return (
-    <Card className="mb-6">
-      <CardHeader>
+    <Card className="mb-6 bg-slate-800 border-slate-700 text-slate-100">
+      <CardHeader className="bg-slate-700/30 border-b border-slate-700">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Health Metrics</CardTitle>
-            <CardDescription>Track your health metrics over time</CardDescription>
+            <CardTitle className="text-autheo-primary">Health Metrics</CardTitle>
+            <CardDescription className="text-slate-300">Track your health metrics over time</CardDescription>
           </div>
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-1"
+            className="gap-1 bg-slate-700/30 hover:bg-slate-700/50 text-autheo-primary border-slate-600"
             onClick={handleShare}
           >
             <Share className="h-4 w-4" />
@@ -94,16 +94,16 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Tabs defaultValue="weight">
-          <TabsList className="grid grid-cols-3 mb-4">
-            <TabsTrigger value="weight" className="flex items-center gap-1">
+          <TabsList className="grid grid-cols-3 mb-4 bg-slate-700/30">
+            <TabsTrigger value="weight" className="flex items-center gap-1 text-autheo-primary data-[state=active]:bg-slate-800 data-[state=active]:text-autheo-primary">
               <Scale className="h-4 w-4" /> Weight
             </TabsTrigger>
-            <TabsTrigger value="height" className="flex items-center gap-1">
+            <TabsTrigger value="height" className="flex items-center gap-1 text-autheo-primary data-[state=active]:bg-slate-800 data-[state=active]:text-autheo-primary">
               <Ruler className="h-4 w-4" /> Height
             </TabsTrigger>
-            <TabsTrigger value="bmi" className="flex items-center gap-1">
+            <TabsTrigger value="bmi" className="flex items-center gap-1 text-autheo-primary data-[state=active]:bg-slate-800 data-[state=active]:text-autheo-primary">
               <ChartBar className="h-4 w-4" /> BMI
             </TabsTrigger>
           </TabsList>
@@ -114,7 +114,7 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
               description="Your weight measurements over time"
               data={weightData}
               unit="kg"
-              color="#9b87f5"
+              color="#5EEBC4" // Use Autheo primary color
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
             />
@@ -126,7 +126,7 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
               description="Your height measurements over time"
               data={heightData}
               unit="cm"
-              color="#0EA5E9"
+              color="#4A6BF5" // Use Autheo secondary color
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
             />
@@ -137,28 +137,28 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
               title="BMI History"
               description="Your Body Mass Index over time"
               data={bmiData}
-              color="#F97316"
+              color="#7880FF" // Use Autheo accent color
               minValue={16}
               maxValue={32}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
             />
             <div className="mt-4 text-sm grid grid-cols-4 gap-2">
-              <div className="p-2 rounded bg-blue-100 text-blue-800">
-                <p className="font-medium">Underweight</p>
-                <p className="text-xs">BMI &lt; 18.5</p>
+              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
+                <p className="font-medium text-autheo-light">Underweight</p>
+                <p className="text-xs text-slate-300">BMI &lt; 18.5</p>
               </div>
-              <div className="p-2 rounded bg-green-100 text-green-800">
-                <p className="font-medium">Normal</p>
-                <p className="text-xs">BMI 18.5 - 24.9</p>
+              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
+                <p className="font-medium text-autheo-primary">Normal</p>
+                <p className="text-xs text-slate-300">BMI 18.5 - 24.9</p>
               </div>
-              <div className="p-2 rounded bg-amber-100 text-amber-800">
-                <p className="font-medium">Overweight</p>
-                <p className="text-xs">BMI 25 - 29.9</p>
+              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
+                <p className="font-medium text-autheo-secondary">Overweight</p>
+                <p className="text-xs text-slate-300">BMI 25 - 29.9</p>
               </div>
-              <div className="p-2 rounded bg-red-100 text-red-800">
-                <p className="font-medium">Obese</p>
-                <p className="text-xs">BMI &gt; 30</p>
+              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
+                <p className="font-medium text-autheo-accent">Obese</p>
+                <p className="text-xs text-slate-300">BMI &gt; 30</p>
               </div>
             </div>
           </TabsContent>

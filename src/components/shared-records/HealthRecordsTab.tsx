@@ -39,7 +39,10 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
           onSubmit={handleShareHealthInfo}
         />
         
-        <Button onClick={() => setShareHealthDialog(true)} className="bg-autheo-primary hover:bg-autheo-primary/90 text-autheo-dark">
+        <Button 
+          onClick={() => setShareHealthDialog(true)} 
+          className="bg-autheo-primary hover:bg-autheo-primary/90 text-autheo-dark"
+        >
           <Share className="h-4 w-4 mr-1" />
           Share Health Info
         </Button>
@@ -49,7 +52,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
         <CardHeader className="border-b border-slate-700">
           <CardTitle className="text-autheo-primary">Health Records</CardTitle>
         </CardHeader>
-        <CardContent className="bg-slate-800">
+        <CardContent className="bg-slate-800 p-0">
           <DetailedHealthRecords 
             medications={mockMedications}
             diagnoses={mockDiagnoses}

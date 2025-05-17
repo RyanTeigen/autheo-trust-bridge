@@ -31,11 +31,11 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
   const getSeverityBadge = (severity: AllergyItem['severity']) => {
     switch (severity) {
       case 'mild':
-        return <Badge variant="outline" className="bg-green-100 text-green-800">Mild</Badge>;
+        return <Badge variant="outline" className="bg-slate-700/30 text-autheo-light border-autheo-primary/30">Mild</Badge>;
       case 'moderate':
-        return <Badge variant="outline" className="bg-amber-100 text-amber-800">Moderate</Badge>;
+        return <Badge variant="outline" className="bg-slate-700/50 text-autheo-primary border-autheo-primary/50">Moderate</Badge>;
       case 'severe':
-        return <Badge variant="destructive">Severe</Badge>;
+        return <Badge variant="destructive" className="bg-slate-700/70 border-red-500/30">Severe</Badge>;
     }
   };
 
@@ -51,19 +51,19 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
   };
 
   return (
-    <Card className="mb-6 bg-red-50/80 dark:bg-red-900/20 border-red-100 dark:border-red-800/50">
-      <CardHeader className="bg-red-100/70 dark:bg-red-800/30">
+    <Card className="mb-6 bg-slate-800 border-slate-700 text-slate-100">
+      <CardHeader className="bg-slate-700/30 border-b border-slate-700">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-autheo-primary">
               <Pill className="h-5 w-5" /> Allergies
             </CardTitle>
-            <CardDescription className="text-red-700 dark:text-red-300">Your allergies and reactions</CardDescription>
+            <CardDescription className="text-slate-300">Your allergies and reactions</CardDescription>
           </div>
           <Button 
             variant="outline" 
             size="sm" 
-            className="gap-1 bg-red-100/50 hover:bg-red-200/70 dark:bg-red-800/50 dark:hover:bg-red-700/60"
+            className="gap-1 bg-slate-700/30 hover:bg-slate-700/50 text-autheo-primary border-slate-600"
             onClick={handleShare}
           >
             <Share className="h-4 w-4" />
@@ -71,19 +71,19 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         {allergies.length > 0 ? (
           <div className="space-y-3">
             {allergies.map((allergy) => (
-              <div key={allergy.id} className="rounded-lg border border-red-200 dark:border-red-800/50 p-3 bg-red-50/50 dark:bg-red-900/30">
+              <div key={allergy.id} className="rounded-lg border border-slate-700 p-3 bg-slate-800/70">
                 <div className="flex justify-between items-start mb-1">
-                  <h3 className="font-medium text-lg text-red-800 dark:text-red-200">{allergy.name}</h3>
+                  <h3 className="font-medium text-lg text-autheo-primary">{allergy.name}</h3>
                   {getSeverityBadge(allergy.severity)}
                 </div>
-                <p className="text-sm text-red-700 dark:text-red-300 mb-2">
+                <p className="text-sm text-slate-300 mb-2">
                   <span className="font-medium">Reaction:</span> {allergy.reaction}
                 </p>
-                <p className="text-xs text-red-600 dark:text-red-400">
+                <p className="text-xs text-slate-400">
                   Diagnosed on {new Date(allergy.diagnosed).toLocaleDateString()}
                 </p>
               </div>
@@ -91,7 +91,7 @@ const AllergiesCard: React.FC<AllergiesCardProps> = ({ allergies, onShare }) => 
           </div>
         ) : (
           <div className="py-8 text-center">
-            <p className="text-red-600 dark:text-red-400">No allergies recorded</p>
+            <p className="text-slate-400">No allergies recorded</p>
           </div>
         )}
       </CardContent>

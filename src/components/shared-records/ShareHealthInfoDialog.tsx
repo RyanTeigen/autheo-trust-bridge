@@ -8,15 +8,12 @@ import { ChartBar, Pill, File, Syringe, TestTube } from 'lucide-react';
 interface ShareHealthInfoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onShare?: () => void;
-  // Add onSubmit prop to match what's being passed in HealthRecordsTab
   onSubmit: () => void;
 }
 
 const ShareHealthInfoDialog: React.FC<ShareHealthInfoDialogProps> = ({ 
   open, 
-  onOpenChange, 
-  // Update to use onSubmit instead of onShare
+  onOpenChange,
   onSubmit
 }) => {
   return (
