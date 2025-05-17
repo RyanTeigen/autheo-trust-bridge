@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pills, FileX, Syringe, TestTube, Calendar } from 'lucide-react';
+import { Pill, FileX, Syringe, TestTube, Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 // Types for health records
@@ -71,7 +71,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
     if (daysUntil <= 0) {
       return <Badge variant="destructive">Refill Now</Badge>;
     } else if (daysUntil <= 7) {
-      return <Badge variant="warning" className="bg-amber-100 text-amber-800">Refill Soon</Badge>;
+      return <Badge variant="outline" className="bg-amber-100 text-amber-800">Refill Soon</Badge>;
     } else {
       return <Badge variant="outline">Refill in {daysUntil} days</Badge>;
     }
@@ -113,7 +113,7 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
         <Tabs defaultValue="medications" className="w-full">
           <TabsList className="grid grid-cols-4 mb-4">
             <TabsTrigger value="medications" className="flex items-center gap-1">
-              <Pills className="h-4 w-4" /> Medications
+              <Pill className="h-4 w-4" /> Medications
             </TabsTrigger>
             <TabsTrigger value="diagnoses" className="flex items-center gap-1">
               <FileX className="h-4 w-4" /> Diagnoses
