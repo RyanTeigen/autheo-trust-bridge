@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PatientListItem from './PatientListItem';
+import { CircleDashed } from 'lucide-react';
 
 interface Patient {
   id: string;
@@ -21,8 +22,14 @@ const PatientSearchResults: React.FC<PatientSearchResultsProps> = ({ patients, o
   }
 
   return (
-    <Card>
-      <CardContent className="p-2">
+    <Card className="shadow-sm border-autheo-primary/10">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base flex items-center">
+          <CircleDashed className="h-4 w-4 mr-2 text-autheo-primary" />
+          Search Results
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-3">
         <div className="space-y-2">
           {patients.map((patient) => (
             <PatientListItem 

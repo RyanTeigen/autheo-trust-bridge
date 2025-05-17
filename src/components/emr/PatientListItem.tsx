@@ -18,21 +18,23 @@ interface PatientListItemProps {
 const PatientListItem: React.FC<PatientListItemProps> = ({ patient, onSelectPatient }) => {
   return (
     <div 
-      className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer"
+      className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md transition-colors"
       onClick={() => onSelectPatient(patient.id)}
     >
-      <div className="flex items-center">
-        <div className="h-8 w-8 rounded-full bg-muted-foreground/20 flex items-center justify-center mr-2">
-          <User className="h-4 w-4 text-muted-foreground" />
+      <div className="flex items-center space-x-3">
+        <div className="h-10 w-10 rounded-full bg-autheo-primary/20 flex items-center justify-center">
+          <User className="h-5 w-5 text-autheo-primary" />
         </div>
         <div>
-          <p className="font-medium">{patient.name}</p>
-          <p className="text-xs text-muted-foreground">
-            DOB: {new Date(patient.dob).toLocaleDateString()} | MRN: {patient.mrn}
-          </p>
+          <p className="font-medium text-base">{patient.name}</p>
+          <div className="flex items-center text-xs text-muted-foreground space-x-1">
+            <span>DOB: {new Date(patient.dob).toLocaleDateString()}</span>
+            <span className="px-1">•</span>
+            <span>MRN: {patient.mrn}</span>
+          </div>
         </div>
       </div>
-      <Button variant="ghost" size="sm">View</Button>
+      <Button size="sm" variant="autheo-outline">Select</Button>
     </div>
   );
 };

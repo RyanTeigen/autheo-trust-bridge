@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,6 +6,7 @@ import PatientSearch from '@/components/emr/PatientSearch';
 import PatientDetails from '@/components/emr/PatientDetails';
 import HealthDataChart from '@/components/emr/HealthDataChart';
 import { AuditLogService } from '@/services/AuditLogService';
+import { Database, User, Activity } from 'lucide-react';
 
 // Mock health data for visualization
 const mockBloodPressureData = [
@@ -119,16 +119,22 @@ const PatientRecordsPage = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Patient Records</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-2 flex items-center">
+          <Database className="h-6 w-6 mr-2 text-autheo-primary" />
+          Patient Records
+        </h1>
         <p className="text-muted-foreground">
           Search, view, and manage patient health information
         </p>
       </div>
 
       {!selectedPatientId ? (
-        <Card>
+        <Card className="shadow-sm border-autheo-primary/10">
           <CardHeader>
-            <CardTitle>Patient Search</CardTitle>
+            <CardTitle className="flex items-center">
+              <User className="h-5 w-5 mr-2 text-autheo-primary" />
+              Patient Search
+            </CardTitle>
             <CardDescription>
               Find patients by name, ID, or medical record number
             </CardDescription>
@@ -142,7 +148,10 @@ const PatientRecordsPage = () => {
           <PatientDetails patientId={selectedPatientId} />
           
           <div>
-            <h2 className="text-2xl font-bold tracking-tight mb-4">Health Data</h2>
+            <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center">
+              <Activity className="h-5 w-5 mr-2 text-autheo-primary" />
+              Health Data
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <HealthDataChart 
                 title="Blood Pressure (Systolic)"
