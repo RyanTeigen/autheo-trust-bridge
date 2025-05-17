@@ -1,17 +1,14 @@
 
 import React, { useState, useMemo } from 'react';
-import { Info, PlusCircle, Search, FileText, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import HealthRecordsList from '@/components/wallet/HealthRecordsList';
 import { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
 import RecordSummary from '@/components/wallet/RecordSummary';
+import WalletHeader from '@/components/wallet/WalletHeader';
+import WalletFilters from '@/components/wallet/WalletFilters';
+import WalletTabsContainer from '@/components/wallet/WalletTabsContainer';
+import DataVaultCard from '@/components/wallet/DataVaultCard';
+import WalletInfoAlert from '@/components/wallet/WalletInfoAlert';
 
 const WalletPage = () => {
   const { toast } = useToast();
@@ -133,6 +130,12 @@ const WalletPage = () => {
     };
   }, [healthRecords]);
 
+  // Unique categories for filtering
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set(healthRecords.map(record => record.category));
+    return ['all', ...Array.from(uniqueCategories)];
+  }, [healthRecords]);
+
   const handleToggleShare = (id: string, shared: boolean) => {
     setHealthRecords(records => 
       records.map(record => 
@@ -146,20 +149,9 @@ const WalletPage = () => {
     });
   };
 
-  // Unique categories for filtering
-  const categories = useMemo(() => {
-    const uniqueCategories = new Set(healthRecords.map(record => record.category));
-    return ['all', ...Array.from(uniqueCategories)];
-  }, [healthRecords]);
-
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Smart Wallet</h1>
-        <p className="text-muted-foreground">
-          Control and manage access to your health records
-        </p>
-      </div>
+      <WalletHeader />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="md:col-span-2">
@@ -170,150 +162,30 @@ const WalletPage = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search records..." 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-              
-              <div className="flex gap-2">
-                <Select 
-                  value={selectedCategory} 
-                  onValueChange={(value) => setSelectedCategory(value)}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                <Select 
-                  value={sortBy} 
-                  onValueChange={(value: 'date' | 'provider' | 'category') => setSortBy(value)}
-                >
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Sort by Date</SelectItem>
-                    <SelectItem value="provider">Sort by Provider</SelectItem>
-                    <SelectItem value="category">Sort by Category</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                >
-                  {sortOrder === 'asc' ? '↑' : '↓'}
-                </Button>
-              </div>
-            </div>
+            <WalletFilters
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+              categories={categories}
+            />
             
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="all">All Records</TabsTrigger>
-                <TabsTrigger value="shared">Shared</TabsTrigger>
-                <TabsTrigger value="private">Private</TabsTrigger>
-                <TabsTrigger value="recent">Recent</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="all" className="mt-0">
-                <HealthRecordsList 
-                  records={processedRecords} 
-                  onToggleShare={handleToggleShare} 
-                  filter="all" 
-                />
-              </TabsContent>
-              
-              <TabsContent value="shared" className="mt-0">
-                <HealthRecordsList 
-                  records={processedRecords} 
-                  onToggleShare={handleToggleShare} 
-                  filter="shared" 
-                />
-              </TabsContent>
-              
-              <TabsContent value="private" className="mt-0">
-                <HealthRecordsList 
-                  records={processedRecords} 
-                  onToggleShare={handleToggleShare} 
-                  filter="private" 
-                />
-              </TabsContent>
-              
-              <TabsContent value="recent" className="mt-0">
-                <HealthRecordsList 
-                  records={processedRecords} 
-                  onToggleShare={handleToggleShare} 
-                  filter="recent" 
-                />
-              </TabsContent>
-            </Tabs>
+            <WalletTabsContainer
+              processedRecords={processedRecords}
+              handleToggleShare={handleToggleShare}
+              searchQuery={searchQuery}
+            />
           </CardContent>
-          <CardFooter className="flex justify-between">
-            <div className="text-sm text-muted-foreground">
-              {processedRecords.length} records found
-            </div>
-            {processedRecords.length === 0 && searchQuery && (
-              <Badge variant="outline">No results for "{searchQuery}"</Badge>
-            )}
-          </CardFooter>
         </Card>
         
         <div className="space-y-4">
           <RecordSummary stats={recordStats} />
-          
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertTitle>Smart Wallet Active</AlertTitle>
-            <AlertDescription>
-              Your Smart Wallet is secured with quantum-resistant encryption. You control who sees your data and when.
-            </AlertDescription>
-          </Alert>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Health Data Vault</CardTitle>
-              <CardDescription>
-                Import new health records from providers or upload documents
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-4">
-                <Button className="w-full flex items-center justify-center gap-2" onClick={() => 
-                  toast({
-                    title: "Feature in Development",
-                    description: "The ability to import records will be available soon.",
-                  })
-                }>
-                  <PlusCircle className="h-4 w-4" />
-                  Import from Provider
-                </Button>
-                <Button className="w-full flex items-center justify-center gap-2" variant="outline" onClick={() => 
-                  toast({
-                    title: "Feature in Development",
-                    description: "The ability to upload documents will be available soon.",
-                  })
-                }>
-                  <FileText className="h-4 w-4" />
-                  Upload Document
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <WalletInfoAlert />
+          <DataVaultCard />
         </div>
       </div>
     </div>
