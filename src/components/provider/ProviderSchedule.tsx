@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Clock, FileText } from 'lucide-react';
 import Badge from '@/components/emr/Badge';
+import { Link } from 'react-router-dom';
 
 interface Appointment {
   id: string;
@@ -45,8 +46,10 @@ const ProviderSchedule: React.FC<ProviderScheduleProps> = ({ appointments, onAct
                   {appointment.status}
                 </Badge>
                 <Button variant="outline" size="sm" onClick={onAction}>Check In</Button>
-                <Button variant="ghost" size="sm" onClick={onAction}>
-                  <FileText className="h-4 w-4" />
+                <Button variant="ghost" size="sm" asChild>
+                  <Link to="/medical-notes">
+                    <FileText className="h-4 w-4" />
+                  </Link>
                 </Button>
               </div>
             </div>
