@@ -5,9 +5,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
-const QuickActions: React.FC = () => {
+interface QuickActionsProps {
+  className?: string;
+}
+
+const QuickActions: React.FC<QuickActionsProps> = ({ className }) => {
   return (
-    <Card className="h-full">
+    <Card className={`h-full ${className || ''}`}>
       <CardHeader>
         <CardTitle>Quick Actions</CardTitle>
         <CardDescription>

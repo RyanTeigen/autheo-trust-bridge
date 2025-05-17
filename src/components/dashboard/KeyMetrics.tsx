@@ -10,11 +10,12 @@ interface KeyMetricsProps {
     pending: number;
   };
   complianceScore: number;
+  className?: string;
 }
 
-const KeyMetrics: React.FC<KeyMetricsProps> = ({ healthRecords, complianceScore }) => {
+const KeyMetrics: React.FC<KeyMetricsProps> = ({ healthRecords, complianceScore, className }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${className || ''}`}>
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">Health Records</CardTitle>

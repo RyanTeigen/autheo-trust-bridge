@@ -72,20 +72,21 @@ const Index = () => {
         description="Secure, patient-owned medical records with blockchain-enabled privacy"
       />
 
-      {/* First Row: Key Metrics and Quick Actions */}
+      {/* First Row: Key Metrics (now full width) */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-3">
-          <KeyMetrics 
-            healthRecords={healthRecords} 
-            complianceScore={complianceScore} 
-          />
-        </div>
-        <div className="lg:col-span-1">
-          <QuickActions />
-        </div>
+        <KeyMetrics 
+          healthRecords={healthRecords} 
+          complianceScore={complianceScore}
+          className="col-span-full" 
+        />
+      </div>
+
+      {/* Second Row: Quick Actions (now below metrics, full width) */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <QuickActions className="col-span-full" />
       </div>
       
-      {/* Second Row: Access and Records */}
+      {/* Third Row: Access and Records */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ApprovedAccess providers={approvedProviders} />
         <HealthRecordsSummary records={recordItems} />
