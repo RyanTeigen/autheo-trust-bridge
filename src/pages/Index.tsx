@@ -72,15 +72,21 @@ const Index = () => {
         description="Secure, patient-owned medical records with blockchain-enabled privacy"
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <KeyMetrics 
-          healthRecords={healthRecords} 
-          complianceScore={complianceScore} 
-        />
-        <QuickActions />
+      {/* First Row: Key Metrics and Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
+          <KeyMetrics 
+            healthRecords={healthRecords} 
+            complianceScore={complianceScore} 
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <QuickActions />
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Second Row: Access and Records */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ApprovedAccess providers={approvedProviders} />
         <HealthRecordsSummary records={recordItems} />
       </div>
@@ -88,14 +94,15 @@ const Index = () => {
       {/* Decentralized Features Section */}
       <div>
         <h2 className="text-2xl font-bold tracking-tight mb-4">Decentralized Features</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <SelfSovereignIdentity />
           <DistributedStorage />
           <ZeroKnowledgeVerification />
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Last Row: Contracts and Standards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SmartContracts />
         <InteroperabilityStandards />
       </div>
