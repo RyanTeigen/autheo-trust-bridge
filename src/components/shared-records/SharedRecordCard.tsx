@@ -1,19 +1,9 @@
-
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Share, Clock, Lock } from 'lucide-react';
-
-export interface SharedRecord {
-  id: string;
-  recipientName: string;
-  recipientType: 'provider' | 'organization' | 'caregiver';
-  sharedDate: string;
-  expiryDate: string;
-  accessLevel: 'full' | 'limited' | 'read-only';
-  status: 'active' | 'pending' | 'expired';
-}
+import { SharedRecord } from './types';
 
 interface SharedRecordCardProps {
   record: SharedRecord;

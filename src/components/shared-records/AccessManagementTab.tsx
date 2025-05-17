@@ -5,13 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus } from 'lucide-react';
-import SharedRecordCard, { SharedRecord } from './SharedRecordCard';
+import SharedRecordCard from './SharedRecordCard';
 import EmptyStateCard from './EmptyStateCard';
 import ShareRecordsDialog from './ShareRecordsDialog';
+import { SharedRecord } from './types';
 
 interface AccessManagementTabProps {
   sharedRecords: SharedRecord[];
-  onAddRecord: (record: Omit<SharedRecord, 'id' | 'status'> & { status: 'active' }) => void;
+  onAddRecord: (record: Omit<SharedRecord, 'id'> & { status: 'active' }) => void;
   onRevokeAccess: (id: string) => void;
 }
 

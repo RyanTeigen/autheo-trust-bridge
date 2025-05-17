@@ -11,7 +11,7 @@ const SharedRecordsPage = () => {
   const [activeTab, setActiveTab] = useState('access');
   const [shareHealthDialog, setShareHealthDialog] = useState(false);
   
-  // Mock data for shared records
+  // Mock data for shared records with correct type enforcement
   const [sharedRecords, setSharedRecords] = useState<SharedRecord[]>([
     {
       id: '1',
@@ -20,7 +20,7 @@ const SharedRecordsPage = () => {
       sharedDate: '2025-03-01',
       expiryDate: '2025-06-01',
       accessLevel: 'full',
-      status: 'active'
+      status: 'active' // Ensuring this is one of the allowed literal types
     },
     {
       id: '2',
@@ -29,7 +29,7 @@ const SharedRecordsPage = () => {
       sharedDate: '2025-02-15',
       expiryDate: '2026-02-15',
       accessLevel: 'limited',
-      status: 'active'
+      status: 'active' // Ensuring this is one of the allowed literal types
     },
     {
       id: '3',
@@ -38,7 +38,7 @@ const SharedRecordsPage = () => {
       sharedDate: '2025-01-10',
       expiryDate: '2025-04-10',
       accessLevel: 'read-only',
-      status: 'expired'
+      status: 'expired' // Ensuring this is one of the allowed literal types
     }
   ]);
   
@@ -191,8 +191,9 @@ const SharedRecordsPage = () => {
   };
   
   const handleRevokeAccess = (id: string) => {
+    // Ensure we're using the correct literal type when updating status
     const updatedRecords = sharedRecords.map(record => 
-      record.id === id ? { ...record, status: 'expired' } : record
+      record.id === id ? { ...record, status: 'expired' as const } : record
     );
     
     setSharedRecords(updatedRecords);
