@@ -1,51 +1,37 @@
 
 import React from 'react';
-import HealthRecordCard, { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
+import HealthRecordCard from '@/components/ui/HealthRecordCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { FileSearch, Share } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useHealthRecords } from '@/contexts/HealthRecordsContext';
+import { useNavigate } from 'react-router-dom';
 
 interface HealthRecordsListProps {
-  records: Omit<HealthRecordCardProps, 'onToggleShare'>[];
   onToggleShare: (id: string, shared: boolean) => void;
   filter?: 'all' | 'shared' | 'private' | 'recent';
 }
 
 const HealthRecordsList: React.FC<HealthRecordsListProps> = ({ 
-  records, 
   onToggleShare,
   filter = 'all'
 }) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { getRecordsByFilter } = useHealthRecords();
 
-  // Apply filters based on the selected tab
-  const filteredRecords = React.useMemo(() => {
-    switch (filter) {
-      case 'shared':
-        return records.filter(record => record.isShared);
-      case 'private':
-        return records.filter(record => !record.isShared);
-      case 'recent':
-        return [...records]
-          .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-          .slice(0, 3);
-      case 'all':
-      default:
-        return records;
-    }
-  }, [records, filter]);
+  // Get records based on the filter
+  const filteredRecords = getRecordsByFilter(filter);
 
   const handleDirectShare = (recordId: string) => {
-    // This would normally navigate to the shared records page with the record pre-selected
-    // For now, we'll just show a toast with information
+    // Navigate to the shared records page with the record pre-selected
     toast({
       title: "Share record",
       description: "Redirecting to sharing controls for this record.",
     });
     
-    // In a real implementation, this would use React Router to navigate
-    window.location.href = '/shared-records';
+    navigate('/shared-records');
   };
 
   if (filteredRecords.length === 0) {

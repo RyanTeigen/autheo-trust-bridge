@@ -1,22 +1,15 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, Calendar, Heart, FileText, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import QuickActions from './QuickActions';
 import KeyMetrics from './KeyMetrics';
-import HealthRecordsSummary from './HealthRecordsSummary';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-
-interface HealthMetric {
-  name: string;
-  value: string;
-  unit: string;
-  trend: 'up' | 'down' | 'stable';
-  date: string;
-}
+import { useNavigate } from 'react-router-dom';
+import { useHealthRecords } from '@/contexts/HealthRecordsContext';
+import HealthRecordsOverview from '../health-records/HealthRecordsOverview';
 
 interface Appointment {
   id: string;
@@ -37,7 +30,7 @@ interface Medication {
 
 interface PersonalizedDashboardProps {
   patientName?: string;
-  recentMetrics?: HealthMetric[];
+  recentMetrics?: any[];
   upcomingAppointments?: Appointment[];
   medications?: Medication[];
 }
@@ -49,21 +42,8 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
   medications = []
 }) => {
   const { toast } = useToast();
-  
-  // Mock data for health records
-  const recentHealthRecords = [
-    { title: 'Annual Physical Results', provider: 'Dr. Emily Chen', date: 'May 5, 2025' },
-    { title: 'Blood Work Analysis', provider: 'Metro Medical Lab', date: 'Apr 22, 2025' },
-    { title: 'Cardiology Consultation', provider: 'Dr. James Wilson', date: 'Apr 15, 2025' }
-  ];
-  
-  // Sample metrics if none provided
-  const defaultMetrics: HealthMetric[] = [
-    { name: 'Blood Pressure', value: '120/80', unit: 'mmHg', trend: 'stable', date: 'Today' },
-    { name: 'Heart Rate', value: '72', unit: 'bpm', trend: 'down', date: 'Today' },
-    { name: 'Blood Glucose', value: '95', unit: 'mg/dL', trend: 'up', date: 'Yesterday' },
-    { name: 'Weight', value: '155', unit: 'lbs', trend: 'stable', date: '2 days ago' }
-  ];
+  const navigate = useNavigate();
+  const { summary, healthMetrics } = useHealthRecords();
   
   // Sample appointments if none provided
   const defaultAppointments: Appointment[] = [
@@ -104,19 +84,11 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
   ];
   
   // Use provided data or defaults
-  const metrics = recentMetrics?.length > 0 ? recentMetrics : defaultMetrics;
+  const metrics = recentMetrics?.length > 0 ? recentMetrics : healthMetrics;
   const appointments = upcomingAppointments?.length > 0 ? upcomingAppointments : defaultAppointments;
   const meds = medications?.length > 0 ? medications : defaultMedications;
   
-  // Mock data for health records summary
-  const healthRecordsData = {
-    total: 24,
-    shared: 8,
-    pending: 2
-  };
-
-  // Mock compliance score
-  const complianceScore = 92;
+  const complianceScore = 92; // Mock compliance score
 
   const handleReschedule = (id: string) => {
     toast({
@@ -130,6 +102,15 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
       title: `View More: ${section}`,
       description: `Navigating to full ${section.toLowerCase()} view.`
     });
+    
+    // Navigate to appropriate section
+    if (section.toLowerCase().includes('health') || section.toLowerCase().includes('metrics')) {
+      navigate('/wallet');
+    } else if (section.toLowerCase().includes('appointment')) {
+      navigate('/scheduling');
+    } else if (section.toLowerCase().includes('medication')) {
+      navigate('/wallet');
+    }
   };
 
   return (
@@ -155,7 +136,7 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
           </CardHeader>
           <CardContent className="p-4">
             <KeyMetrics 
-              healthRecords={healthRecordsData} 
+              healthRecords={summary} 
               complianceScore={complianceScore} 
             />
             
@@ -191,7 +172,7 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
           </CardContent>
         </Card>
         
-        <HealthRecordsSummary records={recentHealthRecords} />
+        <HealthRecordsOverview />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

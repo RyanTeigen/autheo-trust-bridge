@@ -17,33 +17,36 @@ import SharedRecordsPage from "./pages/SharedRecordsPage";
 import SettingsPage from "./pages/SettingsPage";
 import SchedulingPage from "./pages/SchedulingPage";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
+import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/wallet" element={<WalletPage />} />
-            <Route path="/shared-records" element={<SharedRecordsPage />} />
-            <Route path="/patient-records" element={<PatientRecordsPage />} />
-            <Route path="/provider-portal" element={<ProviderPortalPage />} />
-            <Route path="/medical-notes" element={<MedicalNotesPage />} />
-            <Route path="/compliance" element={<CompliancePage />} />
-            <Route path="/audit-logs" element={<AuditLogsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/scheduling" element={<SchedulingPage />} />
-            <Route path="/patient-dashboard" element={<PatientDashboardPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <HealthRecordsProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/wallet" element={<WalletPage />} />
+              <Route path="/shared-records" element={<SharedRecordsPage />} />
+              <Route path="/patient-records" element={<PatientRecordsPage />} />
+              <Route path="/provider-portal" element={<ProviderPortalPage />} />
+              <Route path="/medical-notes" element={<MedicalNotesPage />} />
+              <Route path="/compliance" element={<CompliancePage />} />
+              <Route path="/audit-logs" element={<AuditLogsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/scheduling" element={<SchedulingPage />} />
+              <Route path="/patient-dashboard" element={<PatientDashboardPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </HealthRecordsProvider>
   </QueryClientProvider>
 );
 

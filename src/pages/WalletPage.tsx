@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
 import RecordSummary from '@/components/wallet/RecordSummary';
 import WalletHeader from '@/components/wallet/WalletHeader';
 import WalletFilters from '@/components/wallet/WalletFilters';
@@ -12,6 +12,7 @@ import DecentralizedFeatures from '@/components/wallet/DecentralizedFeatures';
 import InsuranceCard from '@/components/wallet/InsuranceCard';
 import InsuranceInterface from '@/components/wallet/insurance/InsuranceInterface';
 import { supabase } from '@/integrations/supabase/client';
+import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 
 const WalletPage = () => {
   const { toast } = useToast();
@@ -22,63 +23,11 @@ const WalletPage = () => {
   const [activeWalletTab, setActiveWalletTab] = useState('records');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for demo
-  const [healthRecords, setHealthRecords] = useState<Omit<HealthRecordCardProps, 'onToggleShare'>[]>([
-    {
-      id: '1',
-      title: 'Hypertension Diagnosis',
-      date: '2024-01-15',
-      provider: 'Dr. Emily Chen',
-      category: 'condition',
-      details: 'Essential (primary) hypertension. Blood pressure reading: 145/92.',
-      isShared: false
-    },
-    {
-      id: '2',
-      title: 'Complete Blood Count',
-      date: '2023-11-02',
-      provider: 'Aurora Advocate Lab',
-      category: 'lab',
-      details: 'WBC: 6.2, RBC: 4.8, Hemoglobin: 14.2, Hematocrit: 42.1%, Platelets: 250',
-      isShared: true
-    },
-    {
-      id: '3',
-      title: 'Chest X-Ray',
-      date: '2023-09-18',
-      provider: 'Radiology Partners',
-      category: 'imaging',
-      details: 'No acute cardiopulmonary process. Heart size and pulmonary vascularity are within normal limits.',
-      isShared: false
-    },
-    {
-      id: '4',
-      title: 'Lisinopril 10mg',
-      date: '2024-01-15',
-      provider: 'Dr. Emily Chen',
-      category: 'medication',
-      details: 'Take 1 tablet by mouth once daily. For hypertension management.',
-      isShared: true
-    },
-    {
-      id: '5',
-      title: 'Annual Physical Exam',
-      date: '2023-08-22',
-      provider: 'Dr. James Wilson',
-      category: 'visit',
-      details: 'Routine annual physical examination. All vitals within normal range. Discussed preventive care.',
-      isShared: false
-    },
-    {
-      id: '6',
-      title: 'Progress Note',
-      date: '2024-02-10',
-      provider: 'Dr. Emily Chen',
-      category: 'note',
-      details: 'Follow-up for hypertension. Patient reports good medication compliance. Blood pressure improved to 132/85.',
-      isShared: false
-    }
-  ]);
+  const { 
+    healthRecords, 
+    toggleRecordSharing, 
+    summary 
+  } = useHealthRecords();
 
   // Check for user authentication
   useEffect(() => {
@@ -132,22 +81,6 @@ const WalletPage = () => {
     return filtered;
   }, [healthRecords, searchQuery, sortBy, sortOrder, selectedCategory]);
 
-  // Record statistics
-  const recordStats = useMemo(() => {
-    const total = healthRecords.length;
-    const shared = healthRecords.filter(r => r.isShared).length;
-    const categories = healthRecords.reduce((acc, record) => {
-      acc[record.category] = (acc[record.category] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    return {
-      total,
-      shared,
-      categories
-    };
-  }, [healthRecords]);
-
   // Unique categories for filtering
   const categories = useMemo(() => {
     const uniqueCategories = new Set(healthRecords.map(record => record.category));
@@ -155,11 +88,7 @@ const WalletPage = () => {
   }, [healthRecords]);
 
   const handleToggleShare = (id: string, shared: boolean) => {
-    setHealthRecords(records => 
-      records.map(record => 
-        record.id === id ? { ...record, isShared: shared } : record
-      )
-    );
+    toggleRecordSharing(id, shared);
     
     toast({
       title: shared ? "Record shared" : "Record unshared",
@@ -208,7 +137,6 @@ const WalletPage = () => {
                 />
                 
                 <WalletTabsContainer
-                  processedRecords={processedRecords}
                   handleToggleShare={handleToggleShare}
                   searchQuery={searchQuery}
                 />
@@ -230,7 +158,7 @@ const WalletPage = () => {
         </Card>
         
         <div className="space-y-3">
-          <RecordSummary stats={recordStats} />
+          <RecordSummary stats={summary} />
           <WalletInfoAlert />
           <DataVaultCard />
         </div>
