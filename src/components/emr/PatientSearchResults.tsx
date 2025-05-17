@@ -22,15 +22,15 @@ const PatientSearchResults: React.FC<PatientSearchResultsProps> = ({ patients, o
   }
 
   return (
-    <Card className="shadow-sm border-autheo-primary/10">
-      <CardHeader className="pb-2">
+    <Card className="shadow-sm border-autheo-primary/10 overflow-hidden">
+      <CardHeader className="pb-2 bg-gradient-to-r from-autheo-primary/5 to-transparent">
         <CardTitle className="text-base flex items-center">
           <CircleDashed className="h-4 w-4 mr-2 text-autheo-primary" />
-          Search Results
+          Patient Search Results
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-3">
-        <div className="space-y-2">
+      <CardContent className="p-0">
+        <div className="divide-y divide-border">
           {patients.map((patient) => (
             <PatientListItem 
               key={patient.id}

@@ -18,23 +18,34 @@ interface PatientListItemProps {
 const PatientListItem: React.FC<PatientListItemProps> = ({ patient, onSelectPatient }) => {
   return (
     <div 
-      className="flex items-center justify-between p-3 hover:bg-muted/50 rounded-md transition-colors"
-      onClick={() => onSelectPatient(patient.id)}
+      className="flex items-center justify-between p-4 hover:bg-muted/50 rounded-md transition-colors border border-transparent hover:border-autheo-primary/10"
+      role="button"
+      aria-label={`Select patient ${patient.name}`}
     >
-      <div className="flex items-center space-x-3">
-        <div className="h-10 w-10 rounded-full bg-autheo-primary/20 flex items-center justify-center">
+      <div className="flex items-center space-x-4">
+        <div className="h-12 w-12 rounded-full bg-autheo-primary/20 flex items-center justify-center flex-shrink-0">
           <User className="h-5 w-5 text-autheo-primary" />
         </div>
         <div>
-          <p className="font-medium text-base">{patient.name}</p>
-          <div className="flex items-center text-xs text-muted-foreground space-x-1">
-            <span>DOB: {new Date(patient.dob).toLocaleDateString()}</span>
-            <span className="px-1">•</span>
-            <span>MRN: {patient.mrn}</span>
+          <p className="font-semibold text-base">{patient.name}</p>
+          <div className="flex items-center text-xs text-muted-foreground space-x-2">
+            <span className="whitespace-nowrap">DOB: {new Date(patient.dob).toLocaleDateString()}</span>
+            <span className="px-1 text-autheo-primary">•</span>
+            <span className="whitespace-nowrap">MRN: {patient.mrn}</span>
           </div>
         </div>
       </div>
-      <Button size="sm" variant="autheo-outline">Select</Button>
+      <Button 
+        size="sm" 
+        variant="autheo-outline"
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelectPatient(patient.id);
+        }}
+        className="ml-2 whitespace-nowrap"
+      >
+        Select
+      </Button>
     </div>
   );
 };
