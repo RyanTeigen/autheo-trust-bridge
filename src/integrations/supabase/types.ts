@@ -48,6 +48,30 @@ export type Database = {
         }
         Relationships: []
       }
+      autheo_balances: {
+        Row: {
+          balance: number
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_data: {
         Row: {
           created_at: string | null
@@ -101,6 +125,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      insurance_info: {
+        Row: {
+          created_at: string | null
+          group_number: string | null
+          id: string
+          member_id: string
+          plan_type: string | null
+          provider: string
+          updated_at: string | null
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          group_number?: string | null
+          id?: string
+          member_id: string
+          plan_type?: string | null
+          provider: string
+          updated_at?: string | null
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          group_number?: string | null
+          id?: string
+          member_id?: string
+          plan_type?: string | null
+          provider?: string
+          updated_at?: string | null
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
       }
       patients: {
         Row: {
@@ -214,6 +274,42 @@ export type Database = {
           },
         ]
       }
+      smart_contracts: {
+        Row: {
+          blockchain_reference: string | null
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          blockchain_reference?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          name: string
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          blockchain_reference?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       soap_notes: {
         Row: {
           assessment: string
@@ -270,6 +366,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          autheo_coins_used: number
+          created_at: string | null
+          description: string | null
+          fee: number
+          id: string
+          status: string
+          transaction_date: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          autheo_coins_used: number
+          created_at?: string | null
+          description?: string | null
+          fee: number
+          id?: string
+          status: string
+          transaction_date?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          autheo_coins_used?: number
+          created_at?: string | null
+          description?: string | null
+          fee?: number
+          id?: string
+          status?: string
+          transaction_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

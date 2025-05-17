@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { HealthRecordCardProps } from '@/components/ui/HealthRecordCard';
@@ -10,6 +11,7 @@ import DataVaultCard from '@/components/wallet/DataVaultCard';
 import WalletInfoAlert from '@/components/wallet/WalletInfoAlert';
 import DecentralizedFeatures from '@/components/wallet/DecentralizedFeatures';
 import InsuranceCard from '@/components/wallet/InsuranceCard';
+import { supabase } from '@/integrations/supabase/client';
 
 const WalletPage = () => {
   const { toast } = useToast();
@@ -18,6 +20,7 @@ const WalletPage = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeWalletTab, setActiveWalletTab] = useState('records');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Mock data for demo
   const [healthRecords, setHealthRecords] = useState<Omit<HealthRecordCardProps, 'onToggleShare'>[]>([
@@ -76,6 +79,19 @@ const WalletPage = () => {
       isShared: false
     }
   ]);
+
+  // Check for user authentication
+  useEffect(() => {
+    const checkUserSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        // For now we won't redirect, but in a real app you might want to require login
+        console.log("User not authenticated. Some features may be limited.");
+      }
+    };
+    
+    checkUserSession();
+  }, []);
 
   // Filtered and sorted records
   const processedRecords = useMemo(() => {
@@ -158,7 +174,7 @@ const WalletPage = () => {
 
   return (
     <div className="space-y-3">
-      <WalletHeader />
+      <WalletHeader activeSection={activeWalletTab} onSectionChange={handleTabChange} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Card className="md:col-span-2 border-slate-200 shadow-sm hover:shadow-md transition-all duration-300">

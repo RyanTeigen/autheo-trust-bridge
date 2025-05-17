@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -7,39 +7,130 @@ import InsuranceForm, { InsuranceFormValues } from './insurance/InsuranceForm';
 import InsuranceDisplay from './insurance/InsuranceDisplay';
 import InsuranceEmpty from './insurance/InsuranceEmpty';
 import { InsuranceInfo } from './insurance/types';
+import { supabase } from '@/integrations/supabase/client';
 
 const InsuranceCard: React.FC = () => {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [insuranceInfo, setInsuranceInfo] = useState<InsuranceInfo | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleFormSubmit = (values: InsuranceFormValues) => {
-    // In a real app, this would send data to your backend
-    setInsuranceInfo({
-      provider: values.provider,
-      memberID: values.memberID,
-      groupNumber: values.groupNumber || "",  // Convert optional values to non-optional
-      planType: values.planType || "",        // Convert optional values to non-optional
-      verified: false,
-    });
-    setShowForm(false);
-    toast({
-      title: "Insurance information added",
-      description: "Your insurance details have been saved to your wallet.",
-    });
+  // Fetch insurance information on component mount
+  useEffect(() => {
+    async function fetchInsuranceInfo() {
+      try {
+        const { data, error } = await supabase
+          .from('insurance_info')
+          .select('*')
+          .maybeSingle();
+          
+        if (error) throw error;
+        
+        if (data) {
+          setInsuranceInfo({
+            provider: data.provider,
+            memberID: data.member_id,
+            groupNumber: data.group_number || "",
+            planType: data.plan_type || "",
+            verified: data.verified || false,
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching insurance info:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchInsuranceInfo();
+  }, []);
+  
+  const handleFormSubmit = async (values: InsuranceFormValues) => {
+    setLoading(true);
+    try {
+      const insuranceData = {
+        provider: values.provider,
+        member_id: values.memberID,
+        group_number: values.groupNumber || null,
+        plan_type: values.planType || null,
+        verified: false,
+      };
+      
+      if (insuranceInfo) {
+        // Update existing record
+        const { error } = await supabase
+          .from('insurance_info')
+          .update(insuranceData)
+          .eq('provider', insuranceInfo.provider);
+          
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('insurance_info')
+          .insert([insuranceData]);
+          
+        if (error) throw error;
+      }
+      
+      // Update local state
+      setInsuranceInfo({
+        provider: values.provider,
+        memberID: values.memberID,
+        groupNumber: values.groupNumber || "",
+        planType: values.planType || "",
+        verified: false,
+      });
+      setShowForm(false);
+      
+      toast({
+        title: "Insurance information added",
+        description: "Your insurance details have been saved to your wallet.",
+      });
+    } catch (error) {
+      console.error('Error saving insurance info:', error);
+      toast({
+        title: "Error saving information",
+        description: "Could not save insurance details. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     if (insuranceInfo) {
-      // In a real app, this would trigger a verification process
-      setInsuranceInfo({
-        ...insuranceInfo,
-        verified: true,
-      });
-      toast({
-        title: "Insurance verified",
-        description: "Your insurance information has been verified successfully.",
-      });
+      setLoading(true);
+      try {
+        // Update verification status in the database
+        const { error } = await supabase
+          .from('insurance_info')
+          .update({ verified: true })
+          .eq('member_id', insuranceInfo.memberID);
+          
+        if (error) throw error;
+        
+        // Update local state
+        setInsuranceInfo({
+          ...insuranceInfo,
+          verified: true,
+        });
+        
+        toast({
+          title: "Insurance verified",
+          description: "Your insurance information has been verified successfully.",
+        });
+      } catch (error) {
+        console.error('Error verifying insurance:', error);
+        toast({
+          title: "Verification failed",
+          description: "Could not verify insurance information. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -51,6 +142,17 @@ const InsuranceCard: React.FC = () => {
   };
 
   const renderContent = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center p-4">
+          <div className="animate-pulse text-center">
+            <div className="h-10 w-10 mx-auto bg-slate-200 rounded-full mb-2"></div>
+            <p className="text-sm text-slate-500">Loading insurance information...</p>
+          </div>
+        </div>
+      );
+    }
+    
     if (!insuranceInfo && !showForm) {
       return <InsuranceEmpty onAddInsurance={() => setShowForm(true)} />;
     }
@@ -60,6 +162,7 @@ const InsuranceCard: React.FC = () => {
         <InsuranceForm 
           onSubmit={handleFormSubmit} 
           onCancel={() => setShowForm(false)} 
+          initialValues={insuranceInfo || undefined}
         />
       );
     }

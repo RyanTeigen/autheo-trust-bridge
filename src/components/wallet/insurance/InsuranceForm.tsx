@@ -6,6 +6,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { InsuranceInfo } from './types';
 
 export const formSchema = z.object({
   provider: z.string().min(2, { message: "Insurance provider is required" }),
@@ -19,12 +20,18 @@ export type InsuranceFormValues = z.infer<typeof formSchema>;
 interface InsuranceFormProps {
   onSubmit: (values: InsuranceFormValues) => void;
   onCancel: () => void;
+  initialValues?: InsuranceInfo;
 }
 
-const InsuranceForm: React.FC<InsuranceFormProps> = ({ onSubmit, onCancel }) => {
+const InsuranceForm: React.FC<InsuranceFormProps> = ({ onSubmit, onCancel, initialValues }) => {
   const form = useForm<InsuranceFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialValues ? {
+      provider: initialValues.provider,
+      memberID: initialValues.memberID,
+      groupNumber: initialValues.groupNumber,
+      planType: initialValues.planType,
+    } : {
       provider: "",
       memberID: "",
       groupNumber: "",

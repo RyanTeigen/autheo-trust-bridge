@@ -4,9 +4,16 @@ import { Wallet, Shield, Users, FileText, ChevronRight, CreditCard } from 'lucid
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
-const WalletHeader: React.FC = () => {
+interface WalletHeaderProps {
+  activeSection?: string;
+  onSectionChange?: (section: string) => void;
+}
+
+const WalletHeader: React.FC<WalletHeaderProps> = ({ 
+  activeSection = 'records',
+  onSectionChange
+}) => {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('records');
   
   const sections = [
     { id: 'records', label: 'Records', icon: FileText },
@@ -16,7 +23,10 @@ const WalletHeader: React.FC = () => {
   ];
   
   const handleNavigate = (section: string, route?: string) => {
-    setActiveSection(section);
+    if (onSectionChange) {
+      onSectionChange(section);
+    }
+    
     if (route) {
       navigate(route);
     }
@@ -55,7 +65,12 @@ const WalletHeader: React.FC = () => {
       <div className="text-xs text-slate-500 flex items-center">
         <span className="font-medium">Current view:</span>
         <span className="mx-1.5">/</span>
-        <span className="text-autheo-primary">Health Records</span>
+        <span className="text-autheo-primary">
+          {activeSection === 'records' ? 'Health Records' : 
+           activeSection === 'insurance' ? 'Insurance Information' : 
+           activeSection === 'shared' ? 'Shared Records' : 
+           'Security Settings'}
+        </span>
       </div>
     </div>
   );
