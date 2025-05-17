@@ -7,7 +7,6 @@ import PatientEducationCenter from '@/components/education/PatientEducationCente
 import SecureMessaging from '@/components/messaging/SecureMessaging';
 import TelemedicineInterface from '@/components/telemedicine/TelemedicineInterface';
 import AdvancedConsentManagement from '@/components/consent/AdvancedConsentManagement';
-import WalletTabsContainer from '@/components/wallet/WalletTabsContainer';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import { useToast } from '@/hooks/use-toast';
 import HealthRecordsTab from '@/components/patient-dashboard/HealthRecordsTab';
@@ -54,10 +53,10 @@ const PatientDashboardPage = () => {
                 Overview
               </TabsTrigger>
               <TabsTrigger
-                value="health-records"
+                value="my-health-records"
                 className="rounded-none border-b-2 border-b-transparent bg-transparent px-4 py-2 font-semibold data-[state=active]:border-autheo-primary data-[state=active]:text-autheo-primary"
               >
-                Health Records
+                My Health Records
               </TabsTrigger>
               <TabsTrigger
                 value="shared-records"
@@ -97,7 +96,7 @@ const PatientDashboardPage = () => {
           <PersonalizedDashboard />
         </TabsContent>
 
-        <TabsContent value="health-records" className="space-y-6">
+        <TabsContent value="my-health-records" className="space-y-6">
           <HealthRecordsTab 
             handleToggleShare={handleToggleShare}
             searchQuery={searchQuery}
