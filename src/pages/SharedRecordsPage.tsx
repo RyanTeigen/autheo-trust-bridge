@@ -8,7 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Calendar as CalendarIcon, Clock, Lock, Plus, Search, Share, User, Users } from 'lucide-react';
+import { Allergy, Calendar as CalendarIcon, ChartBar, Clock, Lock, Plus, Search, Share, User, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,7 @@ const SharedRecordsPage = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [shareHealthDialog, setShareHealthDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('access');
   
   // Mock data for shared records
@@ -182,6 +183,31 @@ const SharedRecordsPage = () => {
     }
   ];
   
+  // Mock allergies data
+  const mockAllergies = [
+    {
+      id: '1',
+      name: 'Penicillin',
+      severity: 'severe' as const,
+      reaction: 'Hives, difficulty breathing',
+      diagnosed: '2023-05-15'
+    },
+    {
+      id: '2',
+      name: 'Peanuts',
+      severity: 'moderate' as const,
+      reaction: 'Swelling, itchy throat',
+      diagnosed: '2022-07-20'
+    },
+    {
+      id: '3',
+      name: 'Pollen',
+      severity: 'mild' as const,
+      reaction: 'Sneezing, watery eyes',
+      diagnosed: '2021-04-10'
+    }
+  ];
+  
   // Filtered records based on search query
   const filteredRecords = sharedRecords.filter(record => 
     record.recipientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -311,13 +337,14 @@ const SharedRecordsPage = () => {
         </p>
       </div>
       
-      {/* Added a new top-level tab system to switch between access control and records view */}
+      {/* Top-level tab system */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-6">
           <TabsTrigger value="access" className="px-6">Access Management</TabsTrigger>
           <TabsTrigger value="records" className="px-6">My Health Records</TabsTrigger>
         </TabsList>
         
+        {/* Access Management Tab */}
         <TabsContent value="access" className="mt-0">
           <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
             <div className="relative flex-1 max-w-md">
@@ -567,12 +594,115 @@ const SharedRecordsPage = () => {
           </Tabs>
         </TabsContent>
         
+        {/* Health Records Tab */}
         <TabsContent value="records" className="mt-0">
+          {/* Share Health Information Dialog */}
+          <Dialog open={shareHealthDialog} onOpenChange={setShareHealthDialog}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Share Health Information</DialogTitle>
+                <DialogDescription>
+                  Share your health metrics, records, and allergies with your healthcare provider.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <h3 className="font-medium">Select Healthcare Provider</h3>
+                  <Select defaultValue="dr-chen">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a provider" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dr-chen">Dr. Emily Chen</SelectItem>
+                      <SelectItem value="dr-wilson">Dr. James Wilson</SelectItem>
+                      <SelectItem value="city-hospital">City Hospital</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Information to Share</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="metrics" defaultChecked />
+                      <label htmlFor="metrics" className="text-sm flex items-center gap-1">
+                        <ChartBar className="h-4 w-4" /> Health Metrics
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="allergies" defaultChecked />
+                      <label htmlFor="allergies" className="text-sm flex items-center gap-1">
+                        <Allergy className="h-4 w-4" /> Allergies
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="medications" defaultChecked />
+                      <label htmlFor="medications" className="text-sm flex items-center gap-1">
+                        <Pill className="h-4 w-4" /> Medications
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="diagnoses" defaultChecked />
+                      <label htmlFor="diagnoses" className="text-sm flex items-center gap-1">
+                        <FileX className="h-4 w-4" /> Diagnoses
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="immunizations" defaultChecked />
+                      <label htmlFor="immunizations" className="text-sm flex items-center gap-1">
+                        <Syringe className="h-4 w-4" /> Immunizations
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="tests" defaultChecked />
+                      <label htmlFor="tests" className="text-sm flex items-center gap-1">
+                        <TestTube className="h-4 w-4" /> Medical Tests
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="font-medium">Access Duration</h3>
+                  <Select defaultValue="30d">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7d">7 days</SelectItem>
+                      <SelectItem value="30d">30 days</SelectItem>
+                      <SelectItem value="90d">90 days</SelectItem>
+                      <SelectItem value="1y">1 year</SelectItem>
+                      <SelectItem value="permanent">Permanent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShareHealthDialog(false)}>Cancel</Button>
+                <Button onClick={handleShareHealthInfo}>Share Information</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          <div className="flex justify-end mb-4">
+            <Button 
+              onClick={() => setShareHealthDialog(true)} 
+              className="gap-1"
+            >
+              <Share className="h-4 w-4" />
+              Share Health Information
+            </Button>
+          </div>
+          
           <DetailedHealthRecords
             medications={mockMedications}
             diagnoses={mockDiagnoses}
             immunizations={mockImmunizations}
             medicalTests={mockMedicalTests}
+            allergies={mockAllergies}
           />
         </TabsContent>
       </Tabs>

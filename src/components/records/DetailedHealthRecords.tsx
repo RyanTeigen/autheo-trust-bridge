@@ -2,8 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pill, FileX, Syringe, TestTube, Calendar } from 'lucide-react';
+import { Pill, FileX, Syringe, TestTube, Calendar, ChartBar, Allergy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
+import AllergiesCard from '@/components/records/AllergiesCard';
 
 // Types for health records
 interface Medication {
@@ -48,13 +50,21 @@ interface DetailedHealthRecordsProps {
   diagnoses: Diagnosis[];
   immunizations: Immunization[];
   medicalTests: MedicalTest[];
+  allergies?: {
+    id: string;
+    name: string;
+    severity: 'mild' | 'moderate' | 'severe';
+    reaction: string;
+    diagnosed: string;
+  }[];
 }
 
 const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({ 
   medications,
   diagnoses,
   immunizations,
-  medicalTests
+  medicalTests,
+  allergies = [] // Default to empty array if not provided
 }) => {
   // Helper function to calculate days until refill
   const getDaysUntilRefill = (refillDate: string): number => {
@@ -106,12 +116,18 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
       <CardHeader>
         <CardTitle>My Health Records</CardTitle>
         <CardDescription>
-          View your medications, diagnoses, immunizations, and medical tests
+          View your health metrics, allergies, medications, diagnoses, immunizations, and medical tests
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="medications" className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4">
+        <Tabs defaultValue="metrics" className="w-full">
+          <TabsList className="grid grid-cols-6 mb-4">
+            <TabsTrigger value="metrics" className="flex items-center gap-1">
+              <ChartBar className="h-4 w-4" /> Metrics
+            </TabsTrigger>
+            <TabsTrigger value="allergies" className="flex items-center gap-1">
+              <Allergy className="h-4 w-4" /> Allergies
+            </TabsTrigger>
             <TabsTrigger value="medications" className="flex items-center gap-1">
               <Pill className="h-4 w-4" /> Medications
             </TabsTrigger>
@@ -125,6 +141,16 @@ const DetailedHealthRecords: React.FC<DetailedHealthRecordsProps> = ({
               <TestTube className="h-4 w-4" /> Medical Tests
             </TabsTrigger>
           </TabsList>
+          
+          {/* Health Metrics Tab */}
+          <TabsContent value="metrics">
+            <HealthMetricsCharts />
+          </TabsContent>
+          
+          {/* Allergies Tab */}
+          <TabsContent value="allergies">
+            <AllergiesCard allergies={allergies} />
+          </TabsContent>
           
           {/* Medications Tab */}
           <TabsContent value="medications">
