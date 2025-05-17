@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import DetailedHealthRecords from '@/components/records/DetailedHealthRecords';
 
 // Types for the shared records
 interface SharedRecord {
@@ -40,6 +40,7 @@ const SharedRecordsPage = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('access');
   
   // Mock data for shared records
   const [sharedRecords, setSharedRecords] = useState<SharedRecord[]>([
@@ -71,6 +72,115 @@ const SharedRecordsPage = () => {
       status: 'expired'
     }
   ]);
+  
+  // Mock health record data
+  const mockMedications = [
+    {
+      id: '1',
+      name: 'Lisinopril',
+      dosage: '10mg',
+      frequency: 'Daily',
+      startDate: '2025-04-01',
+      refillDate: '2025-06-01',
+      prescribedBy: 'Dr. Emily Chen'
+    },
+    {
+      id: '2',
+      name: 'Atorvastatin',
+      dosage: '20mg',
+      frequency: 'Once daily at bedtime',
+      startDate: '2025-03-15',
+      refillDate: '2025-05-20',
+      prescribedBy: 'Dr. James Wilson'
+    },
+    {
+      id: '3',
+      name: 'Metformin',
+      dosage: '500mg',
+      frequency: 'Twice daily with meals',
+      startDate: '2025-02-10',
+      refillDate: '2025-05-10',
+      prescribedBy: 'Dr. Emily Chen'
+    }
+  ];
+  
+  const mockDiagnoses = [
+    {
+      id: '1',
+      condition: 'Hypertension',
+      diagnosedDate: '2024-10-15',
+      diagnosedBy: 'Dr. Emily Chen',
+      status: 'chronic' as const,
+      notes: 'Well-controlled with current medication'
+    },
+    {
+      id: '2',
+      condition: 'Type 2 Diabetes',
+      diagnosedDate: '2024-09-05',
+      diagnosedBy: 'Dr. James Wilson',
+      status: 'active' as const,
+      notes: 'Currently managing with medication and lifestyle changes'
+    },
+    {
+      id: '3',
+      condition: 'Seasonal Allergies',
+      diagnosedDate: '2023-04-20',
+      diagnosedBy: 'Dr. Sarah Johnson',
+      status: 'resolved' as const
+    }
+  ];
+  
+  const mockImmunizations = [
+    {
+      id: '1',
+      name: 'COVID-19 Vaccine',
+      date: '2025-01-15',
+      administeredBy: 'City Hospital Clinic',
+      lotNumber: 'CV19-45789',
+      nextDose: '2025-07-15'
+    },
+    {
+      id: '2',
+      name: 'Influenza Vaccine',
+      date: '2024-10-20',
+      administeredBy: 'Neighborhood Pharmacy',
+      lotNumber: 'FLU-78965'
+    },
+    {
+      id: '3',
+      name: 'Tetanus Booster',
+      date: '2022-06-10',
+      administeredBy: 'Dr. Emily Chen',
+      lotNumber: 'TET-12345',
+      nextDose: '2032-06-10'
+    }
+  ];
+  
+  const mockMedicalTests = [
+    {
+      id: '1',
+      name: 'Complete Blood Count (CBC)',
+      date: '2025-04-15',
+      orderedBy: 'Dr. Emily Chen',
+      results: 'All values within normal range',
+      status: 'completed' as const
+    },
+    {
+      id: '2',
+      name: 'Lipid Panel',
+      date: '2025-04-15',
+      orderedBy: 'Dr. Emily Chen',
+      results: 'LDL slightly elevated, other values normal',
+      status: 'completed' as const
+    },
+    {
+      id: '3',
+      name: 'Chest X-Ray',
+      date: '2025-05-10',
+      orderedBy: 'Dr. James Wilson',
+      status: 'pending' as const
+    }
+  ];
   
   // Filtered records based on search query
   const filteredRecords = sharedRecords.filter(record => 
@@ -197,254 +307,273 @@ const SharedRecordsPage = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-2">Shared Records</h1>
         <p className="text-muted-foreground">
-          Manage who has access to your health information
+          Manage your health information and sharing preferences
         </p>
       </div>
       
-      <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search shared records..." 
-            className="pl-8" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="whitespace-nowrap">
-              <Plus className="h-4 w-4 mr-1" />
-              Share New Records
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Share Health Records</DialogTitle>
-              <DialogDescription>
-                Grant access to your health records to a healthcare provider, organization, or personal caregiver.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="recipientName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recipient Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Dr. John Smith" {...field} required />
-                      </FormControl>
-                      <FormDescription>
-                        Enter the name of the person or organization
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="recipientType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recipient Type</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select recipient type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="provider">Healthcare Provider</SelectItem>
-                          <SelectItem value="organization">Healthcare Organization</SelectItem>
-                          <SelectItem value="caregiver">Personal Caregiver</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="expiryDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Access Expiry Date (Optional)</FormLabel>
-                      <div className="flex items-center gap-2 border rounded-md p-2">
-                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        <div className={cn(
-                          "text-sm",
-                          !field.value && "text-muted-foreground"
-                        )}>
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            "Pick a date"
-                          )}
-                        </div>
-                      </div>
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                      <FormDescription>
-                        Leave blank for indefinite access
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="accessLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Access Level</FormLabel>
-                      <FormControl>
-                        <ToggleGroup 
-                          type="single" 
-                          value={field.value}
-                          onValueChange={(value) => {
-                            if (value) field.onChange(value);
-                          }}
-                          className="justify-start"
-                        >
-                          <ToggleGroupItem value="read-only">Read Only</ToggleGroupItem>
-                          <ToggleGroupItem value="limited">Limited</ToggleGroupItem>
-                          <ToggleGroupItem value="full">Full Access</ToggleGroupItem>
-                        </ToggleGroup>
-                      </FormControl>
-                      <FormDescription>
-                        Control how much information is shared
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="recordTypes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Record Types to Share</FormLabel>
-                      <FormControl>
-                        <ToggleGroup 
-                          type="multiple" 
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          className="flex flex-wrap justify-start"
-                        >
-                          <ToggleGroupItem value="medications">Medications</ToggleGroupItem>
-                          <ToggleGroupItem value="conditions">Conditions</ToggleGroupItem>
-                          <ToggleGroupItem value="labs">Lab Results</ToggleGroupItem>
-                          <ToggleGroupItem value="imaging">Imaging</ToggleGroupItem>
-                          <ToggleGroupItem value="notes">Doctor Notes</ToggleGroupItem>
-                        </ToggleGroup>
-                      </FormControl>
-                      <FormDescription>
-                        Select which types of records to share
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <DialogFooter>
-                  <Button type="submit">Share Records</Button>
-                </DialogFooter>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
-      
-      <Tabs defaultValue="active" className="w-full">
-        <TabsList className="grid grid-cols-3 w-full md:w-[400px]">
-          <TabsTrigger value="active">
-            Active
-            {activeRecords.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{activeRecords.length}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="pending">
-            Pending
-            {pendingRecords.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{pendingRecords.length}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="expired">
-            Expired
-            {expiredRecords.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{expiredRecords.length}</Badge>
-            )}
-          </TabsTrigger>
+      {/* Added a new top-level tab system to switch between access control and records view */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="access" className="px-6">Access Management</TabsTrigger>
+          <TabsTrigger value="records" className="px-6">My Health Records</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="active" className="mt-6">
-          {activeRecords.length > 0 ? (
-            activeRecords.map(renderRecordCard)
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                <Users className="h-10 w-10 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-2">
-                  No active shared records found
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Use the "Share New Records" button to start sharing your health information
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setDialogOpen(true)}
-                >
+        <TabsContent value="access" className="mt-0">
+          <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search shared records..." 
+                className="pl-8" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="whitespace-nowrap">
+                  <Plus className="h-4 w-4 mr-1" />
                   Share New Records
                 </Button>
-              </CardContent>
-            </Card>
-          )}
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Share Health Records</DialogTitle>
+                  <DialogDescription>
+                    Grant access to your health records to a healthcare provider, organization, or personal caregiver.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="recipientName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Recipient Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Dr. John Smith" {...field} required />
+                          </FormControl>
+                          <FormDescription>
+                            Enter the name of the person or organization
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="recipientType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Recipient Type</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select recipient type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="provider">Healthcare Provider</SelectItem>
+                              <SelectItem value="organization">Healthcare Organization</SelectItem>
+                              <SelectItem value="caregiver">Personal Caregiver</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="expiryDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Access Expiry Date (Optional)</FormLabel>
+                          <div className="flex items-center gap-2 border rounded-md p-2">
+                            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                            <div className={cn(
+                              "text-sm",
+                              !field.value && "text-muted-foreground"
+                            )}>
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                "Pick a date"
+                              )}
+                            </div>
+                          </div>
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                          />
+                          <FormDescription>
+                            Leave blank for indefinite access
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="accessLevel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Access Level</FormLabel>
+                          <FormControl>
+                            <ToggleGroup 
+                              type="single" 
+                              value={field.value}
+                              onValueChange={(value) => {
+                                if (value) field.onChange(value);
+                              }}
+                              className="justify-start"
+                            >
+                              <ToggleGroupItem value="read-only">Read Only</ToggleGroupItem>
+                              <ToggleGroupItem value="limited">Limited</ToggleGroupItem>
+                              <ToggleGroupItem value="full">Full Access</ToggleGroupItem>
+                            </ToggleGroup>
+                          </FormControl>
+                          <FormDescription>
+                            Control how much information is shared
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="recordTypes"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Record Types to Share</FormLabel>
+                          <FormControl>
+                            <ToggleGroup 
+                              type="multiple" 
+                              value={field.value}
+                              onValueChange={field.onChange}
+                              className="flex flex-wrap justify-start"
+                            >
+                              <ToggleGroupItem value="medications">Medications</ToggleGroupItem>
+                              <ToggleGroupItem value="conditions">Conditions</ToggleGroupItem>
+                              <ToggleGroupItem value="labs">Lab Results</ToggleGroupItem>
+                              <ToggleGroupItem value="imaging">Imaging</ToggleGroupItem>
+                              <ToggleGroupItem value="notes">Doctor Notes</ToggleGroupItem>
+                            </ToggleGroup>
+                          </FormControl>
+                          <FormDescription>
+                            Select which types of records to share
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <DialogFooter>
+                      <Button type="submit">Share Records</Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+          </div>
+          
+          <Tabs defaultValue="active" className="w-full mt-6">
+            <TabsList className="grid grid-cols-3 w-full md:w-[400px]">
+              <TabsTrigger value="active">
+                Active
+                {activeRecords.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">{activeRecords.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="pending">
+                Pending
+                {pendingRecords.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">{pendingRecords.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="expired">
+                Expired
+                {expiredRecords.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">{expiredRecords.length}</Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="active" className="mt-6">
+              {activeRecords.length > 0 ? (
+                activeRecords.map(renderRecordCard)
+              ) : (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+                    <Users className="h-10 w-10 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-2">
+                      No active shared records found
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Use the "Share New Records" button to start sharing your health information
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setDialogOpen(true)}
+                    >
+                      Share New Records
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="pending" className="mt-6">
+              {pendingRecords.length > 0 ? (
+                pendingRecords.map(renderRecordCard)
+              ) : (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+                    <Clock className="h-10 w-10 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No pending shared records
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="expired" className="mt-6">
+              {expiredRecords.length > 0 ? (
+                expiredRecords.map(renderRecordCard)
+              ) : (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-10 text-center">
+                    <Lock className="h-10 w-10 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">
+                      No expired shared records
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </TabsContent>
         
-        <TabsContent value="pending" className="mt-6">
-          {pendingRecords.length > 0 ? (
-            pendingRecords.map(renderRecordCard)
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                <Clock className="h-10 w-10 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  No pending shared records
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="expired" className="mt-6">
-          {expiredRecords.length > 0 ? (
-            expiredRecords.map(renderRecordCard)
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                <Lock className="h-10 w-10 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground">
-                  No expired shared records
-                </p>
-              </CardContent>
-            </Card>
-          )}
+        <TabsContent value="records" className="mt-0">
+          <DetailedHealthRecords
+            medications={mockMedications}
+            diagnoses={mockDiagnoses}
+            immunizations={mockImmunizations}
+            medicalTests={mockMedicalTests}
+          />
         </TabsContent>
       </Tabs>
     </div>
