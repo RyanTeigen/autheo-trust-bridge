@@ -44,7 +44,10 @@ const InsuranceCard: React.FC = () => {
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     // In a real app, this would send data to your backend
     setInsuranceInfo({
-      ...values,
+      provider: values.provider,
+      memberID: values.memberID,
+      groupNumber: values.groupNumber || "",  // Convert optional values to non-optional
+      planType: values.planType || "",        // Convert optional values to non-optional
       verified: false,
     });
     setShowForm(false);
