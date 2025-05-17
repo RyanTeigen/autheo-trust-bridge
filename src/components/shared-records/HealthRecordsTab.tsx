@@ -31,7 +31,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">My Health Information</h2>
+        <h2 className="text-xl font-semibold text-autheo-primary">My Health Information</h2>
         
         <ShareHealthInfoDialog 
           open={shareHealthDialog} 
@@ -39,17 +39,17 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
           onSubmit={handleShareHealthInfo}
         />
         
-        <Button onClick={() => setShareHealthDialog(true)} className="bg-autheo-primary hover:bg-autheo-primary/90">
+        <Button onClick={() => setShareHealthDialog(true)} className="bg-autheo-primary hover:bg-autheo-primary/90 text-autheo-dark">
           <Share className="h-4 w-4 mr-1" />
           Share Health Info
         </Button>
       </div>
       
-      <Card className="bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-        <CardHeader>
-          <CardTitle>Health Records</CardTitle>
+      <Card className="bg-slate-800 border-slate-700 text-slate-100">
+        <CardHeader className="border-b border-slate-700">
+          <CardTitle className="text-autheo-primary">Health Records</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="bg-slate-800">
           <DetailedHealthRecords 
             medications={mockMedications}
             diagnoses={mockDiagnoses}
