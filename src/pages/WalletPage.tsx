@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +10,7 @@ import DataVaultCard from '@/components/wallet/DataVaultCard';
 import WalletInfoAlert from '@/components/wallet/WalletInfoAlert';
 import DecentralizedFeatures from '@/components/wallet/DecentralizedFeatures';
 import InsuranceCard from '@/components/wallet/InsuranceCard';
+import InsuranceInterface from '@/components/wallet/insurance/InsuranceInterface';
 import { supabase } from '@/integrations/supabase/client';
 
 const WalletPage = () => {
@@ -181,11 +181,14 @@ const WalletPage = () => {
           <CardHeader className="pb-2 pt-3 border-b border-slate-100">
             <CardTitle className="text-xl">
               {activeWalletTab === 'records' ? 'Your Health Records' : 
-               activeWalletTab === 'insurance' ? 'Insurance Information' : 'Your Health Records'}
+               activeWalletTab === 'insurance' ? 'Insurance Information' :
+               activeWalletTab === 'payments' ? 'Payment Contracts & Claims' :
+               'Your Health Records'}
             </CardTitle>
             <CardDescription className="text-sm">
               {activeWalletTab === 'records' ? 'Manage your medical history and control sharing preferences' : 
                activeWalletTab === 'insurance' ? 'Securely store and share your insurance information' : 
+               activeWalletTab === 'payments' ? 'Manage payment contracts and track claims' :
                'Manage your medical history and control sharing preferences'}
             </CardDescription>
           </CardHeader>
@@ -215,6 +218,12 @@ const WalletPage = () => {
             {activeWalletTab === 'insurance' && (
               <div className="py-2">
                 <InsuranceCard />
+              </div>
+            )}
+            
+            {activeWalletTab === 'payments' && (
+              <div className="py-2">
+                <InsuranceInterface />
               </div>
             )}
           </CardContent>

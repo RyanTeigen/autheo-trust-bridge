@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Wallet, Shield, Users, FileText, ChevronRight, CreditCard } from 'lucide-react';
+import { Wallet, Shield, Users, FileText, ChevronRight, CreditCard, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,6 +18,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
   const sections = [
     { id: 'records', label: 'Records', icon: FileText },
     { id: 'insurance', label: 'Insurance', icon: CreditCard },
+    { id: 'payments', label: 'Payments', icon: FileCheck },
     { id: 'shared', label: 'Shared', icon: Users, route: '/shared-records' },
     { id: 'security', label: 'Security', icon: Shield },
   ];
@@ -68,6 +69,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
         <span className="text-autheo-primary">
           {activeSection === 'records' ? 'Health Records' : 
            activeSection === 'insurance' ? 'Insurance Information' : 
+           activeSection === 'payments' ? 'Payment Contracts' : 
            activeSection === 'shared' ? 'Shared Records' : 
            'Security Settings'}
         </span>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const SmartContracts = () => {
   const [showTransactionDemo, setShowTransactionDemo] = useState(false);
   const [amount, setAmount] = useState('10.00');
   const [processing, setProcessing] = useState(false);
+  const [userAuth, setUserAuth] = useState<{ id: string } | null>(null);
   
   // User's Autheo coin balance
   const [autheoInfo, setAutheoInfo] = useState<AutheoCoinInfo>({
@@ -32,15 +34,34 @@ const SmartContracts = () => {
   // Transaction history
   const [recentTransactions, setRecentTransactions] = useState<TransactionInfo[]>([]);
   
+  // Get the user's authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserAuth({ id: session.user.id });
+      }
+    };
+    
+    checkAuth();
+  }, []);
+  
   // Load contracts and balance information from Supabase
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       try {
+        if (!userAuth) {
+          console.log("User not authenticated. Using demo data.");
+          loadDemoData();
+          return;
+        }
+        
         // Fetch smart contracts
         const { data: contractsData, error: contractsError } = await supabase
           .from('smart_contracts')
           .select('*')
+          .eq('user_id', userAuth.id)
           .order('created_at', { ascending: false });
         
         if (contractsError) throw contractsError;
@@ -54,33 +75,13 @@ const SmartContracts = () => {
           expiresAt: contract.expires_at
         }));
         
-        setContracts(formattedContracts.length > 0 ? formattedContracts : [
-          {
-            id: 'contract1',
-            name: 'Primary Care Access',
-            description: 'Grants Dr. Emily Chen access to your medical records',
-            status: 'active',
-            expiresAt: '2025-06-30'
-          },
-          {
-            id: 'contract2',
-            name: 'Insurance Verification',
-            description: 'Allows verification of insurance status without exposing details',
-            status: 'active',
-            expiresAt: '2025-12-31'
-          },
-          {
-            id: 'contract3',
-            name: 'Research Data Sharing',
-            description: 'Anonymized data sharing for clinical research',
-            status: 'pending'
-          }
-        ]);
+        setContracts(formattedContracts.length > 0 ? formattedContracts : getDemoContracts());
         
         // Fetch Autheo balance
         const { data: balanceData, error: balanceError } = await supabase
           .from('autheo_balances')
           .select('balance')
+          .eq('user_id', userAuth.id)
           .maybeSingle();
           
         if (balanceError) throw balanceError;
@@ -95,6 +96,7 @@ const SmartContracts = () => {
         const { data: transactionsData, error: transactionsError } = await supabase
           .from('transactions')
           .select('*')
+          .eq('user_id', userAuth.id)
           .order('created_at', { ascending: false })
           .limit(5);
           
@@ -111,31 +113,13 @@ const SmartContracts = () => {
           autheoCoinsUsed: tx.autheo_coins_used
         }));
         
-        setRecentTransactions(formattedTransactions.length > 0 ? formattedTransactions : [
-          {
-            id: 'tx001',
-            amount: 25.00,
-            fee: 0.50,
-            timestamp: '2025-05-16T14:32:00Z',
-            status: 'completed',
-            description: 'Co-pay for Dr. Chen visit',
-            autheoCoinsUsed: 250
-          },
-          {
-            id: 'tx002',
-            amount: 75.00,
-            fee: 1.50,
-            timestamp: '2025-05-10T09:15:00Z',
-            status: 'completed',
-            description: 'Lab test payment',
-            autheoCoinsUsed: 750
-          }
-        ]);
+        setRecentTransactions(formattedTransactions.length > 0 ? formattedTransactions : getDemoTransactions());
       } catch (error) {
         console.error('Error loading wallet data:', error);
+        loadDemoData();
         toast({
           title: "Error loading data",
-          description: "Could not load wallet data. Please try again later.",
+          description: "Could not load wallet data. Using demo data.",
           variant: "destructive"
         });
       } finally {
@@ -144,7 +128,61 @@ const SmartContracts = () => {
     }
     
     loadData();
-  }, [toast]);
+  }, [toast, userAuth]);
+  
+  const loadDemoData = () => {
+    setContracts(getDemoContracts());
+    setAutheoInfo({
+      balance: 100,
+      conversionRate: 10
+    });
+    setRecentTransactions(getDemoTransactions());
+    setLoading(false);
+  };
+  
+  const getDemoContracts = (): SmartContract[] => [
+    {
+      id: 'contract1',
+      name: 'Primary Care Access',
+      description: 'Grants Dr. Emily Chen access to your medical records',
+      status: 'active',
+      expiresAt: '2025-06-30'
+    },
+    {
+      id: 'contract2',
+      name: 'Insurance Verification',
+      description: 'Allows verification of insurance status without exposing details',
+      status: 'active',
+      expiresAt: '2025-12-31'
+    },
+    {
+      id: 'contract3',
+      name: 'Research Data Sharing',
+      description: 'Anonymized data sharing for clinical research',
+      status: 'pending'
+    }
+  ];
+  
+  const getDemoTransactions = (): TransactionInfo[] => [
+    {
+      id: 'tx001',
+      amount: 25.00,
+      fee: 0.50,
+      timestamp: '2025-05-16T14:32:00Z',
+      status: 'completed',
+      description: 'Co-pay for Dr. Chen visit',
+      autheoCoinsUsed: 250
+    },
+    {
+      id: 'tx002',
+      amount: 75.00,
+      fee: 1.50,
+      timestamp: '2025-05-10T09:15:00Z',
+      status: 'completed',
+      description: 'Lab test payment',
+      autheoCoinsUsed: 750
+    }
+  ];
   
   const handleActivate = async (id: string) => {
     try {
@@ -156,12 +194,13 @@ const SmartContracts = () => {
         setContracts(contracts.map(contract => 
           contract.id === id ? { ...contract, status: 'active' } : contract
         ));
-      } else {
+      } else if (userAuth) {
         // For real contracts, update in the database
         const { error } = await supabase
           .from('smart_contracts')
           .update({ status: 'active' })
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_id', userAuth.id);
           
         if (error) throw error;
         
@@ -227,10 +266,17 @@ const SmartContracts = () => {
         return;
       }
       
+      if (!userAuth) {
+        // Demo mode - just update the UI
+        simulateDemoTransaction(amountValue, fee, autheoCoinsNeeded);
+        return;
+      }
+      
       // Create transaction in database
       const { data: transactionData, error: transactionError } = await supabase
         .from('transactions')
         .insert({
+          user_id: userAuth.id,  // Added the required user_id field
           amount: amountValue,
           fee: fee,
           autheo_coins_used: autheoCoinsNeeded,
@@ -248,7 +294,8 @@ const SmartContracts = () => {
         .update({ 
           balance: autheoInfo.balance - autheoCoinsNeeded,
           updated_at: new Date().toISOString()
-        });
+        })
+        .eq('user_id', userAuth.id);
         
       if (balanceError) throw balanceError;
       
@@ -287,6 +334,34 @@ const SmartContracts = () => {
       setProcessing(false);
       setShowTransactionDemo(false);
     }
+  };
+
+  const simulateDemoTransaction = (amountValue: number, fee: number, autheoCoinsNeeded: number) => {
+    // Create a demo transaction for display only
+    const newTransaction: TransactionInfo = {
+      id: `demo-${Date.now()}`,
+      amount: amountValue,
+      fee: fee,
+      timestamp: new Date().toISOString(),
+      status: 'completed',
+      description: 'Healthcare service payment (Demo)',
+      autheoCoinsUsed: autheoCoinsNeeded
+    };
+    
+    // Update state for demo mode
+    setRecentTransactions([newTransaction, ...recentTransactions]);
+    setAutheoInfo({
+      ...autheoInfo,
+      balance: autheoInfo.balance - autheoCoinsNeeded
+    });
+    
+    toast({
+      title: "Demo Transaction Complete",
+      description: `$${amountValue} processed with $${fee} fee using Autheo coins`,
+    });
+    
+    setProcessing(false);
+    setShowTransactionDemo(false);
   };
 
   return (

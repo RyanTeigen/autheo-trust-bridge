@@ -14,14 +14,34 @@ const InsuranceCard: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [insuranceInfo, setInsuranceInfo] = useState<InsuranceInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userAuth, setUserAuth] = useState<{ id: string } | null>(null);
+
+  // Get the user's authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUserAuth({ id: session.user.id });
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   // Fetch insurance information on component mount
   useEffect(() => {
     async function fetchInsuranceInfo() {
       try {
+        if (!userAuth) {
+          // User not authenticated, use demo data
+          setLoading(false);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from('insurance_info')
           .select('*')
+          .eq('user_id', userAuth.id)
           .maybeSingle();
           
         if (error) throw error;
@@ -43,12 +63,32 @@ const InsuranceCard: React.FC = () => {
     }
     
     fetchInsuranceInfo();
-  }, []);
+  }, [userAuth]);
   
   const handleFormSubmit = async (values: InsuranceFormValues) => {
     setLoading(true);
     try {
+      if (!userAuth) {
+        // Demo mode - just update the UI
+        setInsuranceInfo({
+          provider: values.provider,
+          memberID: values.memberID,
+          groupNumber: values.groupNumber || "",
+          planType: values.planType || "",
+          verified: false,
+        });
+        setShowForm(false);
+        
+        toast({
+          title: "Demo mode",
+          description: "Insurance information saved (demo only, not persisted).",
+        });
+        setLoading(false);
+        return;
+      }
+      
       const insuranceData = {
+        user_id: userAuth.id, // Add the required user_id field
         provider: values.provider,
         member_id: values.memberID,
         group_number: values.groupNumber || null,
@@ -61,7 +101,7 @@ const InsuranceCard: React.FC = () => {
         const { error } = await supabase
           .from('insurance_info')
           .update(insuranceData)
-          .eq('provider', insuranceInfo.provider);
+          .eq('user_id', userAuth.id);
           
         if (error) throw error;
       } else {
@@ -103,11 +143,26 @@ const InsuranceCard: React.FC = () => {
     if (insuranceInfo) {
       setLoading(true);
       try {
+        if (!userAuth) {
+          // Demo mode - just update the UI
+          setInsuranceInfo({
+            ...insuranceInfo,
+            verified: true,
+          });
+          
+          toast({
+            title: "Demo mode",
+            description: "Insurance information verified (demo only).",
+          });
+          setLoading(false);
+          return;
+        }
+        
         // Update verification status in the database
         const { error } = await supabase
           .from('insurance_info')
           .update({ verified: true })
-          .eq('member_id', insuranceInfo.memberID);
+          .eq('user_id', userAuth.id);
           
         if (error) throw error;
         
