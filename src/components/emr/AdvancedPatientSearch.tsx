@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search } from 'lucide-react';
 import SearchBar from './patient-search/SearchBar';
 import FilterPanel from './patient-search/FilterPanel';
+import SearchButton from './patient-search/SearchButton';
 
 export type PatientRecord = {
   id: string;
