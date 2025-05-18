@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -39,14 +38,46 @@ const ConsolidatedHealthOverview: React.FC<ConsolidatedHealthOverviewProps> = ({
     }
   };
   
-  // Format the metrics for more readable display
+  // Format the metrics for more readable display with defined ranges
   const formattedMetrics = healthMetrics?.slice(0, 3).map(metric => {
+    // Define normal ranges based on common health metrics
+    let highRange: number, lowRange: number;
+    
+    switch(metric.name.toLowerCase()) {
+      case 'blood pressure':
+        highRange = 140; // systolic
+        lowRange = 90;
+        break;
+      case 'heart rate':
+        highRange = 100; // bpm
+        lowRange = 60;
+        break;
+      case 'glucose level':
+        highRange = 140; // mg/dL
+        lowRange = 70;
+        break;
+      case 'cholesterol':
+        highRange = 200; // mg/dL
+        lowRange = 100;
+        break;
+      case 'bmi':
+        highRange = 25;
+        lowRange = 18.5;
+        break;
+      default:
+        highRange = parseFloat(metric.value) * 1.2;
+        lowRange = parseFloat(metric.value) * 0.8;
+    }
+    
+    const metricValue = parseFloat(metric.value);
     const status = 
-      metric.value > metric.highRange ? 'high' :
-      metric.value < metric.lowRange ? 'low' : 'normal';
+      metricValue > highRange ? 'high' :
+      metricValue < lowRange ? 'low' : 'normal';
       
     return {
       ...metric,
+      highRange,
+      lowRange,
       status,
       statusColor: 
         status === 'high' ? 'text-red-400' :
@@ -155,8 +186,8 @@ const ConsolidatedHealthOverview: React.FC<ConsolidatedHealthOverviewProps> = ({
           {/* Vitals Tab */}
           <TabsContent value="vitals">
             <div className="space-y-3">
-              {formattedMetrics?.map(metric => (
-                <Card key={metric.id} className="bg-slate-800/30 border-slate-700/50">
+              {formattedMetrics?.map((metric) => (
+                <Card key={metric.name} className="bg-slate-800/30 border-slate-700/50">
                   <CardContent className="p-3">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
