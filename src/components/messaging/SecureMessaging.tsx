@@ -1,13 +1,12 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, User, Image, Paperclip, Search, Plus } from 'lucide-react';
+import { MessageCircle, Send, User, Image, Paperclip, Search, Plus, Clock, Calendar, FileText, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Message {
   id: string;
@@ -25,113 +24,24 @@ interface Message {
 
 interface Conversation {
   id: string;
-  providerName: string;
-  providerTitle: string;
+  participantName: string;
+  participantRole: 'patient' | 'provider';
+  participantTitle?: string;
   lastMessage: string;
   lastMessageTime: string;
   unread: number;
   messages: Message[];
 }
 
-// Mock data
-const mockConversations: Conversation[] = [
-  {
-    id: '1',
-    providerName: 'Dr. Emily Chen',
-    providerTitle: 'Primary Care',
-    lastMessage: 'Your lab results look normal. No concerns at this time.',
-    lastMessageTime: '2h ago',
-    unread: 0,
-    messages: [
-      {
-        id: '1-1',
-        sender: 'patient',
-        senderName: 'You',
-        content: 'Hello Dr. Chen, I received a notification that my lab results are ready. Could you please let me know if there\'s anything concerning?',
-        timestamp: 'May 15, 2025 10:32 AM',
-        read: true
-      },
-      {
-        id: '1-2',
-        sender: 'provider',
-        senderName: 'Dr. Emily Chen',
-        content: 'Hello! I\'ve reviewed your results, and everything looks normal. Your cholesterol levels have improved since your last test. Keep up the good work with your diet and exercise regimen!',
-        timestamp: 'May 15, 2025 11:45 AM',
-        read: true
-      },
-      {
-        id: '1-3',
-        sender: 'patient',
-        senderName: 'You',
-        content: 'That\'s great news! Thanks for the quick response. Should I continue with the same medication dosage?',
-        timestamp: 'May 15, 2025 11:52 AM',
-        read: true
-      },
-      {
-        id: '1-4',
-        sender: 'provider',
-        senderName: 'Dr. Emily Chen',
-        content: 'Your lab results look normal. No concerns at this time. Yes, please continue with the same dosage and we\'ll reassess at your next appointment in 3 months.',
-        timestamp: '2h ago',
-        read: false
-      }
-    ]
-  },
-  {
-    id: '2',
-    providerName: 'Dr. James Wilson',
-    providerTitle: 'Cardiologist',
-    lastMessage: 'Please schedule a follow-up appointment to discuss your echo results.',
-    lastMessageTime: 'Yesterday',
-    unread: 1,
-    messages: [
-      {
-        id: '2-1',
-        sender: 'provider',
-        senderName: 'Dr. James Wilson',
-        content: 'Hello, I\'ve reviewed your recent echocardiogram results. There are a few things I\'d like to discuss in person. Please schedule a follow-up appointment at your earliest convenience.',
-        timestamp: 'Yesterday',
-        read: false
-      }
-    ]
-  },
-  {
-    id: '3',
-    providerName: 'Dr. Sarah Johnson',
-    providerTitle: 'Dermatologist',
-    lastMessage: 'The prescription has been sent to your pharmacy.',
-    lastMessageTime: 'May 12',
-    unread: 0,
-    messages: [
-      {
-        id: '3-1',
-        sender: 'patient',
-        senderName: 'You',
-        content: 'Hi Dr. Johnson, the rash seems to be getting worse despite using the cream. I\'ve attached some photos.',
-        timestamp: 'May 12, 2025 9:15 AM',
-        read: true,
-        attachments: [
-          {
-            name: 'rash-photo.jpg',
-            type: 'image/jpeg'
-          }
-        ]
-      },
-      {
-        id: '3-2',
-        sender: 'provider',
-        senderName: 'Dr. Sarah Johnson',
-        content: 'Thank you for the update and photos. I\'ll prescribe a stronger medication. The prescription has been sent to your pharmacy.',
-        timestamp: 'May 12, 2025 10:45 AM',
-        read: true
-      }
-    ]
-  }
-];
+interface SecureMessagingProps {
+  isProviderView?: boolean;
+}
 
-const SecureMessaging: React.FC = () => {
+const SecureMessaging: React.FC<SecureMessagingProps> = ({ isProviderView = false }) => {
   const { toast } = useToast();
-  const [conversations, setConversations] = useState<Conversation[]>(mockConversations);
+  const [conversations, setConversations] = useState<Conversation[]>(() => 
+    isProviderView ? getMockProviderConversations() : getMockPatientConversations()
+  );
   const [activeConversationId, setActiveConversationId] = useState<string>(conversations[0]?.id || '');
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -141,7 +51,7 @@ const SecureMessaging: React.FC = () => {
   
   // Filter conversations by search query
   const filteredConversations = conversations.filter(conversation =>
-    conversation.providerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conversation.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conversation.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
@@ -152,8 +62,8 @@ const SecureMessaging: React.FC = () => {
       if (conversation.id === activeConversationId) {
         const newMsg: Message = {
           id: `${conversation.id}-${conversation.messages.length + 1}`,
-          sender: 'patient',
-          senderName: 'You',
+          sender: isProviderView ? 'provider' : 'patient',
+          senderName: isProviderView ? 'You (Provider)' : 'You',
           content: newMessage.trim(),
           timestamp: new Date().toLocaleString(),
           read: true,
@@ -179,7 +89,7 @@ const SecureMessaging: React.FC = () => {
     
     toast({
       title: "Message sent",
-      description: "Your secure message has been sent to the provider."
+      description: "Your secure message has been sent"
     });
   };
   
@@ -217,206 +127,461 @@ const SecureMessaging: React.FC = () => {
     setActiveConversationId(id);
     markConversationAsRead(id);
   };
+
+  const handleStartNewConversation = () => {
+    toast({
+      title: "New conversation",
+      description: isProviderView 
+        ? "Select a patient to start a new conversation"
+        : "Select a provider to start a new conversation"
+    });
+  };
   
   return (
-    <div className="space-y-6">
-      <Card className="bg-slate-800 border-slate-700 text-slate-100">
-        <CardHeader className="border-b border-slate-700 bg-slate-700/30">
-          <CardTitle className="text-autheo-primary flex items-center">
-            <MessageCircle className="mr-2 h-5 w-5" /> Secure Messaging
-          </CardTitle>
-          <CardDescription className="text-slate-300">
-            HIPAA-compliant secure communication with your healthcare providers
-          </CardDescription>
-        </CardHeader>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 h-[600px]">
-          {/* Conversation List */}
-          <div className="border-r border-slate-700 md:col-span-1 flex flex-col">
-            <div className="p-3 border-b border-slate-700">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search conversations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-slate-900/50 border-slate-700 text-slate-100"
-                />
-              </div>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto">
-              {filteredConversations.length > 0 ? (
-                filteredConversations.map((conversation) => (
-                  <button
-                    key={conversation.id}
-                    onClick={() => handleOpenConversation(conversation.id)}
-                    className={`w-full text-left p-3 border-b border-slate-700 hover:bg-slate-900/50 transition-colors ${
-                      conversation.id === activeConversationId ? 'bg-slate-900/70' : ''
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <p className="font-medium text-autheo-primary">{conversation.providerName}</p>
-                        <p className="text-xs text-slate-400">{conversation.providerTitle}</p>
-                        <p className="text-sm truncate mt-1 text-slate-300">
-                          {conversation.lastMessage}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-xs text-slate-400">{conversation.lastMessageTime}</span>
-                        {conversation.unread > 0 && (
-                          <Badge className="mt-1 bg-autheo-primary text-autheo-dark">{conversation.unread}</Badge>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="p-4 text-center">
-                  <p className="text-slate-400">No conversations found</p>
-                </div>
-              )}
-            </div>
-            
-            <div className="p-3 border-t border-slate-700 mt-auto">
-              <Button className="w-full bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900">
-                <Plus className="h-4 w-4 mr-1" /> New Conversation
-              </Button>
-            </div>
-          </div>
-          
-          {/* Active Conversation */}
-          <div className="md:col-span-2 flex flex-col">
-            {activeConversation ? (
-              <>
-                <div className="p-3 border-b border-slate-700 bg-slate-800/50">
-                  <div className="flex items-center">
-                    <div className="h-10 w-10 rounded-full bg-autheo-primary/20 flex items-center justify-center mr-3">
-                      <User className="h-5 w-5 text-autheo-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-autheo-primary">{activeConversation.providerName}</h3>
-                      <p className="text-xs text-slate-400">{activeConversation.providerTitle}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {activeConversation.messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.sender === 'patient' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[85%] rounded-lg p-3 ${
-                          message.sender === 'patient'
-                            ? 'bg-autheo-primary/20 text-slate-100'
-                            : 'bg-slate-700/50 text-slate-100'
-                        }`}
-                      >
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="font-medium text-sm">
-                            {message.senderName}
-                          </span>
-                          <span className="text-xs text-slate-400">
-                            {message.timestamp}
-                          </span>
-                        </div>
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        
-                        {message.attachments && message.attachments.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {message.attachments.map((attachment, index) => (
-                              <div key={index} className="flex items-center gap-1 p-1 bg-slate-900/30 rounded text-xs">
-                                <Paperclip className="h-3 w-3 text-slate-400" />
-                                <span className="truncate">{attachment.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="p-3 border-t border-slate-700">
-                  {attachments.length > 0 && (
-                    <div className="mb-2 flex flex-wrap gap-2">
-                      {attachments.map((file, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="flex items-center gap-1 bg-slate-900/50 text-slate-300 border-slate-700"
-                        >
-                          <Paperclip className="h-3 w-3" />
-                          <span className="truncate max-w-[150px]">{file.name}</span>
-                          <button
-                            onClick={() => removeAttachment(index)}
-                            className="ml-1 text-slate-400 hover:text-slate-300"
-                          >
-                            ×
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-10 w-10 rounded-full flex-shrink-0 border-slate-700"
-                      type="button"
-                      onClick={() => document.getElementById('file-upload')?.click()}
-                    >
-                      <Paperclip className="h-4 w-4 text-slate-300" />
-                      <input
-                        id="file-upload"
-                        type="file"
-                        className="hidden"
-                        onChange={handleAttachmentUpload}
-                        multiple
-                      />
-                    </Button>
-                    
-                    <Textarea
-                      placeholder="Type your message..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      className="min-h-10 bg-slate-900/50 border-slate-700 text-slate-100 flex-1"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSendMessage();
-                        }
-                      }}
-                    />
-                    
-                    <Button
-                      className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900 flex-shrink-0"
-                      onClick={handleSendMessage}
-                      disabled={newMessage.trim() === '' && attachments.length === 0}
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <MessageCircle className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <h3 className="text-lg font-medium text-slate-300">No conversation selected</h3>
-                  <p className="text-slate-400 mt-1">Select a conversation from the list or start a new one</p>
-                </div>
-              </div>
-            )}
+    <div className="grid grid-cols-1 md:grid-cols-3 h-[600px]">
+      {/* Conversation List */}
+      <div className="border-r border-slate-700 md:col-span-1 flex flex-col">
+        <div className="p-3 border-b border-slate-700">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-slate-900/50 border-slate-700 text-slate-100"
+            />
           </div>
         </div>
-      </Card>
+        
+        <div className="flex-1 overflow-y-auto">
+          {filteredConversations.length > 0 ? (
+            filteredConversations.map((conversation) => (
+              <button
+                key={conversation.id}
+                onClick={() => handleOpenConversation(conversation.id)}
+                className={`w-full text-left p-3 border-b border-slate-700 hover:bg-slate-900/50 transition-colors ${
+                  conversation.id === activeConversationId ? 'bg-slate-900/70' : ''
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <p className="font-medium text-autheo-primary">{conversation.participantName}</p>
+                    <p className="text-xs text-slate-400">{conversation.participantTitle || (
+                      conversation.participantRole === 'patient' ? 'Patient' : 'Provider'
+                    )}</p>
+                    <p className="text-sm truncate mt-1 text-slate-300">
+                      {conversation.lastMessage}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-slate-400">{conversation.lastMessageTime}</span>
+                    {conversation.unread > 0 && (
+                      <Badge className="mt-1 bg-autheo-primary text-autheo-dark">{conversation.unread}</Badge>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="p-4 text-center">
+              <p className="text-slate-400">No conversations found</p>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-3 border-t border-slate-700 mt-auto">
+          <Button 
+            className="w-full bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+            onClick={handleStartNewConversation}
+          >
+            <Plus className="h-4 w-4 mr-1" /> New Conversation
+          </Button>
+        </div>
+      </div>
+      
+      {/* Active Conversation */}
+      <div className="md:col-span-2 flex flex-col">
+        {activeConversation ? (
+          <>
+            <div className="p-3 border-b border-slate-700 bg-slate-800/50">
+              <div className="flex items-center">
+                <div className="h-10 w-10 rounded-full bg-autheo-primary/20 flex items-center justify-center mr-3">
+                  <User className="h-5 w-5 text-autheo-primary" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-autheo-primary">{activeConversation.participantName}</h3>
+                  <p className="text-xs text-slate-400">
+                    {activeConversation.participantTitle || (
+                      activeConversation.participantRole === 'patient' ? 'Patient' : 'Provider'
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {activeConversation.messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === (isProviderView ? 'provider' : 'patient') ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-lg p-3 ${
+                      message.sender === (isProviderView ? 'provider' : 'patient')
+                        ? 'bg-autheo-primary/20 text-slate-100'
+                        : 'bg-slate-700/50 text-slate-100'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-medium text-sm">
+                        {message.senderName}
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        {message.timestamp}
+                      </span>
+                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    
+                    {message.attachments && message.attachments.length > 0 && (
+                      <div className="mt-2 space-y-1">
+                        {message.attachments.map((attachment, index) => (
+                          <div key={index} className="flex items-center gap-1 p-1 bg-slate-900/30 rounded text-xs">
+                            <Paperclip className="h-3 w-3 text-slate-400" />
+                            <span className="truncate">{attachment.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-3 border-t border-slate-700">
+              {attachments.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {attachments.map((file, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="flex items-center gap-1 bg-slate-900/50 text-slate-300 border-slate-700"
+                    >
+                      <Paperclip className="h-3 w-3" />
+                      <span className="truncate max-w-[150px]">{file.name}</span>
+                      <button
+                        onClick={() => removeAttachment(index)}
+                        className="ml-1 text-slate-400 hover:text-slate-300"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 rounded-full flex-shrink-0 border-slate-700"
+                  type="button"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  <Paperclip className="h-4 w-4 text-slate-300" />
+                  <input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    onChange={handleAttachmentUpload}
+                    multiple
+                  />
+                </Button>
+                
+                <Textarea
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="min-h-10 bg-slate-900/50 border-slate-700 text-slate-100 flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                
+                <Button
+                  className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900 flex-shrink-0"
+                  onClick={handleSendMessage}
+                  disabled={newMessage.trim() === '' && attachments.length === 0}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-center">
+              <MessageCircle className="h-12 w-12 text-slate-600 mx-auto mb-3" />
+              <h3 className="text-lg font-medium text-slate-300">No conversation selected</h3>
+              <p className="text-slate-400 mt-1">Select a conversation from the list or start a new one</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+// Mock data generation functions
+function getMockPatientConversations(): Conversation[] {
+  return [
+    {
+      id: '1',
+      participantName: 'Dr. Emily Chen',
+      participantRole: 'provider',
+      participantTitle: 'Primary Care',
+      lastMessage: 'Your lab results look normal. No concerns at this time.',
+      lastMessageTime: '2h ago',
+      unread: 0,
+      messages: [
+        {
+          id: '1-1',
+          sender: 'patient',
+          senderName: 'You',
+          content: 'Hello Dr. Chen, I received a notification that my lab results are ready. Could you please let me know if there\'s anything concerning?',
+          timestamp: 'May 15, 2025 10:32 AM',
+          read: true
+        },
+        {
+          id: '1-2',
+          sender: 'provider',
+          senderName: 'Dr. Emily Chen',
+          content: 'Hello! I\'ve reviewed your results, and everything looks normal. Your cholesterol levels have improved since your last test. Keep up the good work with your diet and exercise regimen!',
+          timestamp: 'May 15, 2025 11:45 AM',
+          read: true
+        },
+        {
+          id: '1-3',
+          sender: 'patient',
+          senderName: 'You',
+          content: 'That\'s great news! Thanks for the quick response. Should I continue with the same medication dosage?',
+          timestamp: 'May 15, 2025 11:52 AM',
+          read: true
+        },
+        {
+          id: '1-4',
+          sender: 'provider',
+          senderName: 'Dr. Emily Chen',
+          content: 'Your lab results look normal. No concerns at this time. Yes, please continue with the same dosage and we\'ll reassess at your next appointment in 3 months.',
+          timestamp: '2h ago',
+          read: false
+        }
+      ]
+    },
+    {
+      id: '2',
+      participantName: 'Dr. James Wilson',
+      participantRole: 'provider',
+      participantTitle: 'Cardiologist',
+      lastMessage: 'Please schedule a follow-up appointment to discuss your echo results.',
+      lastMessageTime: 'Yesterday',
+      unread: 1,
+      messages: [
+        {
+          id: '2-1',
+          sender: 'provider',
+          senderName: 'Dr. James Wilson',
+          content: 'Hello, I\'ve reviewed your recent echocardiogram results. There are a few things I\'d like to discuss in person. Please schedule a follow-up appointment at your earliest convenience.',
+          timestamp: 'Yesterday',
+          read: false
+        }
+      ]
+    },
+    {
+      id: '3',
+      participantName: 'Dr. Sarah Johnson',
+      participantRole: 'provider',
+      participantTitle: 'Dermatologist',
+      lastMessage: 'The prescription has been sent to your pharmacy.',
+      lastMessageTime: 'May 12',
+      unread: 0,
+      messages: [
+        {
+          id: '3-1',
+          sender: 'patient',
+          senderName: 'You',
+          content: 'Hi Dr. Johnson, the rash seems to be getting worse despite using the cream. I\'ve attached some photos.',
+          timestamp: 'May 12, 2025 9:15 AM',
+          read: true,
+          attachments: [
+            {
+              name: 'rash-photo.jpg',
+              type: 'image/jpeg'
+            }
+          ]
+        },
+        {
+          id: '3-2',
+          sender: 'provider',
+          senderName: 'Dr. Sarah Johnson',
+          content: 'Thank you for the update and photos. I\'ll prescribe a stronger medication. The prescription has been sent to your pharmacy.',
+          timestamp: 'May 12, 2025 10:45 AM',
+          read: true
+        }
+      ]
+    }
+  ];
+}
+
+function getMockProviderConversations(): Conversation[] {
+  return [
+    {
+      id: '1',
+      participantName: 'John Smith',
+      participantRole: 'patient',
+      lastMessage: 'Thank you for the prescription, I\'ll pick it up today.',
+      lastMessageTime: '1h ago',
+      unread: 1,
+      messages: [
+        {
+          id: '1-1',
+          sender: 'provider',
+          senderName: 'You (Provider)',
+          content: 'Hello John, I\'ve reviewed your lab results. Your cholesterol is slightly elevated, but nothing serious. I recommend continuing your current medication.',
+          timestamp: 'May 16, 2025 9:15 AM',
+          read: true
+        },
+        {
+          id: '1-2',
+          sender: 'patient',
+          senderName: 'John Smith',
+          content: 'Thank you, Doctor. Should I make any dietary changes as well?',
+          timestamp: 'May 16, 2025 9:45 AM',
+          read: true
+        },
+        {
+          id: '1-3',
+          sender: 'provider',
+          senderName: 'You (Provider)',
+          content: 'I\'d recommend reducing saturated fat intake and increasing fiber. I\'ll send over a diet plan. Also, I\'ve renewed your prescription for the next 3 months.',
+          timestamp: 'May 16, 2025 10:15 AM',
+          read: true,
+          attachments: [
+            {
+              name: 'diet_plan.pdf',
+              type: 'application/pdf'
+            }
+          ]
+        },
+        {
+          id: '1-4',
+          sender: 'patient',
+          senderName: 'John Smith',
+          content: 'Thank you for the prescription, I\'ll pick it up today.',
+          timestamp: '1h ago',
+          read: false
+        }
+      ]
+    },
+    {
+      id: '2',
+      participantName: 'Emma Johnson',
+      participantRole: 'patient',
+      lastMessage: 'I\'ve been experiencing increased dizziness after starting the new medication.',
+      lastMessageTime: '3h ago',
+      unread: 2,
+      messages: [
+        {
+          id: '2-1',
+          sender: 'patient',
+          senderName: 'Emma Johnson',
+          content: 'Hello Doctor, I started the new blood pressure medication 3 days ago.',
+          timestamp: 'May 17, 2025 8:30 AM',
+          read: true
+        },
+        {
+          id: '2-2',
+          sender: 'patient',
+          senderName: 'Emma Johnson',
+          content: 'I\'ve been experiencing increased dizziness after starting the new medication.',
+          timestamp: '3h ago',
+          read: false
+        },
+        {
+          id: '2-3',
+          sender: 'patient',
+          senderName: 'Emma Johnson',
+          content: 'Should I stop taking it or reduce the dosage?',
+          timestamp: '3h ago',
+          read: false
+        }
+      ]
+    },
+    {
+      id: '3',
+      participantName: 'Robert Williams',
+      participantRole: 'patient',
+      lastMessage: 'Here are the photos of the skin reaction you requested.',
+      lastMessageTime: 'Yesterday',
+      unread: 0,
+      messages: [
+        {
+          id: '3-1',
+          sender: 'provider',
+          senderName: 'You (Provider)',
+          content: 'Hello Mr. Williams, could you please send me photos of the skin reaction you mentioned during our appointment?',
+          timestamp: 'May 16, 2025 3:15 PM',
+          read: true
+        },
+        {
+          id: '3-2',
+          sender: 'patient',
+          senderName: 'Robert Williams',
+          content: 'Here are the photos of the skin reaction you requested.',
+          timestamp: 'Yesterday',
+          read: true,
+          attachments: [
+            {
+              name: 'skin_photo_1.jpg',
+              type: 'image/jpeg'
+            },
+            {
+              name: 'skin_photo_2.jpg',
+              type: 'image/jpeg'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: '4',
+      participantName: 'Linda Brown',
+      participantRole: 'patient',
+      lastMessage: 'I\'ve scheduled my follow-up appointment for next Tuesday.',
+      lastMessageTime: '2 days ago',
+      unread: 0,
+      messages: [
+        {
+          id: '4-1',
+          sender: 'provider',
+          senderName: 'You (Provider)',
+          content: 'Ms. Brown, please schedule a follow-up appointment within the next 2 weeks to discuss your treatment progress.',
+          timestamp: 'May 15, 2025 11:30 AM',
+          read: true
+        },
+        {
+          id: '4-2',
+          sender: 'patient',
+          senderName: 'Linda Brown',
+          content: 'I\'ve scheduled my follow-up appointment for next Tuesday.',
+          timestamp: '2 days ago',
+          read: true
+        }
+      ]
+    }
+  ];
+}
 
 export default SecureMessaging;
