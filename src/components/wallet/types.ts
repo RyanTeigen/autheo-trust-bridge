@@ -28,14 +28,6 @@ export interface WalletData {
   balance: number;
   transactions: TransactionInfo[];
   insurance: InsuranceInfo;
-  healthRecords: {
-    medications: Medication[];
-    diagnoses: Diagnosis[];
-    immunizations: Immunization[];
-    tests: MedicalTest[];
-    allergies: Allergy[];
-    metrics: HealthMetrics[];
-  }
 }
 
 export interface DataAccessContract {

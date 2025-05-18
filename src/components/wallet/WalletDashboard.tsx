@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import { 
   Wallet, 
   Shield, 
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 
 import WalletOverview from './WalletOverview';
-import HealthRecordsList from './HealthRecordsList';
 import InsuranceInterface from './insurance/InsuranceInterface';
 import InsuranceCard from './InsuranceCard';
 import DistributedStorage from '@/components/decentralized/DistributedStorage';
@@ -38,20 +36,18 @@ interface WalletDashboardProps {
 const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { getRecordsByFilter, toggleRecordSharing } = useHealthRecords();
   
-  const [activeSection, setActiveSection] = useState('records');
+  const [activeSection, setActiveSection] = useState('overview');
   const [activeTab, setActiveTab] = useState('overview');
-  const [activeRecordsTab, setActiveRecordsTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [balance, setBalance] = useState(100);
   
   const sections = [
-    { id: 'records', label: 'Records', icon: FileText },
+    { id: 'overview', label: 'Overview', icon: PiggyBank },
     { id: 'insurance', label: 'Insurance', icon: CreditCard },
     { id: 'payments', label: 'Payments', icon: FileCheck },
-    { id: 'shared', label: 'Shared', icon: Users, route: '/shared-records' },
+    { id: 'contracts', label: 'Contracts', icon: FileText },
     { id: 'security', label: 'Security', icon: Shield },
   ];
   
@@ -69,14 +65,6 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-  };
-
-  const handleToggleShare = (id: string, shared: boolean) => {
-    toggleRecordSharing(id, shared);
-    toast({
-      title: shared ? "Record shared" : "Record unshared",
-      description: `The selected health record has been ${shared ? 'added to' : 'removed from'} your shared data.`,
-    });
   };
   
   const handleTransactionDemo = () => {
@@ -129,12 +117,12 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
               ))}
             </div>
 
-            {activeSection === 'records' && (
+            {activeSection === 'contracts' && (
               <div className="relative mt-2">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
                 <Input
                   type="text"
-                  placeholder="Search records..."
+                  placeholder="Search contracts..."
                   className="pl-9 pr-4 py-2 w-full bg-slate-800 border-slate-700"
                   value={searchQuery}
                   onChange={handleSearchChange}
@@ -146,85 +134,58 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
               <span className="font-medium">Current view:</span>
               <span className="mx-1.5">/</span>
               <span className="text-autheo-primary">
-                {activeSection === 'records' ? 'Health Records' : 
+                {activeSection === 'overview' ? 'Financial Overview' : 
                 activeSection === 'insurance' ? 'Insurance Information' : 
-                activeSection === 'payments' ? 'Payment Contracts' : 
-                activeSection === 'shared' ? 'Shared Records' : 
+                activeSection === 'payments' ? 'Payment History' : 
+                activeSection === 'contracts' ? 'Smart Contracts' : 
                 'Security Settings'}
               </span>
             </div>
           </div>
           
-          {/* Main Content Tabs */}
-          {activeSection === 'records' && (
-            <Tabs defaultValue="all" value={activeRecordsTab} onValueChange={setActiveRecordsTab}>
-              <TabsList className="grid grid-cols-4 mb-4 bg-slate-800 border border-slate-700">
-                <TabsTrigger 
-                  value="all" 
-                  className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
-                >
-                  All Records
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="shared" 
-                  className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
-                >
-                  Shared
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="private" 
-                  className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
-                >
-                  Private
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="recent" 
-                  className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
-                >
-                  Recent
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="all" className="mt-0">
-                <HealthRecordsList 
-                  filter="all" 
-                  onToggleShare={handleToggleShare} 
-                  searchQuery={searchQuery}
-                  selectedCategory={selectedCategory}
-                />
-              </TabsContent>
-              
-              <TabsContent value="shared" className="mt-0">
-                <HealthRecordsList 
-                  filter="shared" 
-                  onToggleShare={handleToggleShare}
-                  searchQuery={searchQuery}
-                  selectedCategory={selectedCategory}
-                />
-              </TabsContent>
-              
-              <TabsContent value="private" className="mt-0">
-                <HealthRecordsList 
-                  filter="private" 
-                  onToggleShare={handleToggleShare}
-                  searchQuery={searchQuery}
-                  selectedCategory={selectedCategory}
-                />
-              </TabsContent>
-              
-              <TabsContent value="recent" className="mt-0">
-                <HealthRecordsList 
-                  filter="recent" 
-                  onToggleShare={handleToggleShare}
-                  searchQuery={searchQuery}
-                  selectedCategory={selectedCategory}
-                />
-              </TabsContent>
-            </Tabs>
+          {/* Financial Overview */}
+          {activeSection === 'overview' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card className="bg-slate-800/50 border-slate-700/50 col-span-1">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-slate-300">Autheo Balance</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center">
+                      <div className="mr-4 bg-autheo-primary/20 p-3 rounded-full">
+                        <CircleDollarSign className="h-6 w-6 text-autheo-primary" />
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-autheo-primary">{balance}</div>
+                        <div className="text-xs text-slate-400">Autheo Coins</div>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <Button 
+                        size="sm" 
+                        className="w-full bg-autheo-primary hover:bg-autheo-primary/90 text-xs"
+                        onClick={handleTransactionDemo}
+                      >
+                        <ArrowRightLeft className="h-3 w-3 mr-1" /> Transfer
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full border-slate-700 text-xs hover:bg-slate-700/50"
+                      >
+                        <PiggyBank className="h-3 w-3 mr-1" /> Add Funds
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              <WalletOverview />
+            </div>
           )}
           
-          {/* Overview, Insurance, Blockchain, Currency Tabs */}
-          {(activeSection === 'insurance' || activeSection === 'payments' || activeSection === 'security') && (
+          {/* Tabs for Other Sections */}
+          {(activeSection === 'insurance' || activeSection === 'payments' || activeSection === 'security' || activeSection === 'contracts') && (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="bg-slate-700 dark:bg-slate-700 mb-6">
                 <TabsTrigger 
@@ -254,40 +215,6 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
               </TabsList>
               
               <TabsContent value="overview">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <Card className="bg-slate-800/50 border-slate-700/50 col-span-1">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-slate-300">Autheo Balance</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center">
-                        <div className="mr-4 bg-autheo-primary/20 p-3 rounded-full">
-                          <CircleDollarSign className="h-6 w-6 text-autheo-primary" />
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold text-autheo-primary">{balance}</div>
-                          <div className="text-xs text-slate-400">Autheo Coins</div>
-                        </div>
-                      </div>
-                      <div className="mt-4 grid grid-cols-2 gap-2">
-                        <Button 
-                          size="sm" 
-                          className="w-full bg-autheo-primary hover:bg-autheo-primary/90 text-xs"
-                          onClick={handleTransactionDemo}
-                        >
-                          <ArrowRightLeft className="h-3 w-3 mr-1" /> Transfer
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="w-full border-slate-700 text-xs hover:bg-slate-700/50"
-                        >
-                          <PiggyBank className="h-3 w-3 mr-1" /> Add Funds
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
                 <WalletOverview />
               </TabsContent>
               
