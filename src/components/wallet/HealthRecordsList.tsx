@@ -1,12 +1,23 @@
 
 import React from 'react';
-import HealthRecordCard from '@/components/ui/HealthRecordCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { FileSearch, Share } from 'lucide-react';
+import { 
+  FileSearch, 
+  Share, 
+  Pill, 
+  FileText, 
+  Heart, 
+  Calendar, 
+  Syringe, 
+  TestTube 
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import { useNavigate } from 'react-router-dom';
+import { filterHealthRecords } from '@/utils/healthRecordUtils';
 
 interface HealthRecordsListProps {
   onToggleShare: (id: string, shared: boolean) => void;
@@ -23,35 +34,48 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { getRecordsByFilter } = useHealthRecords();
+  const { healthRecords } = useHealthRecords();
 
-  // Get records based on the filter
-  let filteredRecords = getRecordsByFilter(filter);
+  // Get filtered records using the utility function
+  const filteredRecords = filterHealthRecords(healthRecords, {
+    searchQuery,
+    category: selectedCategory
+  });
   
-  // Additional filtering based on searchQuery if provided
-  if (searchQuery) {
-    filteredRecords = filteredRecords.filter(record => 
-      record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      record.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      record.details.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-  
-  // Additional filtering based on selectedCategory if it's not 'all'
-  if (selectedCategory && selectedCategory !== 'all') {
-    filteredRecords = filteredRecords.filter(record => 
-      record.category.toLowerCase() === selectedCategory.toLowerCase()
-    );
-  }
-
   const handleDirectShare = (recordId: string) => {
-    // Navigate to the shared records page with the record pre-selected
     toast({
       title: "Share record",
       description: "Redirecting to sharing controls for this record.",
     });
     
     navigate('/shared-records');
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch(category) {
+      case 'medication': return <Pill className="h-4 w-4" />;
+      case 'condition': return <Heart className="h-4 w-4" />;
+      case 'lab': return <FileSearch className="h-4 w-4" />;
+      case 'imaging': return <FileText className="h-4 w-4" />;
+      case 'immunization': return <Syringe className="h-4 w-4" />;
+      case 'visit': return <Calendar className="h-4 w-4" />;
+      case 'allergy': return <Pill className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch(category) {
+      case 'medication': return 'bg-blue-100/20 text-blue-300 border-blue-300/30';
+      case 'condition': return 'bg-red-100/20 text-red-300 border-red-300/30';
+      case 'lab': return 'bg-purple-100/20 text-purple-300 border-purple-300/30';
+      case 'imaging': return 'bg-amber-100/20 text-amber-300 border-amber-300/30';
+      case 'note': return 'bg-green-100/20 text-green-300 border-green-300/30';
+      case 'visit': return 'bg-teal-100/20 text-teal-300 border-teal-300/30';
+      case 'immunization': return 'bg-indigo-100/20 text-indigo-300 border-indigo-300/30';
+      case 'allergy': return 'bg-orange-100/20 text-orange-300 border-orange-300/30';
+      default: return 'bg-slate-100/20 text-slate-300 border-slate-300/30';
+    }
   };
 
   if (filteredRecords.length === 0) {
@@ -66,22 +90,54 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div className="space-y-4">
       {filteredRecords.map(record => (
-        <div key={record.id} className="relative group">
-          <HealthRecordCard
-            record={record}
-            onToggleShare={onToggleShare}
-            className="transition-all duration-200 hover:border-autheo-primary hover:shadow-md"
-          />
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 p-0"
-            onClick={() => handleDirectShare(record.id)}
-          >
-            <Share className="h-3.5 w-3.5" />
-          </Button>
+        <div key={record.id} className="relative">
+          <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden hover:border-autheo-primary/40 transition-all duration-200">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start">
+                <div className="flex gap-3">
+                  <div className="mt-1 p-1.5 rounded-full bg-slate-700 border-2 border-slate-800 flex items-center justify-center">
+                    {getCategoryIcon(record.category)}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-medium text-autheo-primary">{record.title}</h4>
+                    <p className="text-sm text-slate-300">{record.provider}</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {new Date(record.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <Badge 
+                    variant="outline" 
+                    className={getCategoryColor(record.category)}
+                  >
+                    {record.category.charAt(0).toUpperCase() + record.category.slice(1)}
+                  </Badge>
+                  <Badge 
+                    variant={record.isShared ? "secondary" : "outline"} 
+                    className="text-xs"
+                  >
+                    {record.isShared ? 'Shared' : 'Private'}
+                  </Badge>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 w-7 p-0 hover:bg-autheo-primary/20"
+                    onClick={() => handleDirectShare(record.id)}
+                  >
+                    <Share className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+              {record.details && (
+                <div className="mt-2 p-2 bg-slate-700/30 rounded-md text-sm text-slate-300">
+                  {record.details}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       ))}
     </div>

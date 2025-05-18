@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import ImprovedHealthRecordsView from '@/components/health-records/ImprovedHealthRecordsView';
 import DecentralizedFeatures from '@/components/wallet/DecentralizedFeatures';
@@ -22,7 +22,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      {/* Updated health records view */}
+      {/* Improved health records view with consistent styling */}
       <ImprovedHealthRecordsView />
       
       {/* Decentralized Features Section */}
