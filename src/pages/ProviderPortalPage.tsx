@@ -53,7 +53,7 @@ const ProviderPortalPage = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="patients">Patients</TabsTrigger>
+          <TabsTrigger value="patients">Patient Records</TabsTrigger>
           <TabsTrigger value="messaging">Messaging</TabsTrigger>
           <TabsTrigger value="access">Request Access</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>

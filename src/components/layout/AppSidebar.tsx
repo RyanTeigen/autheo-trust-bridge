@@ -16,11 +16,9 @@ import {
 import { 
   ClipboardCheck,
   Users,
-  Database,
   FileCheck,
   Settings,
   Shield,
-  Wallet,
   BookOpen,
   Heart,
   CalendarIcon,
@@ -54,11 +52,6 @@ export const AppSidebar: React.FC = () => {
   ];
 
   const providerItems = [
-    { 
-      title: "Patient Records", 
-      path: "/patient-records", 
-      icon: Database 
-    },
     { 
       title: "Provider Portal", 
       path: "/provider-portal", 
