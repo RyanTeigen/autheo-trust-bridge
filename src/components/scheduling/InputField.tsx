@@ -26,7 +26,9 @@ const InputField: React.FC<InputFieldProps> = ({ form, name, label, placeholder,
           <FormControl>
             <Input 
               placeholder={placeholder} 
-              {...field} 
+              {...field}
+              // Handle Date objects by converting them to strings for the input
+              value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value as string} 
               className="bg-slate-800 border-slate-700 text-slate-100"
             />
           </FormControl>
