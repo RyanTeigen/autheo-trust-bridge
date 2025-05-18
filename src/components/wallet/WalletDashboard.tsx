@@ -51,15 +51,11 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
     { id: 'security', label: 'Security', icon: Shield },
   ];
   
-  const handleNavigate = (section: string, route?: string) => {
+  const handleNavigate = (section: string) => {
     setActiveSection(section);
     
     if (onSectionChange) {
       onSectionChange(section);
-    }
-    
-    if (route) {
-      navigate(route);
     }
   };
 
@@ -109,7 +105,7 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
                   variant={activeSection === section.id ? 'default' : 'outline'}
                   size="sm"
                   className={`flex items-center gap-1.5 py-1 h-auto ${activeSection === section.id ? 'bg-autheo-primary text-white' : 'border-slate-700 bg-slate-800 hover:bg-slate-700'}`}
-                  onClick={() => handleNavigate(section.id, section.route)}
+                  onClick={() => handleNavigate(section.id)}
                 >
                   <section.icon className="h-3.5 w-3.5" />
                   {section.label}
