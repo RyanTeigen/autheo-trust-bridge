@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Search, Plus } from 'lucide-react';
 import SharedRecordCard from './SharedRecordCard';
 import EmptyStateCard from './EmptyStateCard';
@@ -51,93 +52,122 @@ const AccessManagementTab: React.FC<AccessManagementTabProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-4 md:items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search shared records..." 
-            className="pl-8 bg-slate-800/60 dark:bg-slate-800/60 border-slate-700 dark:border-slate-700" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
-        <ShareRecordsDialog 
-          open={dialogOpen} 
-          onOpenChange={setDialogOpen} 
-          onSubmit={handleSubmit}
-        />
-        
-        <Button onClick={() => setDialogOpen(true)} className="bg-autheo-primary hover:bg-autheo-primary/90 text-gray-900">
-          <Plus className="h-4 w-4 mr-1" />
-          Share New Records
-        </Button>
-      </div>
-      
-      <Tabs defaultValue="active" className="w-full mt-6">
-        <TabsList className="grid grid-cols-3 w-full md:w-[400px] bg-slate-100 dark:bg-slate-800">
-          <TabsTrigger value="active" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">
-            Active
-            {activeRecords.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{activeRecords.length}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">
-            Pending
-            {pendingRecords.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{pendingRecords.length}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="expired" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">
-            Expired
-            {expiredRecords.length > 0 && (
-              <Badge variant="secondary" className="ml-2">{expiredRecords.length}</Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="active" className="mt-6">
-          {activeRecords.length > 0 ? (
-            activeRecords.map(record => (
-              <SharedRecordCard 
-                key={record.id} 
-                record={record} 
-                onRevokeAccess={onRevokeAccess} 
+      <Card className="bg-slate-800 border-slate-700 text-slate-100">
+        <CardHeader className="border-b border-slate-700 bg-slate-700/30">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-autheo-primary">Access Management</CardTitle>
+              <CardDescription className="text-slate-300">
+                Control who has access to your health records
+              </CardDescription>
+            </div>
+            
+            <ShareRecordsDialog 
+              open={dialogOpen} 
+              onOpenChange={setDialogOpen} 
+              onSubmit={handleSubmit}
+            />
+            
+            <Button onClick={() => setDialogOpen(true)} className="bg-autheo-primary hover:bg-autheo-primary/90 text-autheo-dark">
+              <Plus className="h-4 w-4 mr-1" />
+              Share New Records
+            </Button>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-4 pt-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search shared records..." 
+                className="pl-8 bg-slate-800/60 border-slate-700" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-            ))
-          ) : (
-            <EmptyStateCard type="active" onCreateNew={() => setDialogOpen(true)} />
-          )}
-        </TabsContent>
-        
-        <TabsContent value="pending" className="mt-6">
-          {pendingRecords.length > 0 ? (
-            pendingRecords.map(record => (
-              <SharedRecordCard 
-                key={record.id} 
-                record={record} 
-                onRevokeAccess={onRevokeAccess} 
-              />
-            ))
-          ) : (
-            <EmptyStateCard type="pending" />
-          )}
-        </TabsContent>
-        
-        <TabsContent value="expired" className="mt-6">
-          {expiredRecords.length > 0 ? (
-            expiredRecords.map(record => (
-              <SharedRecordCard 
-                key={record.id} 
-                record={record} 
-                onRevokeAccess={onRevokeAccess} 
-              />
-            ))
-          ) : (
-            <EmptyStateCard type="expired" />
-          )}
-        </TabsContent>
-      </Tabs>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-5">
+          <Tabs defaultValue="active" className="w-full mt-2">
+            <TabsList className="grid grid-cols-3 w-full md:w-[400px] bg-slate-700/30 mb-4">
+              <TabsTrigger 
+                value="active" 
+                className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+              >
+                Active
+                {activeRecords.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">{activeRecords.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="pending" 
+                className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+              >
+                Pending
+                {pendingRecords.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">{pendingRecords.length}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="expired" 
+                className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+              >
+                Expired
+                {expiredRecords.length > 0 && (
+                  <Badge variant="secondary" className="ml-2">{expiredRecords.length}</Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="active" className="mt-0">
+              {activeRecords.length > 0 ? (
+                <div className="space-y-4">
+                  {activeRecords.map(record => (
+                    <SharedRecordCard 
+                      key={record.id} 
+                      record={record} 
+                      onRevokeAccess={onRevokeAccess} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyStateCard type="active" onCreateNew={() => setDialogOpen(true)} />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="pending" className="mt-0">
+              {pendingRecords.length > 0 ? (
+                <div className="space-y-4">
+                  {pendingRecords.map(record => (
+                    <SharedRecordCard 
+                      key={record.id} 
+                      record={record} 
+                      onRevokeAccess={onRevokeAccess} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyStateCard type="pending" />
+              )}
+            </TabsContent>
+            
+            <TabsContent value="expired" className="mt-0">
+              {expiredRecords.length > 0 ? (
+                <div className="space-y-4">
+                  {expiredRecords.map(record => (
+                    <SharedRecordCard 
+                      key={record.id} 
+                      record={record} 
+                      onRevokeAccess={onRevokeAccess} 
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EmptyStateCard type="expired" />
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
