@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Clock } from 'lucide-react';
 import Badge from '@/components/emr/Badge';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Stethoscope, Users, BarChart3 } from 'lucide-react';
+import { Shield, Stethoscope, Users as UserIcon, BarChart3 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface Appointment {
@@ -86,7 +86,7 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-700/50 rounded-full cursor-help">
-                    <Users className="h-3 w-3 text-purple-400" />
+                    <UserIcon className="h-3 w-3 text-purple-400" />
                     <span className="text-xs text-slate-300">Patient Engagement</span>
                   </div>
                 </TooltipTrigger>
@@ -177,8 +177,5 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
     </div>
   );
 };
-
-// We don't need the QuickActionsCard component anymore as it's been integrated into the main styling
-import { Users, CalendarIcon, FileText, ClipboardCheck } from 'lucide-react';
 
 export default ProviderDashboard;
