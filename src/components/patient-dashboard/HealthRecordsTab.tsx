@@ -34,21 +34,21 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>My Health Records</CardTitle>
-          <CardDescription>
+      <Card className="bg-slate-800 border-slate-700 text-slate-100">
+        <CardHeader className="border-b border-slate-700 bg-slate-700/30">
+          <CardTitle className="text-autheo-primary">My Health Records</CardTitle>
+          <CardDescription className="text-slate-300">
             View, manage, and share your health records with healthcare providers
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5">
           <div className="space-y-6">
             <div className="relative mb-4">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
               <Input
                 type="text"
                 placeholder="Search records..."
-                className="pl-9 pr-4 py-2 w-full"
+                className="pl-9 pr-4 py-2 w-full bg-slate-900/50 border-slate-700 text-slate-100 focus-visible:ring-autheo-primary"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

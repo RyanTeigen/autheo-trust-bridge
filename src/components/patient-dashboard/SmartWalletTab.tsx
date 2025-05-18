@@ -16,14 +16,14 @@ const SmartWalletTab: React.FC<SmartWalletTabProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      <Card className="border-slate-700 bg-slate-800/30">
-        <CardHeader>
-          <CardTitle>Smart Wallet</CardTitle>
-          <CardDescription>
+      <Card className="bg-slate-800 border-slate-700 text-slate-100">
+        <CardHeader className="border-b border-slate-700 bg-slate-700/30">
+          <CardTitle className="text-autheo-primary">Smart Wallet</CardTitle>
+          <CardDescription className="text-slate-300">
             Control and manage access to your health records and insurance information
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5">
           <div className="space-y-6">
             <WalletHeader 
               activeSection={activeSection}
