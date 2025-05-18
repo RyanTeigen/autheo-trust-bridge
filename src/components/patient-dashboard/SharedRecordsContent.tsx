@@ -87,7 +87,7 @@ const SharedRecordsContent: React.FC<SharedRecordsContentProps> = ({
   
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-card border-slate-700 dark:border-slate-700">
         <CardHeader>
           <CardTitle>Shared Records</CardTitle>
           <CardDescription>

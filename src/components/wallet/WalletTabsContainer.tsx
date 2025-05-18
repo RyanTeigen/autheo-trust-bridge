@@ -50,6 +50,7 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
           filter="all" 
           onToggleShare={handleToggleShare} 
           searchQuery={searchQuery}
+          selectedCategory={selectedCategory}
         />
       </TabsContent>
       
@@ -58,6 +59,7 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
           filter="shared" 
           onToggleShare={handleToggleShare}
           searchQuery={searchQuery}
+          selectedCategory={selectedCategory}
         />
       </TabsContent>
       
@@ -66,6 +68,7 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
           filter="private" 
           onToggleShare={handleToggleShare}
           searchQuery={searchQuery}
+          selectedCategory={selectedCategory}
         />
       </TabsContent>
       
@@ -74,6 +77,7 @@ const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({
           filter="recent" 
           onToggleShare={handleToggleShare}
           searchQuery={searchQuery}
+          selectedCategory={selectedCategory}
         />
       </TabsContent>
     </Tabs>

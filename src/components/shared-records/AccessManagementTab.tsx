@@ -56,7 +56,7 @@ const AccessManagementTab: React.FC<AccessManagementTabProps> = ({
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
             placeholder="Search shared records..." 
-            className="pl-8 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700" 
+            className="pl-8 bg-slate-800/60 dark:bg-slate-800/60 border-slate-700 dark:border-slate-700" 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

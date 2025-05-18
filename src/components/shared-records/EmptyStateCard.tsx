@@ -53,7 +53,7 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({ type, onCreateNew }) =>
   };
 
   return (
-    <Card>
+    <Card className="bg-slate-800/40 dark:bg-slate-800/40 border-slate-700 dark:border-slate-700">
       <CardContent className="flex flex-col items-center justify-center py-10 text-center">
         {renderContent()}
       </CardContent>
