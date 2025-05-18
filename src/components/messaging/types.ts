@@ -27,3 +27,10 @@ export interface Conversation {
 export interface SecureMessagingProps {
   isProviderView?: boolean;
 }
+
+export interface MessageMetrics {
+  totalSent: number;
+  responseTime: number; // avg in minutes
+  engagementRate: number; // percentage
+  securityAlerts: number;
+}
