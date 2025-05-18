@@ -8,13 +8,13 @@ export function useMessaging(isProviderView: boolean = false) {
   const [conversations, setConversations] = useState<Conversation[]>(
     isProviderView ? getMockProviderConversations() : getMockPatientConversations()
   );
-  // Set a default activeConversationId if conversations exist
-  const [activeConversationId, setActiveConversationId] = useState<string>(
-    conversations && conversations.length > 0 ? conversations[0].id : ''
-  );
-  const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [newMessage, setNewMessage] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
+  
+  // Set activeConversationId after conversations are loaded to ensure it's valid
+  const [activeConversationId, setActiveConversationId] = useState<string>('');
+  
   // Analytics metrics
   const [messageMetrics, setMessageMetrics] = useState({
     totalSent: 0,
@@ -23,9 +23,10 @@ export function useMessaging(isProviderView: boolean = false) {
     securityAlerts: 0
   });
   
+  // Initialize activeConversationId when conversations are loaded
   useEffect(() => {
-    // Ensure activeConversationId is set whenever conversations change
     if (conversations.length > 0 && !activeConversationId) {
+      console.log("Setting initial activeConversationId to:", conversations[0].id);
       setActiveConversationId(conversations[0].id);
     }
     
@@ -41,7 +42,12 @@ export function useMessaging(isProviderView: boolean = false) {
     conversation.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
+  // Find the active conversation based on activeConversationId
   const activeConversation = conversations.find(c => c.id === activeConversationId);
+  
+  console.log("useMessaging - activeConversationId:", activeConversationId);
+  console.log("useMessaging - activeConversation:", activeConversation);
+  console.log("useMessaging - conversations:", conversations.length);
   
   // Calculate message analytics metrics
   const calculateMessageMetrics = () => {
@@ -184,9 +190,9 @@ export function useMessaging(isProviderView: boolean = false) {
   };
   
   const handleOpenConversation = (id: string) => {
-    // This is the key function for toggling between messages
+    // This function is critical for toggling between messages
     console.log("Opening conversation with ID:", id);
-    setActiveConversationId(id);
+    setActiveConversationId(id); // Set the active conversation ID
     markConversationAsRead(id);
     
     // If this is a provider and there's clinical context, suggest actions

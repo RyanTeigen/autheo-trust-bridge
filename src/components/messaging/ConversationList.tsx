@@ -23,6 +23,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
   onConversationSelect,
   onNewConversation
 }) => {
+  // Debug information to help track issues
+  console.log("ConversationList - activeConversationId:", activeConversationId);
+  console.log("ConversationList - conversations count:", conversations.length);
+  
   return (
     <div className="border-r border-slate-700 md:col-span-1 flex flex-col h-full">
       <div className="p-3 border-b border-slate-700">
@@ -43,7 +47,10 @@ const ConversationList: React.FC<ConversationListProps> = ({
             {conversations.map((conversation) => (
               <button
                 key={conversation.id}
-                onClick={() => onConversationSelect(conversation.id)}
+                onClick={() => {
+                  console.log("Conversation clicked:", conversation.id);
+                  onConversationSelect(conversation.id);
+                }}
                 className={`w-full text-left p-3 hover:bg-slate-900/50 transition-colors ${
                   conversation.id === activeConversationId ? 'bg-slate-900/70' : ''
                 }`}
