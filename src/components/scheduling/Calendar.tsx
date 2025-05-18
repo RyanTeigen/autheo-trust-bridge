@@ -45,10 +45,10 @@ const Calendar: React.FC<CalendarProps> = ({
   const eventDates = events.map(event => new Date(event.date));
 
   return (
-    <Card className={className}>
+    <Card className={`bg-slate-800/50 border-slate-700 text-slate-100 ${className}`}>
       <CardHeader>
-        <CardTitle>Appointment Calendar</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-autheo-primary">Appointment Calendar</CardTitle>
+        <CardDescription className="text-slate-300">
           View and manage upcoming appointments
         </CardDescription>
       </CardHeader>
@@ -59,7 +59,7 @@ const Calendar: React.FC<CalendarProps> = ({
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
-              className="border rounded-md p-3 pointer-events-auto"
+              className="border border-slate-700 rounded-md p-3 pointer-events-auto bg-slate-800/30"
               modifiers={{
                 eventDay: (date) => 
                   eventDates.some(eventDate => format(eventDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd'))
@@ -68,27 +68,29 @@ const Calendar: React.FC<CalendarProps> = ({
                 eventDay: {
                   fontWeight: 'bold',
                   textDecoration: 'underline',
-                  backgroundColor: 'rgba(155, 135, 245, 0.1)', // Light purple
-                  color: '#9b87f5' // Primary purple
+                  backgroundColor: 'rgba(94, 235, 196, 0.15)', // Light autheo primary
+                  color: '#5EEBC4' // autheo primary
                 }
               }}
             />
           </div>
           <div className="flex-1">
             <div>
-              <h3 className="text-lg font-medium mb-3">
+              <h3 className="text-lg font-medium mb-3 text-autheo-primary">
                 {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'No date selected'}
               </h3>
               
               {selectedDateEvents.length > 0 ? (
                 <div className="space-y-3">
                   {selectedDateEvents.map(event => (
-                    <div key={event.id} className="p-3 border rounded-md">
+                    <div key={event.id} className="p-3 border border-slate-700 bg-slate-800/30 rounded-md">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium">{event.title}</h4>
-                        <Badge variant="outline">{event.type}</Badge>
+                        <Badge variant="outline" className="bg-autheo-primary/10 text-autheo-primary border-autheo-primary/20">
+                          {event.type}
+                        </Badge>
                       </div>
-                      <div className="text-sm text-muted-foreground mt-1">
+                      <div className="text-sm text-slate-300 mt-1">
                         <p>{event.time} • {event.provider}</p>
                         {event.location && <p>{event.location}</p>}
                       </div>
@@ -96,7 +98,7 @@ const Calendar: React.FC<CalendarProps> = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground">No appointments scheduled for this day</p>
+                <p className="text-slate-400">No appointments scheduled for this day</p>
               )}
             </div>
           </div>

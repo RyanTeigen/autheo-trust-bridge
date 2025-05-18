@@ -83,25 +83,48 @@ const SchedulingPage = () => {
         description="Schedule and manage healthcare appointments"
       />
       
-      <Tabs defaultValue="calendar" className="w-full">
-        <TabsList>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule Appointment</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="calendar" className="mt-6">
-          <Calendar 
-            events={sampleAppointments} 
-            onDateSelect={setSelectedDate}
-          />
-        </TabsContent>
-        
-        <TabsContent value="schedule" className="mt-6">
-          <AppointmentForm 
-            initialDate={selectedDate}
-          />
-        </TabsContent>
-      </Tabs>
+      <div className="bg-slate-800 border-slate-700 text-slate-100 rounded-lg shadow-md">
+        <div className="border-b border-slate-700 bg-slate-700/30 p-6">
+          <h2 className="text-2xl font-semibold leading-none tracking-tight text-autheo-primary">
+            Calendar & Appointments
+          </h2>
+          <p className="text-sm text-slate-300 mt-1.5">
+            View your calendar and schedule new appointments
+          </p>
+          
+          <Tabs defaultValue="calendar" className="w-full mt-4">
+            <TabsList className="bg-slate-700/50">
+              <TabsTrigger 
+                value="calendar" 
+                className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+              >
+                Calendar
+              </TabsTrigger>
+              <TabsTrigger 
+                value="schedule" 
+                className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+              >
+                Schedule Appointment
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="calendar" className="mt-6 px-6 pb-6">
+              <Calendar 
+                events={sampleAppointments} 
+                onDateSelect={setSelectedDate}
+                className="bg-slate-800 border-slate-700"
+              />
+            </TabsContent>
+            
+            <TabsContent value="schedule" className="mt-6 px-6 pb-6">
+              <AppointmentForm 
+                initialDate={selectedDate}
+                className="bg-slate-800 border-slate-700 text-slate-100"
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </div>
   );
 };

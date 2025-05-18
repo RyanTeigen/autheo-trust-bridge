@@ -88,10 +88,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
   };
   
   return (
-    <Card className={className}>
+    <Card className={`${className} bg-slate-800/50 border-slate-700`}>
       <CardHeader>
-        <CardTitle>Schedule Appointment</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-autheo-primary">Schedule Appointment</CardTitle>
+        <CardDescription className="text-slate-300">
           Create a new appointment for a patient
         </CardDescription>
       </CardHeader>
@@ -104,9 +104,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                 name="patientName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Patient Name</FormLabel>
+                    <FormLabel className="text-slate-200">Patient Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter patient name" {...field} />
+                      <Input 
+                        placeholder="Enter patient name" 
+                        {...field} 
+                        className="bg-slate-800 border-slate-700 text-slate-100"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -118,9 +122,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                 name="provider"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Provider</FormLabel>
+                    <FormLabel className="text-slate-200">Provider</FormLabel>
                     <FormControl>
-                      <Input placeholder="Select provider" {...field} />
+                      <Input 
+                        placeholder="Select provider" 
+                        {...field} 
+                        className="bg-slate-800 border-slate-700 text-slate-100"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -134,15 +142,15 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel className="text-slate-200">Date</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              "pl-3 text-left font-normal bg-slate-800 border-slate-700 hover:bg-slate-700",
+                              !field.value && "text-slate-400"
                             )}
                           >
                             {field.value ? (
@@ -154,7 +162,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 bg-slate-800 border-slate-700" align="start">
                         <Calendar
                           mode="single"
                           selected={field.value}
@@ -163,7 +171,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                             date < new Date(new Date().setHours(0, 0, 0, 0))
                           }
                           initialFocus
-                          className="pointer-events-auto"
+                          className="pointer-events-auto bg-slate-800"
                         />
                       </PopoverContent>
                     </Popover>
@@ -177,16 +185,16 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                 name="time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Time</FormLabel>
+                    <FormLabel className="text-slate-200">Time</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100">
                           <SelectValue placeholder="Select time">
                             {field.value ? field.value : "Select time"}
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
                         {timeSlots.map(time => (
                           <SelectItem key={time} value={time}>
                             {time}
@@ -206,16 +214,16 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Appointment Type</FormLabel>
+                    <FormLabel className="text-slate-200">Appointment Type</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-slate-800 border-slate-700 text-slate-100">
                           <SelectValue placeholder="Select appointment type">
                             {field.value ? field.value : "Select appointment type"}
                           </SelectValue>
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
                         {appointmentTypes.map(type => (
                           <SelectItem key={type} value={type}>
                             {type}
@@ -233,9 +241,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location (Optional)</FormLabel>
+                    <FormLabel className="text-slate-200">Location (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter location" {...field} />
+                      <Input 
+                        placeholder="Enter location" 
+                        {...field}
+                        className="bg-slate-800 border-slate-700 text-slate-100"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -248,16 +260,25 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ onSuccess, className,
               name="notes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes (Optional)</FormLabel>
+                  <FormLabel className="text-slate-200">Notes (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Add any additional notes" {...field} />
+                    <Input 
+                      placeholder="Add any additional notes" 
+                      {...field}
+                      className="bg-slate-800 border-slate-700 text-slate-100"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            <Button type="submit">Schedule Appointment</Button>
+            <Button 
+              type="submit"
+              className="bg-autheo-primary hover:bg-autheo-primary/90 text-autheo-dark"
+            >
+              Schedule Appointment
+            </Button>
           </form>
         </Form>
       </CardContent>
