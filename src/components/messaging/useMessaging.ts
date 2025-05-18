@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Conversation } from './types';
+import { Conversation, Message } from './types';
 import { getMockPatientConversations, getMockProviderConversations } from './mockData';
 
 export function useMessaging(isProviderView: boolean = false) {
@@ -27,7 +27,7 @@ export function useMessaging(isProviderView: boolean = false) {
     
     const updatedConversations = conversations.map(conversation => {
       if (conversation.id === activeConversationId) {
-        const newMsg = {
+        const newMsg: Message = {
           id: `${conversation.id}-${conversation.messages.length + 1}`,
           sender: isProviderView ? 'provider' : 'patient',
           senderName: isProviderView ? 'You (Provider)' : 'You',

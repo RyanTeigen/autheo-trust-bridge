@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PageHeader from '@/components/dashboard/PageHeader';
-import SecureMessaging from '@/components/provider-access/SecureMessaging';
+import SecureMessaging from '@/components/messaging/SecureMessaging';
 import ProviderAccessRequest from '@/components/provider-access/ProviderAccessRequest';
 import PatientAccessManagement from '@/components/provider-access/PatientAccessManagement';
 import ProviderVerification from '@/components/provider-access/ProviderVerification';
@@ -100,7 +100,7 @@ const ProviderAccess: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="secureMessaging" className="mt-6">
-              <SecureMessaging />
+              <SecureMessaging isProviderView={true} />
             </TabsContent>
           </>
         )}
