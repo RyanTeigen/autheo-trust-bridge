@@ -12,12 +12,14 @@ interface HealthRecordsListProps {
   onToggleShare: (id: string, shared: boolean) => void;
   filter?: 'all' | 'shared' | 'private' | 'recent';
   searchQuery?: string;
+  selectedCategory?: string;
 }
 
 const HealthRecordsList: React.FC<HealthRecordsListProps> = ({ 
   onToggleShare,
   filter = 'all',
-  searchQuery = ''
+  searchQuery = '',
+  selectedCategory = 'all'
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -32,6 +34,13 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
       record.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       record.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
       record.details.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+  
+  // Additional filtering based on selectedCategory if it's not 'all'
+  if (selectedCategory && selectedCategory !== 'all') {
+    filteredRecords = filteredRecords.filter(record => 
+      record.category.toLowerCase() === selectedCategory.toLowerCase()
     );
   }
 
