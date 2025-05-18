@@ -1,27 +1,28 @@
 
 import { createBrowserRouter } from "react-router-dom";
-import HomePage from "./pages/HomePage";
+import MainLayout from "./components/layout/MainLayout";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
 import SharedRecordsPage from "./pages/SharedRecordsPage";
 import WalletPage from "./pages/WalletPage";
 import ProviderPortalPage from "./pages/ProviderPortalPage";
 import PatientRecordsPage from "./pages/PatientRecordsPage";
 import SchedulingPage from "./pages/SchedulingPage";
-import SecurityPage from "./pages/SecurityPage";
 import SettingsPage from "./pages/SettingsPage";
-import NotificationsPage from "./pages/NotificationsPage";
+import NotFound from "./pages/NotFound";
+import MedicalNotesPage from "./pages/MedicalNotesPage";
+import CompliancePage from "./pages/CompliancePage";
+import AuditLogsPage from "./pages/AuditLogsPage";
 import ProviderAccess from "./pages/ProviderAccess";
-import Layout from "./Layout";
 
 export const createRouter = () => {
   return createBrowserRouter([
     {
       path: "/",
-      element: <Layout />,
+      element: <MainLayout />,
       children: [
         {
           index: true,
-          element: <HomePage />,
+          element: <PatientDashboardPage />,
         },
         {
           path: "patient-dashboard",
@@ -52,18 +53,26 @@ export const createRouter = () => {
           element: <SchedulingPage />,
         },
         {
-          path: "security",
-          element: <SecurityPage />,
-        },
-        {
           path: "settings",
           element: <SettingsPage />,
         },
         {
-          path: "notifications",
-          element: <NotificationsPage />,
+          path: "medical-notes",
+          element: <MedicalNotesPage />,
+        },
+        {
+          path: "compliance",
+          element: <CompliancePage />,
+        },
+        {
+          path: "audit-logs",
+          element: <AuditLogsPage />,
         },
       ],
+    },
+    {
+      path: "*",
+      element: <NotFound />,
     },
   ]);
 };
