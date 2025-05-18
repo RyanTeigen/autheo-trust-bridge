@@ -29,6 +29,9 @@ const ProviderMessaging: React.FC<ProviderMessagingProps> = ({ isEnhanced = fals
   const [newMessage, setNewMessage] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
   
+  // Add state for active conversation
+  const [activeConversationId, setActiveConversationId] = useState<string>('msg_1');
+  
   const handleSendMessage = () => {
     toast({
       title: messageCategory === 'urgent' ? "Urgent Message Sent" : "Message Sent",
@@ -55,6 +58,12 @@ const ProviderMessaging: React.FC<ProviderMessagingProps> = ({ isEnhanced = fals
       title: "Scheduling Assistant",
       description: "Opening appointment scheduler with this patient.",
     });
+  };
+  
+  // Handle conversation selection
+  const handleConversationSelect = (id: string) => {
+    console.log("Enhanced provider view - selecting conversation:", id);
+    setActiveConversationId(id);
   };
 
   // Fallback to the original component if not enhanced
@@ -121,39 +130,54 @@ const ProviderMessaging: React.FC<ProviderMessagingProps> = ({ isEnhanced = fals
               {/* Enhanced message list with categories */}
               <div className="space-y-0 divide-y divide-slate-700/50">
                 <MessageItem 
+                  id="msg_1"
                   name="John Doe"
                   preview="I've been experiencing increased pain in my knee following the procedure..."
                   time="10:45 AM"
                   isUnread={true}
                   category="urgent"
+                  isActive={activeConversationId === "msg_1"}
+                  onSelect={handleConversationSelect}
                 />
                 <MessageItem 
+                  id="msg_2"
                   name="Jane Smith"
                   preview="Thank you for the prescription refill. When should I come in for my next appointment?"
                   time="Yesterday"
                   isUnread={true}
                   category="follow-up"
+                  isActive={activeConversationId === "msg_2"}
+                  onSelect={handleConversationSelect}
                 />
                 <MessageItem 
+                  id="msg_3"
                   name="Robert Johnson"
                   preview="I've checked my blood pressure as advised and the readings are as follows..."
                   time="May 16"
                   isUnread={false}
                   category="regular"
+                  isActive={activeConversationId === "msg_3"}
+                  onSelect={handleConversationSelect}
                 />
                 <MessageItem 
+                  id="msg_4"
                   name="Emily Wilson"
                   preview="I'm having some side effects from the medication you prescribed. Would it be possible to..."
                   time="May 15"
                   isUnread={false}
                   category="medication"
+                  isActive={activeConversationId === "msg_4"}
+                  onSelect={handleConversationSelect}
                 />
                 <MessageItem 
+                  id="msg_5"
                   name="Michael Brown"
                   preview="I've received the lab results notification but I can't seem to access them..."
                   time="May 15"
                   isUnread={false}
                   category="regular"
+                  isActive={activeConversationId === "msg_5"}
+                  onSelect={handleConversationSelect}
                 />
               </div>
             </div>
@@ -163,28 +187,37 @@ const ProviderMessaging: React.FC<ProviderMessagingProps> = ({ isEnhanced = fals
             <div className="border-r border-slate-700 h-full overflow-y-auto">
               <div className="space-y-0 divide-y divide-slate-700/50">
                 <MessageItem 
+                  id="sent_1"
                   name="Jane Smith"
                   preview="Your follow-up appointment has been scheduled for May 25th at 2:30 PM..."
                   time="Yesterday"
                   isUnread={false}
                   isSent={true}
                   category="follow-up"
+                  isActive={activeConversationId === "sent_1"}
+                  onSelect={handleConversationSelect}
                 />
                 <MessageItem 
+                  id="sent_2"
                   name="John Doe"
                   preview="I've reviewed your test results and everything looks normal. Let's schedule a brief..."
                   time="May 16"
                   isUnread={false}
                   isSent={true}
                   category="regular"
+                  isActive={activeConversationId === "sent_2"}
+                  onSelect={handleConversationSelect}
                 />
                 <MessageItem 
+                  id="sent_3"
                   name="Emily Wilson"
                   preview="I'm prescribing a different medication that should have fewer side effects..."
                   time="May 15"
                   isUnread={false}
                   isSent={true}
                   category="medication"
+                  isActive={activeConversationId === "sent_3"}
+                  onSelect={handleConversationSelect}
                 />
               </div>
             </div>
@@ -203,29 +236,82 @@ const ProviderMessaging: React.FC<ProviderMessagingProps> = ({ isEnhanced = fals
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 border-b border-slate-700 pb-3">
                   <div>
-                    <h3 className="font-medium text-autheo-primary">John Doe</h3>
-                    <p className="text-xs text-slate-400">Patient ID: P12345</p>
+                    <h3 className="font-medium text-autheo-primary">
+                      {activeConversationId === "msg_1" || activeConversationId === "sent_2" ? "John Doe" : 
+                       activeConversationId === "msg_2" || activeConversationId === "sent_1" ? "Jane Smith" :
+                       activeConversationId === "msg_3" ? "Robert Johnson" :
+                       activeConversationId === "msg_4" || activeConversationId === "sent_3" ? "Emily Wilson" :
+                       activeConversationId === "msg_5" ? "Michael Brown" : "Select a conversation"}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      {activeConversationId.startsWith("msg_") ? "Patient ID: P12345" : ""}
+                    </p>
                   </div>
                   <div className="flex gap-2 items-center">
-                    <Badge variant="outline" className="bg-red-900/20 text-red-400 border-red-700/30">
-                      <AlertCircle className="h-3.5 w-3.5 mr-1" /> Urgent
-                    </Badge>
+                    {activeConversationId === "msg_1" && (
+                      <Badge variant="outline" className="bg-red-900/20 text-red-400 border-red-700/30">
+                        <AlertCircle className="h-3.5 w-3.5 mr-1" /> Urgent
+                      </Badge>
+                    )}
                     <Badge variant="outline" className="bg-slate-700/50 text-slate-300">
-                      <Clock className="h-3.5 w-3.5 mr-1" /> 10:45 AM
+                      <Clock className="h-3.5 w-3.5 mr-1" /> {activeConversationId === "msg_1" ? "10:45 AM" : 
+                                                             activeConversationId === "msg_2" || activeConversationId === "sent_1" ? "Yesterday" :
+                                                             activeConversationId === "msg_3" || activeConversationId === "sent_2" ? "May 16" : "May 15"}
                     </Badge>
                   </div>
                 </div>
                 
-                {/* Patient's message */}
-                <div className="flex gap-2 max-w-[80%]">
-                  <div className="w-8 h-8 rounded-full bg-slate-700/50 flex-shrink-0"></div>
-                  <div className="bg-slate-700/50 text-slate-200 p-3 rounded-lg rounded-tl-none">
-                    <p className="text-sm">
-                      I've been experiencing increased pain in my knee following the procedure last week. The pain medication isn't helping much. It's gotten worse over the last 24 hours and there's some swelling. Should I come in to be seen?
-                    </p>
-                    <div className="mt-1 text-xs text-slate-400">10:45 AM</div>
+                {/* Message content - shows different content based on activeConversationId */}
+                {activeConversationId && (
+                  <div className="flex gap-2 max-w-[80%]">
+                    <div className="w-8 h-8 rounded-full bg-slate-700/50 flex-shrink-0"></div>
+                    <div className="bg-slate-700/50 text-slate-200 p-3 rounded-lg rounded-tl-none">
+                      <p className="text-sm">
+                        {activeConversationId === "msg_1" ? 
+                          "I've been experiencing increased pain in my knee following the procedure last week. The pain medication isn't helping much. It's gotten worse over the last 24 hours and there's some swelling. Should I come in to be seen?" :
+                         activeConversationId === "msg_2" ? 
+                          "Thank you for the prescription refill. When should I come in for my next appointment? I'm feeling much better but would like to follow up." :
+                         activeConversationId === "msg_3" ?
+                          "I've checked my blood pressure as advised and the readings are as follows: 128/82, 130/84, and 126/80 over the past three days. Is this within the expected range based on my new medication?" :
+                         activeConversationId === "msg_4" ?
+                          "I'm having some side effects from the medication you prescribed. Would it be possible to discuss alternatives? I'm experiencing dizziness and nausea, especially in the mornings." :
+                         activeConversationId === "msg_5" ?
+                          "I've received the lab results notification but I can't seem to access them through the patient portal. Could you please resend them or help me access them?" :
+                         activeConversationId === "sent_1" ?
+                          "Your follow-up appointment has been scheduled for May 25th at 2:30 PM. Please arrive 15 minutes early to complete any necessary paperwork. Let me know if you need to reschedule." :
+                         activeConversationId === "sent_2" ?
+                          "I've reviewed your test results and everything looks normal. Let's schedule a brief follow-up in three months to make sure your condition continues to improve. In the meantime, continue with the prescribed medication." :
+                         activeConversationId === "sent_3" ?
+                          "I'm prescribing a different medication that should have fewer side effects. Please pick it up at your pharmacy and start tomorrow. Stop the current medication today. Let me know if you experience any issues with the new prescription." :
+                          "Select a conversation to view messages."}
+                      </p>
+                      <div className="mt-1 text-xs text-slate-400">
+                        {activeConversationId === "msg_1" ? "10:45 AM" : 
+                         activeConversationId === "msg_2" || activeConversationId === "sent_1" ? "Yesterday, 3:22 PM" :
+                         activeConversationId === "msg_3" || activeConversationId === "sent_2" ? "May 16, 11:30 AM" : "May 15, 2:15 PM"}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+                
+                {/* Show provider's reply for some conversations */}
+                {(activeConversationId === "msg_3" || activeConversationId === "msg_5") && (
+                  <div className="flex gap-2 max-w-[80%] ml-auto justify-end">
+                    <div className="bg-autheo-primary/20 text-slate-200 p-3 rounded-lg rounded-tr-none">
+                      <p className="text-sm">
+                        {activeConversationId === "msg_3" ? 
+                          "Those readings look good, right within the target range we discussed. Continue with the current dosage and we'll reassess at your next visit." :
+                         "I've reset your access to the lab results. You should be able to view them now. If you continue having issues, please call our technical support at 555-123-4567."}
+                      </p>
+                      <div className="mt-1 text-xs text-slate-400 text-right">
+                        {activeConversationId === "msg_3" ? "May 16, 2:45 PM" : "May 15, 3:30 PM"}
+                      </div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-autheo-primary/20 flex-shrink-0 flex items-center justify-center">
+                      <span className="text-xs font-medium text-autheo-primary">You</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -357,13 +443,16 @@ const ProviderMessaging: React.FC<ProviderMessagingProps> = ({ isEnhanced = fals
 
 // Helper component for message list items
 const MessageItem: React.FC<{
+  id: string;
   name: string;
   preview: string;
   time: string;
   isUnread?: boolean;
   isSent?: boolean;
+  isActive?: boolean;
+  onSelect: (id: string) => void;
   category: 'urgent' | 'follow-up' | 'medication' | 'regular' | 'results';
-}> = ({ name, preview, time, isUnread = false, isSent = false, category }) => {
+}> = ({ id, name, preview, time, isUnread = false, isSent = false, isActive = false, onSelect, category }) => {
   
   const getCategoryBadge = () => {
     switch(category) {
@@ -381,7 +470,13 @@ const MessageItem: React.FC<{
   };
 
   return (
-    <div className={`p-3 cursor-pointer ${isUnread ? 'bg-autheo-primary/5' : 'hover:bg-slate-700/20'}`}>
+    <div 
+      className={`p-3 cursor-pointer ${isActive ? 'bg-slate-900/70' : isUnread ? 'bg-autheo-primary/5' : 'hover:bg-slate-700/20'}`}
+      onClick={() => {
+        console.log("Message item clicked:", id);
+        onSelect(id);
+      }}
+    >
       <div className="flex items-center justify-between mb-1">
         <h4 className={`${isUnread ? 'font-medium text-autheo-primary' : 'text-slate-300'}`}>
           {name} {isSent && <span className="text-xs text-slate-400">(You)</span>}
