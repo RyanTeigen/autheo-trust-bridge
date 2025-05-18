@@ -1,11 +1,11 @@
 
 import React, { useState } from 'react';
-import { useHealthRecords } from '@/contexts/HealthRecordsContext';
+import { useHealthRecords, HealthRecordsProvider } from '@/contexts/HealthRecordsContext';
 import { useToast } from '@/hooks/use-toast';
 import DashboardHeader from '@/components/patient-dashboard/DashboardHeader';
 import DashboardTabs from '@/components/patient-dashboard/DashboardTabs';
 
-const PatientDashboardPage = () => {
+const PatientDashboardContent = () => {
   const { toggleRecordSharing } = useHealthRecords();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -46,6 +46,15 @@ const PatientDashboardPage = () => {
         setActiveSection={handleSectionChange}
       />
     </div>
+  );
+};
+
+// Wrap with provider
+const PatientDashboardPage = () => {
+  return (
+    <HealthRecordsProvider>
+      <PatientDashboardContent />
+    </HealthRecordsProvider>
   );
 };
 
