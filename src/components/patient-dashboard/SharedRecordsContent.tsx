@@ -97,8 +97,8 @@ const SharedRecordsContent: React.FC<SharedRecordsContentProps> = ({
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-6 bg-slate-100 dark:bg-slate-800">
-              <TabsTrigger value="access" className="px-6">Access Management</TabsTrigger>
-              <TabsTrigger value="records" className="px-6">My Health Records</TabsTrigger>
+              <TabsTrigger value="access" className="px-6 data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">Access Management</TabsTrigger>
+              <TabsTrigger value="records" className="px-6 data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">My Health Records</TabsTrigger>
             </TabsList>
             
             {/* Access Management Tab */}

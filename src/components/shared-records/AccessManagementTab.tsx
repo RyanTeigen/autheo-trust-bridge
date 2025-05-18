@@ -76,19 +76,19 @@ const AccessManagementTab: React.FC<AccessManagementTabProps> = ({
       
       <Tabs defaultValue="active" className="w-full mt-6">
         <TabsList className="grid grid-cols-3 w-full md:w-[400px] bg-slate-100 dark:bg-slate-800">
-          <TabsTrigger value="active">
+          <TabsTrigger value="active" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">
             Active
             {activeRecords.length > 0 && (
               <Badge variant="secondary" className="ml-2">{activeRecords.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="pending">
+          <TabsTrigger value="pending" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">
             Pending
             {pendingRecords.length > 0 && (
               <Badge variant="secondary" className="ml-2">{pendingRecords.length}</Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="expired">
+          <TabsTrigger value="expired" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark">
             Expired
             {expiredRecords.length > 0 && (
               <Badge variant="secondary" className="ml-2">{expiredRecords.length}</Badge>
