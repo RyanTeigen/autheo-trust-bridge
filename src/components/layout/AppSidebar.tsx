@@ -36,8 +36,8 @@ export const AppSidebar: React.FC = () => {
   const getLinkClass = ({ isActive }: { isActive: boolean }) => {
     return `flex items-center p-2 w-full rounded-md ${
       isActive 
-      ? 'bg-gradient-to-r from-autheo-primary/20 to-autheo-secondary/20 text-autheo-primary font-medium' 
-      : 'text-foreground hover:bg-muted/50'
+      ? 'bg-gradient-to-r from-autheo-primary/20 to-autheo-primary/10 text-autheo-primary font-medium' 
+      : 'text-slate-300 hover:bg-slate-800/50 hover:text-autheo-primary/80'
     }`;
   };
 
@@ -97,10 +97,10 @@ export const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar
-      className={`border-r ${isCollapsed ? 'w-14' : 'w-60'} bg-autheo-dark/95 backdrop-blur-sm border-border`}
+      className={`border-r ${isCollapsed ? 'w-14' : 'w-60'} bg-slate-900/95 backdrop-blur-sm border-slate-800`}
       variant="sidebar"
     >
-      <SidebarContent className="py-4">
+      <SidebarContent className="py-6">
         {/* Patient Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel className="px-4 text-autheo-primary/80">
@@ -112,7 +112,7 @@ export const AppSidebar: React.FC = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} end={item.path === "/"} className={getLinkClass}>
-                      <item.icon className="h-5 w-5 mr-2 flex-shrink-0" />
+                      <item.icon className="h-4 w-4 mr-2.5 flex-shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -133,7 +133,7 @@ export const AppSidebar: React.FC = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} className={getLinkClass}>
-                      <item.icon className="h-5 w-5 mr-2 flex-shrink-0" />
+                      <item.icon className="h-4 w-4 mr-2.5 flex-shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -154,7 +154,7 @@ export const AppSidebar: React.FC = () => {
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} className={getLinkClass}>
-                      <item.icon className="h-5 w-5 mr-2 flex-shrink-0" />
+                      <item.icon className="h-4 w-4 mr-2.5 flex-shrink-0" />
                       {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>

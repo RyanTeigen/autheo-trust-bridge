@@ -15,15 +15,19 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({ type, onCreateNew }) =>
       case 'active':
         return (
           <>
-            <Users className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground mb-2">
+            <Users className="h-10 w-10 text-slate-400 mb-4" />
+            <p className="text-slate-300 mb-2">
               No active shared records found
             </p>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-slate-400 mb-4">
               Use the "Share New Records" button to start sharing your health information
             </p>
             {onCreateNew && (
-              <Button variant="outline" onClick={onCreateNew}>
+              <Button 
+                variant="outline" 
+                className="bg-slate-800 border-slate-600 text-autheo-primary hover:border-autheo-primary hover:bg-slate-700"
+                onClick={onCreateNew}
+              >
                 Share New Records
               </Button>
             )}
@@ -32,8 +36,8 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({ type, onCreateNew }) =>
       case 'pending':
         return (
           <>
-            <Clock className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
+            <Clock className="h-10 w-10 text-slate-400 mb-4" />
+            <p className="text-slate-300">
               No pending shared records
             </p>
           </>
@@ -41,8 +45,8 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({ type, onCreateNew }) =>
       case 'expired':
         return (
           <>
-            <Lock className="h-10 w-10 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">
+            <Lock className="h-10 w-10 text-slate-400 mb-4" />
+            <p className="text-slate-300">
               No expired shared records
             </p>
           </>
@@ -53,7 +57,7 @@ const EmptyStateCard: React.FC<EmptyStateCardProps> = ({ type, onCreateNew }) =>
   };
 
   return (
-    <Card className="bg-slate-800/40 dark:bg-slate-800/40 border-slate-700 dark:border-slate-700">
+    <Card className="bg-slate-800/40 border-slate-700">
       <CardContent className="flex flex-col items-center justify-center py-10 text-center">
         {renderContent()}
       </CardContent>

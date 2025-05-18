@@ -37,15 +37,15 @@ const PatientDashboardPage = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight mb-2 text-gradient-primary bg-gradient-to-r from-autheo-primary to-autheo-secondary bg-clip-text text-transparent">Patient Dashboard</h1>
-        <p className="text-muted-foreground">
+        <p className="text-slate-300">
           Access your personalized health information, communicate with providers, and manage your healthcare experience.
         </p>
       </div>
       
       <Tabs defaultValue="overview" className="w-full space-y-6">
-        <Card className="border-b border-slate-200">
+        <Card className="border-slate-700 bg-slate-800/30 backdrop-blur-sm">
           <CardContent className="p-0">
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent p-0">
+            <TabsList className="w-full justify-start rounded-none border-b border-slate-700 bg-transparent p-0">
               <TabsTrigger
                 value="overview"
                 className="rounded-none border-b-2 border-b-transparent bg-transparent px-4 py-2 font-semibold data-[state=active]:border-autheo-primary data-[state=active]:text-autheo-primary"

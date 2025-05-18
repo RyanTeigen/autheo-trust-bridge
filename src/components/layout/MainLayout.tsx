@@ -8,7 +8,7 @@ import { AppHeader } from './AppHeader';
 const MainLayout: React.FC = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex flex-col w-full">
+      <div className="min-h-screen flex flex-col w-full bg-slate-900">
         <AppHeader />
         <div className="flex flex-1 w-full">
           <AppSidebar />
