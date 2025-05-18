@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -76,6 +77,7 @@ const ConsolidatedHealthOverview: React.FC<ConsolidatedHealthOverviewProps> = ({
       
     return {
       ...metric,
+      id: metric.id || `metric-${metric.name}-${metric.date}`.toLowerCase().replace(/\s+/g, '-'),
       highRange,
       lowRange,
       status,

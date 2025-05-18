@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Standardized data model for health records
@@ -58,11 +57,16 @@ export interface Allergy {
 }
 
 export interface HealthMetrics {
+  id?: string;
   name: string;
   value: string;
   unit: string;
   trend: 'up' | 'down' | 'stable';
   date: string;
+  highRange?: number;
+  lowRange?: number;
+  status?: string;
+  statusColor?: string;
 }
 
 export interface HealthRecordsSummary {
@@ -280,10 +284,10 @@ const mockAllergies: Allergy[] = [
 ];
 
 const mockHealthMetrics: HealthMetrics[] = [
-  { name: 'Blood Pressure', value: '120/80', unit: 'mmHg', trend: 'stable', date: 'Today' },
-  { name: 'Heart Rate', value: '72', unit: 'bpm', trend: 'down', date: 'Today' },
-  { name: 'Blood Glucose', value: '95', unit: 'mg/dL', trend: 'up', date: 'Yesterday' },
-  { name: 'Weight', value: '155', unit: 'lbs', trend: 'stable', date: '2 days ago' }
+  { id: '1', name: 'Blood Pressure', value: '120/80', unit: 'mmHg', trend: 'stable', date: 'Today' },
+  { id: '2', name: 'Heart Rate', value: '72', unit: 'bpm', trend: 'down', date: 'Today' },
+  { id: '3', name: 'Blood Glucose', value: '95', unit: 'mg/dL', trend: 'up', date: 'Yesterday' },
+  { id: '4', name: 'Weight', value: '155', unit: 'lbs', trend: 'stable', date: '2 days ago' }
 ];
 
 export const HealthRecordsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
