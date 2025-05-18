@@ -6,6 +6,7 @@ import WalletTabsContainer from '@/components/wallet/WalletTabsContainer';
 import WalletFilters from '@/components/wallet/WalletFilters';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
+import DecentralizedFeatures from '@/components/wallet/DecentralizedFeatures';
 
 interface HealthRecordsTabProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -70,6 +71,12 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
               searchQuery={searchQuery}
               selectedCategory={selectedCategory}
             />
+
+            {/* Decentralized Features Section */}
+            <div className="mt-8">
+              <h2 className="text-lg font-semibold text-autheo-primary mb-4">Decentralized Health Features</h2>
+              <DecentralizedFeatures />
+            </div>
           </div>
         </CardContent>
       </Card>

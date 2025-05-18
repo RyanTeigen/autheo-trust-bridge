@@ -29,16 +29,11 @@ const DecentralizedFeatures = () => {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-lg font-medium text-slate-800 flex items-center">
-        <Shield className="h-5 w-5 mr-2 text-autheo-secondary" />
-        Decentralized Features
-      </h2>
-      
       <Tabs defaultValue="verification" value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-3 rounded-lg bg-slate-50">
+        <TabsList className="grid grid-cols-3 mb-3 rounded-lg bg-slate-800 border border-slate-700">
           <TabsTrigger 
             value="verification" 
-            className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm py-1.5 flex items-center justify-center"
+            className="rounded-md data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 text-sm py-1.5 flex items-center justify-center"
           >
             {getTabIcon('verification')}
             <span className="hidden sm:inline">Zero Knowledge</span>
@@ -46,7 +41,7 @@ const DecentralizedFeatures = () => {
           </TabsTrigger>
           <TabsTrigger 
             value="identity" 
-            className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm py-1.5 flex items-center justify-center"
+            className="rounded-md data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 text-sm py-1.5 flex items-center justify-center"
           >
             {getTabIcon('identity')}
             <span className="hidden sm:inline">Identity</span>
@@ -54,7 +49,7 @@ const DecentralizedFeatures = () => {
           </TabsTrigger>
           <TabsTrigger 
             value="storage" 
-            className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-sm py-1.5 flex items-center justify-center"
+            className="rounded-md data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 text-sm py-1.5 flex items-center justify-center"
           >
             {getTabIcon('storage')}
             <span className="hidden sm:inline">Storage</span>
@@ -62,15 +57,15 @@ const DecentralizedFeatures = () => {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="verification" className="mt-0 border rounded-lg border-slate-200 p-3">
+        <TabsContent value="verification" className="mt-0 border rounded-lg border-slate-700 bg-slate-800/50">
           <ZeroKnowledgeVerification />
         </TabsContent>
         
-        <TabsContent value="identity" className="mt-0 border rounded-lg border-slate-200 p-3">
+        <TabsContent value="identity" className="mt-0 border rounded-lg border-slate-700 bg-slate-800/50">
           <SelfSovereignIdentity />
         </TabsContent>
         
-        <TabsContent value="storage" className="mt-0 border rounded-lg border-slate-200 p-3">
+        <TabsContent value="storage" className="mt-0 border rounded-lg border-slate-700 bg-slate-800/50">
           <DistributedStorage />
         </TabsContent>
       </Tabs>
