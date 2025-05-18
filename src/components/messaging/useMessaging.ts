@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Conversation, Message } from './types';
@@ -9,7 +8,10 @@ export function useMessaging(isProviderView: boolean = false) {
   const [conversations, setConversations] = useState<Conversation[]>(
     isProviderView ? getMockProviderConversations() : getMockPatientConversations()
   );
-  const [activeConversationId, setActiveConversationId] = useState<string>(conversations[0]?.id || '');
+  // Set a default activeConversationId if conversations exist
+  const [activeConversationId, setActiveConversationId] = useState<string>(
+    conversations && conversations.length > 0 ? conversations[0].id : ''
+  );
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -21,8 +23,13 @@ export function useMessaging(isProviderView: boolean = false) {
     securityAlerts: 0
   });
   
-  // Update analytics whenever conversations change
   useEffect(() => {
+    // Ensure activeConversationId is set whenever conversations change
+    if (conversations.length > 0 && !activeConversationId) {
+      setActiveConversationId(conversations[0].id);
+    }
+    
+    // Update analytics
     if (conversations.length > 0) {
       calculateMessageMetrics();
     }
@@ -177,6 +184,8 @@ export function useMessaging(isProviderView: boolean = false) {
   };
   
   const handleOpenConversation = (id: string) => {
+    // This is the key function for toggling between messages
+    console.log("Opening conversation with ID:", id);
     setActiveConversationId(id);
     markConversationAsRead(id);
     

@@ -27,6 +27,10 @@ const SecureMessaging: React.FC<SecureMessagingProps> = ({ isProviderView = fals
     handleStartNewConversation
   } = useMessaging(isProviderView);
   
+  console.log("SecureMessaging - activeConversationId:", activeConversationId);
+  console.log("SecureMessaging - activeConversation:", activeConversation);
+  console.log("SecureMessaging - total conversations:", conversations.length);
+  
   return (
     <div className="space-y-4">
       {/* Analytics Header for Providers */}
@@ -102,7 +106,7 @@ const SecureMessaging: React.FC<SecureMessagingProps> = ({ isProviderView = fals
         />
         
         {/* Active Conversation */}
-        <div className="md:col-span-2 flex flex-col">
+        <div className="md:col-span-2 flex flex-col h-full">
           {activeConversation ? (
             <>
               <MessageThread 
