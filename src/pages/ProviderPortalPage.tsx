@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Search, Shield, Database, Bell } from 'lucide-react';
 import NotificationBanner from '@/components/provider/NotificationBanner';
 import ProviderMetrics from '@/components/provider/ProviderMetrics';
-import AdvancedPatientSearch from '@/components/emr/AdvancedPatientSearch';
+import AdvancedPatientSearch, { PatientRecord } from '@/components/emr/AdvancedPatientSearch';
 import ProviderCalendar from '@/components/provider/ProviderCalendar';
 import { Badge } from '@/components/ui/badge';
 
@@ -31,8 +32,8 @@ const mockRecentPatients = [
   { id: 'P34567', name: 'Robert Johnson', lastVisit: '2025-05-05', reason: 'Lab Results' },
 ];
 
-// Mock data for advanced patient search
-const mockPatientRecords = [
+// Mock data for advanced patient search - Ensure it matches the PatientRecord type
+const mockPatientRecords: PatientRecord[] = [
   { id: 'P12345', name: 'John Doe', dob: '1985-06-15', mrn: 'MRN123456', lastVisit: '2025-05-10', insuranceProvider: 'BlueCross', primaryCareProvider: 'Dr. Smith', tags: ['Chronic Condition'] },
   { id: 'P23456', name: 'Jane Smith', dob: '1990-03-22', mrn: 'MRN234567', lastVisit: '2025-05-08', insuranceProvider: 'Aetna', primaryCareProvider: 'Dr. Johnson', tags: ['New Patient'] },
   { id: 'P34567', name: 'Robert Johnson', dob: '1975-11-30', mrn: 'MRN345678', lastVisit: '2025-05-05', insuranceProvider: 'UnitedHealth', primaryCareProvider: 'Dr. Williams', tags: ['Follow-up Required'] },
@@ -40,10 +41,10 @@ const mockPatientRecords = [
   { id: 'P56789', name: 'Michael Brown', dob: '1968-07-24', mrn: 'MRN567890', lastVisit: '2025-04-28', insuranceProvider: 'Cigna', primaryCareProvider: 'Dr. Brown', tags: ['Specialist Referral'] },
 ];
 
-// Mock notifications
+// Mock notifications - Make sure the type values match the expected union type
 const mockNotifications = [
-  { id: 'N1', type: 'alert', message: 'Lab results for patient John Doe require immediate review', timestamp: '10 min ago' },
-  { id: 'N2', type: 'info', message: 'New patient referral received from Dr. Williams', timestamp: '25 min ago' },
+  { id: 'N1', type: 'alert' as const, message: 'Lab results for patient John Doe require immediate review', timestamp: '10 min ago' },
+  { id: 'N2', type: 'info' as const, message: 'New patient referral received from Dr. Williams', timestamp: '25 min ago' },
 ];
 
 // Mock provider metrics
@@ -60,7 +61,7 @@ const ProviderPortalPage = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifications, setNotifications] = useState(mockNotifications);
-  const [patientSearchResults, setPatientSearchResults] = useState(mockPatientRecords);
+  const [patientSearchResults, setPatientSearchResults] = useState<PatientRecord[]>(mockPatientRecords);
 
   const handleAction = () => {
     toast({
@@ -82,6 +83,11 @@ const ProviderPortalPage = () => {
       title: "Notification Dismissed",
       description: "The notification has been removed from your list.",
     });
+  };
+
+  // Define a handler function that matches the expected type in AdvancedPatientSearch
+  const handleSearchResults = (results: PatientRecord[]) => {
+    setPatientSearchResults(results);
   };
 
   return (
@@ -142,7 +148,7 @@ const ProviderPortalPage = () => {
               <div className="p-6">
                 <AdvancedPatientSearch 
                   patients={mockPatientRecords}
-                  onSearch={setPatientSearchResults}
+                  onSearch={handleSearchResults}
                 />
                 
                 <div className="mt-6">
