@@ -14,7 +14,6 @@ import SharedRecordsContent from '@/components/patient-dashboard/SharedRecordsCo
 import InsuranceInterface from '@/components/wallet/insurance/InsuranceInterface';
 import WalletHeader from '@/components/wallet/WalletHeader';
 import InsuranceCard from '@/components/wallet/InsuranceCard';
-import { ChevronRight } from 'lucide-react';
 
 const PatientDashboardPage = () => {
   const { toggleRecordSharing } = useHealthRecords();
@@ -79,12 +78,6 @@ const PatientDashboardPage = () => {
                   className="rounded-none border-b-2 border-b-transparent bg-transparent px-4 py-2 font-semibold whitespace-nowrap data-[state=active]:border-autheo-primary data-[state=active]:text-autheo-primary"
                 >
                   Shared Records
-                </TabsTrigger>
-                <TabsTrigger
-                  value="appointments"
-                  className="rounded-none border-b-2 border-b-transparent bg-transparent px-4 py-2 font-semibold whitespace-nowrap data-[state=active]:border-autheo-primary data-[state=active]:text-autheo-primary"
-                >
-                  Appointments
                 </TabsTrigger>
                 <TabsTrigger
                   value="education"
@@ -172,22 +165,6 @@ const PatientDashboardPage = () => {
         
         <TabsContent value="shared-records" className="space-y-6 mt-4">
           <SharedRecordsContent handleShareHealthInfo={handleShareHealthInfo} />
-        </TabsContent>
-        
-        <TabsContent value="appointments" className="space-y-6 mt-4">
-          <iframe 
-            src="/scheduling" 
-            className="w-full h-[80vh] border-0 rounded-lg"
-            title="Scheduling Page"
-          />
-          <div className="flex justify-end">
-            <a 
-              href="/scheduling" 
-              className="inline-flex items-center text-autheo-primary hover:text-autheo-primary/80"
-            >
-              Open full scheduling page <ChevronRight className="h-4 w-4 ml-1" />
-            </a>
-          </div>
         </TabsContent>
         
         <TabsContent value="education" className="space-y-6 mt-4">
