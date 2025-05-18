@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import SecureMessaging from '@/components/messaging/SecureMessaging';
-import EnhancedMessageComposer from '@/components/messaging/EnhancedMessageComposer';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -230,18 +229,115 @@ const ProviderMessaging: React.FC<ProviderMessagingProps> = ({ isEnhanced = fals
               </div>
             </div>
             
-            {/* Enhanced message composer */}
-            <EnhancedMessageComposer
-              newMessage={newMessage}
-              attachments={attachments}
-              messageCategory={messageCategory}
-              onMessageChange={setNewMessage}
-              onSendMessage={handleSendMessage}
-              onAttachmentUpload={handleAttachmentUpload}
-              onRemoveAttachment={handleRemoveAttachment}
-              onCategoryChange={setMessageCategory}
-              onScheduleAppointment={handleScheduleAppointment}
-            />
+            {/* Message composer */}
+            <div className="p-3 border-t border-slate-700">
+              <div className="flex gap-2 mb-3">
+                <Select 
+                  value={messageCategory} 
+                  onValueChange={setMessageCategory}
+                >
+                  <SelectTrigger className={`w-full sm:w-auto ${
+                    messageCategory === 'urgent' ? 'bg-red-900/20 text-red-400 border-red-700/30' :
+                    messageCategory === 'follow-up' ? 'bg-blue-900/20 text-blue-400 border-blue-700/30' :
+                    messageCategory === 'medication' ? 'bg-green-900/20 text-green-400 border-green-700/30' :
+                    messageCategory === 'results' ? 'bg-purple-900/20 text-purple-400 border-purple-700/30' :
+                    messageCategory === 'referral' ? 'bg-amber-900/20 text-amber-400 border-amber-700/30' :
+                    'bg-slate-700/30 text-slate-300 border-slate-600'
+                  }`}>
+                    <div className="flex items-center">
+                      <Tag className="h-3.5 w-3.5 mr-1.5" />
+                      <SelectValue placeholder="Select category" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="regular">Regular Message</SelectItem>
+                      <SelectItem value="urgent">Urgent</SelectItem>
+                      <SelectItem value="follow-up">Follow-up</SelectItem>
+                      <SelectItem value="medication">Medication</SelectItem>
+                      <SelectItem value="results">Test Results</SelectItem>
+                      <SelectItem value="referral">Referral</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                
+                <Button 
+                  variant="outline"
+                  className="border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700"
+                >
+                  <Tag className="h-4 w-4 mr-1.5" />
+                  Templates
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="ml-auto border-slate-700 bg-blue-900/20 text-blue-400 hover:bg-blue-900/30"
+                  onClick={handleScheduleAppointment}
+                >
+                  <Clock className="h-4 w-4 mr-1.5" />
+                  Schedule
+                </Button>
+              </div>
+              
+              {attachments.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {attachments.map((file, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="flex items-center gap-1 bg-slate-900/50 text-slate-300 border-slate-700"
+                    >
+                      <Tag className="h-3 w-3" />
+                      <span className="truncate max-w-[150px]">{file.name}</span>
+                      <button
+                        onClick={() => handleRemoveAttachment(index)}
+                        className="ml-1 text-slate-400 hover:text-slate-300"
+                      >
+                        ×
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 rounded-full flex-shrink-0 border-slate-700"
+                  type="button"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  <Tag className="h-4 w-4 text-slate-300" />
+                  <input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    onChange={handleAttachmentUpload}
+                    multiple
+                  />
+                </Button>
+                
+                <Input
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="bg-slate-900/50 border-slate-700 text-slate-100 flex-1"
+                />
+                
+                <Button
+                  className={`${
+                    messageCategory === 'urgent' 
+                      ? 'bg-red-600 hover:bg-red-700 text-white' 
+                      : 'bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900'
+                  } flex-shrink-0`}
+                  onClick={handleSendMessage}
+                  disabled={newMessage.trim() === '' && attachments.length === 0}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </Tabs>
