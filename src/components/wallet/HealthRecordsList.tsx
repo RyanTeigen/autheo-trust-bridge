@@ -6,13 +6,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { 
   FileSearch, 
-  Share, 
+  Share2, 
   Pill, 
   FileText, 
   Heart, 
   Calendar, 
   Syringe, 
-  TestTube 
+  TestTube,
+  AlertCircle 
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
@@ -39,13 +40,25 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
   // Get filtered records using the utility function
   const filteredRecords = filterHealthRecords(healthRecords, {
     searchQuery,
-    category: selectedCategory
+    category: selectedCategory,
+    sharedFilter: filter === 'all' ? undefined : (filter === 'shared' ? 'shared' : 'private')
   });
   
-  const handleDirectShare = (recordId: string) => {
+  const handleShare = (recordId: string, currentlyShared: boolean) => {
+    // Toggle sharing status
+    onToggleShare(recordId, !currentlyShared);
+    
+    // Show toast confirmation
     toast({
-      title: "Share record",
-      description: "Redirecting to sharing controls for this record.",
+      title: !currentlyShared ? "Record shared" : "Record unshared",
+      description: `The health record is now ${!currentlyShared ? 'shared' : 'private'}.`,
+    });
+  };
+
+  const handleManageAccess = (recordId: string) => {
+    toast({
+      title: "Manage access",
+      description: "Redirecting to access management for this record.",
     });
     
     navigate('/shared-records');
@@ -55,11 +68,12 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
     switch(category) {
       case 'medication': return <Pill className="h-4 w-4" />;
       case 'condition': return <Heart className="h-4 w-4" />;
-      case 'lab': return <FileSearch className="h-4 w-4" />;
-      case 'imaging': return <FileText className="h-4 w-4" />;
-      case 'immunization': return <Syringe className="h-4 w-4" />;
+      case 'lab': return <TestTube className="h-4 w-4" />;
+      case 'imaging': return <FileSearch className="h-4 w-4" />;
+      case 'note': return <FileText className="h-4 w-4" />;
       case 'visit': return <Calendar className="h-4 w-4" />;
-      case 'allergy': return <Pill className="h-4 w-4" />;
+      case 'immunization': return <Syringe className="h-4 w-4" />;
+      case 'allergy': return <AlertCircle className="h-4 w-4" />;
       default: return <FileText className="h-4 w-4" />;
     }
   };
@@ -93,7 +107,7 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
     <div className="space-y-4">
       {filteredRecords.map(record => (
         <div key={record.id} className="relative">
-          <Card className="bg-slate-800/50 border-slate-700/50 overflow-hidden hover:border-autheo-primary/40 transition-all duration-200">
+          <Card className={`bg-slate-800/50 border-slate-700/50 overflow-hidden hover:border-autheo-primary/40 transition-all duration-200 ${record.isShared ? 'border-l-4 border-l-autheo-primary' : ''}`}>
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex gap-3">
@@ -117,18 +131,21 @@ const HealthRecordsList: React.FC<HealthRecordsListProps> = ({
                   </Badge>
                   <Badge 
                     variant={record.isShared ? "secondary" : "outline"} 
-                    className="text-xs"
+                    className="text-xs cursor-pointer"
+                    onClick={() => handleShare(record.id, record.isShared)}
                   >
                     {record.isShared ? 'Shared' : 'Private'}
                   </Badge>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 w-7 p-0 hover:bg-autheo-primary/20"
-                    onClick={() => handleDirectShare(record.id)}
-                  >
-                    <Share className="h-3.5 w-3.5" />
-                  </Button>
+                  {record.isShared && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0 hover:bg-autheo-primary/20"
+                      onClick={() => handleManageAccess(record.id)}
+                    >
+                      <Share2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
               {record.details && (
