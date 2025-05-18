@@ -4,7 +4,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AuthPage from "./pages/AuthPage";
+import Unauthorized from "./pages/Unauthorized";
 import CompliancePage from "./pages/CompliancePage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import WalletPage from "./pages/WalletPage";
@@ -22,30 +26,68 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <HealthRecordsProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<PatientDashboardPage />} />
-              <Route path="/wallet" element={<WalletPage />} />
-              <Route path="/shared-records" element={<SharedRecordsPage />} />
-              <Route path="/patient-records" element={<PatientRecordsPage />} />
-              <Route path="/provider-portal" element={<ProviderPortalPage />} />
-              <Route path="/medical-notes" element={<MedicalNotesPage />} />
-              <Route path="/compliance" element={<CompliancePage />} />
-              <Route path="/audit-logs" element={<AuditLogsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/scheduling" element={<SchedulingPage />} />
-              <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </HealthRecordsProvider>
+    <AuthProvider>
+      <HealthRecordsProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Auth routes - available to unauthenticated users */}
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              
+              {/* Protected routes - require authentication */}
+              <Route element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }>
+                {/* Patient routes */}
+                <Route path="/" element={
+                  <ProtectedRoute requiredRoles={['patient']}>
+                    <PatientDashboardPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/wallet" element={<WalletPage />} />
+                <Route path="/shared-records" element={<SharedRecordsPage />} />
+                <Route path="/patient-records" element={<PatientRecordsPage />} />
+                
+                {/* Provider routes */}
+                <Route path="/provider-portal" element={
+                  <ProtectedRoute requiredRoles={['provider']}>
+                    <ProviderPortalPage />
+                  </ProtectedRoute>
+                } />
+
+                {/* Developer access route to Medical Notes */}
+                <Route path="/medical-notes" element={<MedicalNotesPage />} />
+                
+                {/* Compliance routes */}
+                <Route path="/compliance" element={
+                  <ProtectedRoute requiredRoles={['compliance']}>
+                    <CompliancePage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/audit-logs" element={
+                  <ProtectedRoute requiredRoles={['compliance']}>
+                    <AuditLogsPage />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Common routes */}
+                <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/scheduling" element={<SchedulingPage />} />
+                <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
+              </Route>
+              
+              {/* 404 route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </HealthRecordsProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
