@@ -18,7 +18,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ children }) => {
       <div className="flex items-center">
         <SidebarTrigger className="mr-4" />
         <div onClick={() => navigate('/')} className="cursor-pointer">
-          <AutheoLogo height={28} />
+          <AutheoLogo className="h-7 w-auto" />
         </div>
       </div>
       
