@@ -18,7 +18,6 @@ import {
   Users,
   Database,
   FileCheck,
-  Activity,
   Settings,
   Shield,
   Wallet,
@@ -42,14 +41,9 @@ export const AppSidebar: React.FC = () => {
   };
 
   const patientItems = [
-    { 
-      title: "My Health Records", 
-      path: "/", 
-      icon: Heart 
-    },
     {
       title: "Patient Dashboard",
-      path: "/patient-dashboard",
+      path: "/",
       icon: LayoutDashboard
     },
     {

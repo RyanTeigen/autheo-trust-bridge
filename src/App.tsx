@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
-import Index from "./pages/Index";
 import CompliancePage from "./pages/CompliancePage";
 import AuditLogsPage from "./pages/AuditLogsPage";
 import WalletPage from "./pages/WalletPage";
@@ -30,7 +29,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route element={<MainLayout />}>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<PatientDashboardPage />} />
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/shared-records" element={<SharedRecordsPage />} />
               <Route path="/patient-records" element={<PatientRecordsPage />} />
@@ -40,7 +39,7 @@ const App = () => (
               <Route path="/audit-logs" element={<AuditLogsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/scheduling" element={<SchedulingPage />} />
-              <Route path="/patient-dashboard" element={<PatientDashboardPage />} />
+              <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
