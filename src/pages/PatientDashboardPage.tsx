@@ -11,12 +11,16 @@ import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import { useToast } from '@/hooks/use-toast';
 import HealthRecordsTab from '@/components/patient-dashboard/HealthRecordsTab';
 import SharedRecordsContent from '@/components/patient-dashboard/SharedRecordsContent';
+import InsuranceInterface from '@/components/wallet/insurance/InsuranceInterface';
+import WalletHeader from '@/components/wallet/WalletHeader';
+import InsuranceCard from '@/components/wallet/InsuranceCard';
 
 const PatientDashboardPage = () => {
   const { toggleRecordSharing } = useHealthRecords();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [activeSection, setActiveSection] = useState('records');
 
   const handleToggleShare = (id: string, shared: boolean) => {
     toggleRecordSharing(id, shared);
@@ -31,6 +35,10 @@ const PatientDashboardPage = () => {
       title: "Health information shared",
       description: "Your health information has been shared with the selected healthcare provider.",
     });
+  };
+
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
   };
 
   return (
@@ -57,6 +65,12 @@ const PatientDashboardPage = () => {
                 className="rounded-none border-b-2 border-b-transparent bg-transparent px-4 py-2 font-semibold data-[state=active]:border-autheo-primary data-[state=active]:text-autheo-primary"
               >
                 My Health Records
+              </TabsTrigger>
+              <TabsTrigger
+                value="smart-wallet"
+                className="rounded-none border-b-2 border-b-transparent bg-transparent px-4 py-2 font-semibold data-[state=active]:border-autheo-primary data-[state=active]:text-autheo-primary"
+              >
+                Smart Wallet
               </TabsTrigger>
               <TabsTrigger
                 value="shared-records"
@@ -104,6 +118,47 @@ const PatientDashboardPage = () => {
             selectedCategory={selectedCategory}
             setSelectedCategory={setSelectedCategory}
           />
+        </TabsContent>
+        
+        <TabsContent value="smart-wallet" className="space-y-6">
+          <div className="space-y-6">
+            <Card className="border-slate-700 bg-slate-800/30">
+              <CardHeader>
+                <CardTitle>Smart Wallet</CardTitle>
+                <CardDescription>
+                  Control and manage access to your health records and insurance information
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <WalletHeader 
+                    activeSection={activeSection}
+                    onSectionChange={handleSectionChange}
+                  />
+                  
+                  {activeSection === 'insurance' ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2">
+                        <InsuranceInterface />
+                      </div>
+                      <div className="lg:col-span-1">
+                        <InsuranceCard />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+                      <div className="lg:col-span-1">
+                        <p className="text-sm text-slate-400 mb-4">
+                          Select another tab from the wallet header to access different features.
+                        </p>
+                        <InsuranceCard />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
         
         <TabsContent value="shared-records" className="space-y-6">

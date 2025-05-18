@@ -52,7 +52,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
           <Wallet className="h-6 w-6 text-autheo-dark" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-0.5 text-gradient-primary bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Smart Wallet</h1>
+          <h1 className="text-xl font-bold tracking-tight mb-0.5 text-white">Smart Wallet</h1>
           <p className="text-muted-foreground text-sm">
             Control and manage access to your health records with quantum-resistant encryption
           </p>
@@ -65,7 +65,7 @@ const WalletHeader: React.FC<WalletHeaderProps> = ({
             key={section.id}
             variant={activeSection === section.id ? 'default' : 'outline'}
             size="sm"
-            className={`flex items-center gap-1.5 py-1 h-auto ${activeSection === section.id ? 'bg-autheo-primary text-white' : 'border-slate-200 hover:bg-slate-50'}`}
+            className={`flex items-center gap-1.5 py-1 h-auto ${activeSection === section.id ? 'bg-autheo-primary text-white' : 'border-slate-700 bg-slate-800 hover:bg-slate-700'}`}
             onClick={() => handleNavigate(section.id, section.route)}
           >
             <section.icon className="h-3.5 w-3.5" />
