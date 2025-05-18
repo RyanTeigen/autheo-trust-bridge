@@ -1,12 +1,11 @@
 
 import React from 'react';
-import QuickActions from './QuickActions';
-import HealthRecordsOverview from '../health-records/HealthRecordsOverview';
-import DashboardWelcome from './DashboardWelcome';
-import HealthMetricsCard from './HealthMetricsCard';
+import { useHealthRecords } from '@/contexts/HealthRecordsContext';
+import DashboardWelcomeEnhanced from './DashboardWelcomeEnhanced';
+import EnhancedQuickActions from './EnhancedQuickActions';
+import ConsolidatedHealthOverview from './ConsolidatedHealthOverview';
 import AppointmentsCard from './AppointmentsCard';
 import MedicationRemindersCard from './MedicationRemindersCard';
-import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 
 interface PersonalizedDashboardProps {
   patientName?: string;
@@ -60,20 +59,25 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
 
   return (
     <div className="space-y-6">
-      <DashboardWelcome patientName={patientName} />
+      {/* Enhanced welcome section with actionable metrics */}
+      <DashboardWelcomeEnhanced 
+        patientName={patientName} 
+        complianceScore={complianceScore} 
+        appointmentsCount={defaultAppointments.length}
+        unreadMessages={3}
+      />
       
-      <QuickActions className="bg-slate-800/50" />
+      {/* Enhanced quick actions */}
+      <EnhancedQuickActions className="bg-slate-800 border-slate-700" />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <HealthMetricsCard 
-          metrics={healthMetrics} 
-          healthRecords={summary} 
-          complianceScore={complianceScore}
-        />
-        
-        <HealthRecordsOverview />
-      </div>
+      {/* Consolidated health overview (combines metrics and records) */}
+      <ConsolidatedHealthOverview 
+        healthMetrics={healthMetrics}
+        healthRecords={summary}
+        complianceScore={complianceScore}
+      />
       
+      {/* Appointments and medications in a consistent style */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <AppointmentsCard appointments={defaultAppointments} />
         <MedicationRemindersCard medications={defaultMedications} />
