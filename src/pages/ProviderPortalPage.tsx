@@ -8,6 +8,8 @@ import ProviderSchedule from '@/components/provider/ProviderSchedule';
 import PageHeader from '@/components/dashboard/PageHeader';
 import ProviderMessaging from '@/components/provider/ProviderMessaging';
 import ProviderAccessRequest from '@/components/provider-access/ProviderAccessRequest';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Search, Shield, Database } from 'lucide-react';
 
 // Mock data for scheduled appointments
 const mockAppointments = [
@@ -69,7 +71,32 @@ const ProviderPortalPage = () => {
         </TabsContent>
         
         <TabsContent value="patients" className="space-y-6 mt-6">
-          <PatientSearch onSelectPatient={handleSelectPatient} />
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader className="border-b border-slate-700 bg-slate-700/30">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-autheo-primary">Patient Records</CardTitle>
+                  <CardDescription className="text-slate-300">
+                    Search and access comprehensive patient health records
+                  </CardDescription>
+                </div>
+                <div className="flex items-center px-3 py-1 rounded-full bg-autheo-primary/20 text-autheo-primary text-xs">
+                  <Database className="h-3.5 w-3.5 mr-1" /> Electronic Health Records
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="p-6">
+                <PatientSearch onSelectPatient={handleSelectPatient} />
+              </div>
+            </CardContent>
+            <CardFooter className="bg-slate-700/30 border-t border-slate-700 px-4 py-2 text-xs text-slate-400">
+              <div className="flex items-center">
+                <Shield className="h-4 w-4 mr-1.5 text-autheo-primary" />
+                All record accesses are verified and logged for compliance
+              </div>
+            </CardFooter>
+          </Card>
         </TabsContent>
         
         <TabsContent value="messaging" className="space-y-6 mt-6">
