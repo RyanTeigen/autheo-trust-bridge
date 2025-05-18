@@ -24,7 +24,7 @@ import {
   BookOpen,
   Heart,
   CalendarIcon,
-  LayoutDashboard
+  Home
 } from 'lucide-react';
 
 export const AppSidebar: React.FC = () => {
@@ -42,9 +42,9 @@ export const AppSidebar: React.FC = () => {
 
   const patientItems = [
     {
-      title: "Patient Dashboard",
+      title: "Home",
       path: "/",
-      icon: LayoutDashboard
+      icon: Home
     },
     {
       title: "Appointments",

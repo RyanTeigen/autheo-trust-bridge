@@ -1,63 +1,32 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Bell, UserRound, Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import AutheoLogo from '../ui/AutheoLogo';
+import AutheoLogo from '@/components/ui/AutheoLogo';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { Settings } from 'lucide-react';
 
-export const AppHeader: React.FC = () => {
+interface AppHeaderProps {
+  children?: React.ReactNode;
+}
+
+export const AppHeader: React.FC<AppHeaderProps> = ({ children }) => {
+  const navigate = useNavigate();
+
   return (
-    <header className="h-16 border-b flex items-center justify-between px-4 bg-autheo-dark border-border">
+    <header className="h-16 flex items-center justify-between px-4 border-b border-slate-800 bg-slate-900/95 backdrop-blur-sm z-10">
       <div className="flex items-center">
-        <SidebarTrigger className="mr-4 text-autheo-primary">
-          <Menu className="h-5 w-5" />
-        </SidebarTrigger>
-        <Link to="/" className="flex items-center">
-          <AutheoLogo className="h-8 w-auto mr-2" />
-          <span className="font-bold text-xl text-autheo-primary">Autheo</span>
-        </Link>
+        <SidebarTrigger className="mr-4" />
+        <div onClick={() => navigate('/')} className="cursor-pointer">
+          <AutheoLogo height={28} />
+        </div>
       </div>
       
-      <div className="flex items-center space-x-4">
-        <Button variant="ghost" size="icon" className="relative text-autheo-primary">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500"></span>
+      <div className="flex items-center gap-4">
+        {children}
+        <Button variant="outline" size="icon" onClick={() => navigate('/settings')}>
+          <Settings className="h-4 w-4" />
         </Button>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative rounded-full h-8 w-8 p-0">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder.svg" alt="User" />
-                <AvatarFallback className="bg-autheo-primary text-autheo-dark">
-                  <UserRound className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Link to="/profile" className="w-full">Profile</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link to="/settings" className="w-full">Settings</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </header>
   );
