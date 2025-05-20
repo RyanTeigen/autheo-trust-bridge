@@ -205,26 +205,29 @@ const SignupForm: React.FC = () => {
                     {roleOptions.map((role) => {
                       const isSelected = selectedRoles.includes(role.id as any);
                       return (
-                        <div 
+                        <label
                           key={role.id}
                           className={`flex items-center p-2 rounded-md border cursor-pointer ${
                             isSelected
                               ? 'border-autheo-primary bg-autheo-primary/10' 
                               : 'border-slate-600 hover:border-slate-500'
                           }`}
-                          onClick={() => handleRoleToggle(role.id)}
+                          htmlFor={`role-${role.id}`}
                         >
-                          {/* We're removing the onCheckedChange prop to avoid the infinite loop */}
                           <Checkbox 
-                            checked={isSelected}
-                            className="mr-2"
                             id={`role-${role.id}`}
+                            checked={isSelected}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent double triggering
+                              handleRoleToggle(role.id);
+                            }}
+                            className="mr-2"
                           />
                           <div className="flex items-center">
                             <span className="mr-2">{role.icon}</span>
                             <span className="text-slate-200">{role.label}</span>
                           </div>
-                        </div>
+                        </label>
                       );
                     })}
                   </div>
