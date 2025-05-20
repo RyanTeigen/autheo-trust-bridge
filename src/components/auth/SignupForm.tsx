@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -213,13 +212,13 @@ const SignupForm: React.FC = () => {
                               : 'border-slate-600 hover:border-slate-500'
                           }`}
                           htmlFor={`role-${role.id}`}
+                          onClick={() => handleRoleToggle(role.id)}
                         >
                           <Checkbox 
                             id={`role-${role.id}`}
                             checked={isSelected}
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent double triggering
-                              handleRoleToggle(role.id);
                             }}
                             className="mr-2"
                           />
