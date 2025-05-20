@@ -56,7 +56,7 @@ const LoginForm: React.FC = () => {
     }
   };
 
-  const handleWalletLogin = async () => {
+  const handleWalletLogin = () => {
     toast({
       title: "Wallet Authentication",
       description: "Digital wallet authentication is coming soon",
@@ -128,6 +128,7 @@ const LoginForm: React.FC = () => {
         <Button
           variant="autheo-outline"
           className="w-full"
+          type="button"
           onClick={handleWalletLogin}
         >
           <Wallet className="mr-2 h-4 w-4" />
@@ -137,6 +138,7 @@ const LoginForm: React.FC = () => {
         <Button
           variant="outline"
           className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+          type="button"
           onClick={handleWalletLogin}
         >
           <Key className="mr-2 h-4 w-4" />

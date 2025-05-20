@@ -47,23 +47,25 @@ const SignupForm: React.FC = () => {
   });
 
   const handleRoleToggle = (role: string) => {
-    setSelectedRoles((prev) => {
-      if (prev.includes(role)) {
-        return prev.filter(r => r !== role);
-      } else {
-        // Check if adding this role would result in all three roles being selected
-        const newRoles = [...prev, role];
-        if (newRoles.includes('patient') && newRoles.includes('provider') && newRoles.includes('compliance')) {
-          toast({
-            title: "Role selection error",
-            description: "You cannot select all three roles",
-            variant: "destructive",
-          });
-          return prev;
-        }
-        return newRoles;
-      }
-    });
+    const updatedRoles = selectedRoles.includes(role)
+      ? selectedRoles.filter(r => r !== role)
+      : [...selectedRoles, role];
+      
+    // Check if adding this role would result in all three roles being selected
+    if (updatedRoles.length === 3 && 
+        updatedRoles.includes('patient') && 
+        updatedRoles.includes('provider') && 
+        updatedRoles.includes('compliance')) {
+      toast({
+        title: "Role selection error",
+        description: "You cannot select all three roles",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedRoles(updatedRoles);
+    form.setValue('roles', updatedRoles as any, { shouldValidate: true });
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -79,7 +81,7 @@ const SignupForm: React.FC = () => {
     setIsLoading(true);
     try {
       // Sign up with email and password
-      const { error: signUpError, data } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
@@ -202,24 +204,13 @@ const SignupForm: React.FC = () => {
                       ? 'border-autheo-primary bg-autheo-primary/10' 
                       : 'border-slate-600 hover:border-slate-500'
                   }`}
-                  onClick={() => {
-                    handleRoleToggle(role.id);
-                    form.setValue('roles', selectedRoles.includes(role.id) 
-                      ? selectedRoles.filter(r => r !== role.id) as any
-                      : [...selectedRoles, role.id] as any
-                    );
-                  }}
+                  onClick={() => handleRoleToggle(role.id)}
                 >
                   <Checkbox 
                     checked={selectedRoles.includes(role.id)}
-                    onCheckedChange={() => {
-                      handleRoleToggle(role.id);
-                      form.setValue('roles', selectedRoles.includes(role.id) 
-                        ? selectedRoles.filter(r => r !== role.id) as any
-                        : [...selectedRoles, role.id] as any
-                      );
-                    }}
+                    onCheckedChange={() => handleRoleToggle(role.id)}
                     className="mr-2"
+                    id={`role-${role.id}`}
                   />
                   <div className="flex items-center">
                     <span className="mr-2">{role.icon}</span>
