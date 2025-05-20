@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Shield, Wallet, UserRound, Stethoscope } from 'lucide-react';
 
 const formSchema = z.object({
@@ -31,7 +30,7 @@ const roleOptions = [
   { id: 'compliance', label: 'Compliance Officer', icon: <Shield className="h-4 w-4 text-purple-400" /> },
 ];
 
-const SignupForm = () => {
+const SignupForm: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
@@ -205,14 +204,20 @@ const SignupForm = () => {
                   }`}
                   onClick={() => {
                     handleRoleToggle(role.id);
-                    form.setValue('roles', [...selectedRoles, role.id] as any);
+                    form.setValue('roles', selectedRoles.includes(role.id) 
+                      ? selectedRoles.filter(r => r !== role.id) as any
+                      : [...selectedRoles, role.id] as any
+                    );
                   }}
                 >
                   <Checkbox 
                     checked={selectedRoles.includes(role.id)}
                     onCheckedChange={() => {
                       handleRoleToggle(role.id);
-                      form.setValue('roles', [...selectedRoles, role.id] as any);
+                      form.setValue('roles', selectedRoles.includes(role.id) 
+                        ? selectedRoles.filter(r => r !== role.id) as any
+                        : [...selectedRoles, role.id] as any
+                      );
                     }}
                     className="mr-2"
                   />
