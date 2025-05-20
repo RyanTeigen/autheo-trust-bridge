@@ -33,7 +33,6 @@ const roleOptions = [
 const SignupForm: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -46,26 +45,34 @@ const SignupForm: React.FC = () => {
     },
   });
 
+  // Track the selected roles state within the form context only
+  const selectedRoles = form.watch('roles') || [];
+
   const handleRoleToggle = (role: string) => {
-    const updatedRoles = selectedRoles.includes(role)
-      ? selectedRoles.filter(r => r !== role)
-      : [...selectedRoles, role];
-      
-    // Check if adding this role would result in all three roles being selected
-    if (updatedRoles.length === 3 && 
-        updatedRoles.includes('patient') && 
-        updatedRoles.includes('provider') && 
-        updatedRoles.includes('compliance')) {
-      toast({
-        title: "Role selection error",
-        description: "You cannot select all three roles",
-        variant: "destructive",
-      });
-      return;
+    const currentRoles = [...selectedRoles];
+    const roleIndex = currentRoles.indexOf(role as any);
+    
+    // If role is already selected, remove it; otherwise add it
+    if (roleIndex !== -1) {
+      currentRoles.splice(roleIndex, 1);
+    } else {
+      // Check if adding this role would result in all three roles being selected
+      if (currentRoles.length === 2 && 
+          !currentRoles.includes(role as any) &&
+          ((currentRoles.includes('patient') && currentRoles.includes('provider')) || 
+           (currentRoles.includes('patient') && currentRoles.includes('compliance')) || 
+           (currentRoles.includes('provider') && currentRoles.includes('compliance')))) {
+        toast({
+          title: "Role selection error",
+          description: "You cannot select all three roles",
+          variant: "destructive",
+        });
+        return;
+      }
+      currentRoles.push(role as any);
     }
     
-    setSelectedRoles(updatedRoles);
-    form.setValue('roles', updatedRoles as any, { shouldValidate: true });
+    form.setValue('roles', currentRoles, { shouldValidate: true });
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -190,42 +197,50 @@ const SignupForm: React.FC = () => {
             )}
           />
 
-          <div>
-            <FormLabel className="text-slate-200 block mb-2">Select Your Roles</FormLabel>
-            <p className="text-xs text-slate-400 mb-3">
-              Select the roles you want to use in the app. You can select multiple roles but not all three.
-            </p>
-            
-            <div className="grid grid-cols-1 gap-2">
-              {roleOptions.map((role) => (
-                <div 
-                  key={role.id}
-                  className={`flex items-center p-2 rounded-md border cursor-pointer ${
-                    selectedRoles.includes(role.id) 
-                      ? 'border-autheo-primary bg-autheo-primary/10' 
-                      : 'border-slate-600 hover:border-slate-500'
-                  }`}
-                  onClick={() => handleRoleToggle(role.id)}
-                >
-                  <Checkbox 
-                    checked={selectedRoles.includes(role.id)}
-                    onCheckedChange={() => handleRoleToggle(role.id)}
-                    className="mr-2"
-                    id={`role-${role.id}`}
-                  />
-                  <div className="flex items-center">
-                    <span className="mr-2">{role.icon}</span>
-                    <span className="text-slate-200">{role.label}</span>
+          <FormField
+            control={form.control}
+            name="roles"
+            render={() => (
+              <FormItem>
+                <div>
+                  <FormLabel className="text-slate-200 block mb-2">Select Your Roles</FormLabel>
+                  <p className="text-xs text-slate-400 mb-3">
+                    Select the roles you want to use in the app. You can select multiple roles but not all three.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 gap-2">
+                    {roleOptions.map((role) => (
+                      <div 
+                        key={role.id}
+                        className={`flex items-center p-2 rounded-md border cursor-pointer ${
+                          selectedRoles.includes(role.id as any) 
+                            ? 'border-autheo-primary bg-autheo-primary/10' 
+                            : 'border-slate-600 hover:border-slate-500'
+                        }`}
+                        onClick={() => handleRoleToggle(role.id)}
+                      >
+                        <Checkbox 
+                          checked={selectedRoles.includes(role.id as any)}
+                          // Important: Remove onCheckedChange to prevent infinite loop
+                          className="mr-2"
+                          id={`role-${role.id}`}
+                        />
+                        <div className="flex items-center">
+                          <span className="mr-2">{role.icon}</span>
+                          <span className="text-slate-200">{role.label}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                  {form.formState.errors.roles && (
+                    <p className="text-sm font-medium text-red-500 mt-1">
+                      {form.formState.errors.roles.message}
+                    </p>
+                  )}
                 </div>
-              ))}
-            </div>
-            {form.formState.errors.roles && (
-              <p className="text-sm font-medium text-red-500 mt-1">
-                {form.formState.errors.roles.message}
-              </p>
+              </FormItem>
             )}
-          </div>
+          />
 
           <Button 
             type="submit"
