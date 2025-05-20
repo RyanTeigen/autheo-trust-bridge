@@ -48,31 +48,24 @@ const SignupForm: React.FC = () => {
   // Track the selected roles state within the form context only
   const selectedRoles = form.watch('roles') || [];
 
-  const handleRoleToggle = (role: string) => {
-    const currentRoles = [...selectedRoles];
-    const roleIndex = currentRoles.indexOf(role as any);
+  const handleRoleToggle = (roleId: string) => {
+    const roleToToggle = roleId as 'patient' | 'provider' | 'compliance';
+    const updatedRoles = selectedRoles.includes(roleToToggle)
+      ? selectedRoles.filter(role => role !== roleToToggle)
+      : [...selectedRoles, roleToToggle];
     
-    // If role is already selected, remove it; otherwise add it
-    if (roleIndex !== -1) {
-      currentRoles.splice(roleIndex, 1);
-    } else {
-      // Check if adding this role would result in all three roles being selected
-      if (currentRoles.length === 2 && 
-          !currentRoles.includes(role as any) &&
-          ((currentRoles.includes('patient') && currentRoles.includes('provider')) || 
-           (currentRoles.includes('patient') && currentRoles.includes('compliance')) || 
-           (currentRoles.includes('provider') && currentRoles.includes('compliance')))) {
-        toast({
-          title: "Role selection error",
-          description: "You cannot select all three roles",
-          variant: "destructive",
-        });
-        return;
-      }
-      currentRoles.push(role as any);
+    // Check if adding this role would result in all three roles being selected
+    if (updatedRoles.length === 3) {
+      toast({
+        title: "Role selection error",
+        description: "You cannot select all three roles",
+        variant: "destructive",
+      });
+      return;
     }
     
-    form.setValue('roles', currentRoles, { shouldValidate: true });
+    // Update form value
+    form.setValue('roles', updatedRoles, { shouldValidate: true });
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -209,28 +202,31 @@ const SignupForm: React.FC = () => {
                   </p>
                   
                   <div className="grid grid-cols-1 gap-2">
-                    {roleOptions.map((role) => (
-                      <div 
-                        key={role.id}
-                        className={`flex items-center p-2 rounded-md border cursor-pointer ${
-                          selectedRoles.includes(role.id as any) 
-                            ? 'border-autheo-primary bg-autheo-primary/10' 
-                            : 'border-slate-600 hover:border-slate-500'
-                        }`}
-                        onClick={() => handleRoleToggle(role.id)}
-                      >
-                        <Checkbox 
-                          checked={selectedRoles.includes(role.id as any)}
-                          // Important: Remove onCheckedChange to prevent infinite loop
-                          className="mr-2"
-                          id={`role-${role.id}`}
-                        />
-                        <div className="flex items-center">
-                          <span className="mr-2">{role.icon}</span>
-                          <span className="text-slate-200">{role.label}</span>
+                    {roleOptions.map((role) => {
+                      const isSelected = selectedRoles.includes(role.id as any);
+                      return (
+                        <div 
+                          key={role.id}
+                          className={`flex items-center p-2 rounded-md border cursor-pointer ${
+                            isSelected
+                              ? 'border-autheo-primary bg-autheo-primary/10' 
+                              : 'border-slate-600 hover:border-slate-500'
+                          }`}
+                          onClick={() => handleRoleToggle(role.id)}
+                        >
+                          {/* We're removing the onCheckedChange prop to avoid the infinite loop */}
+                          <Checkbox 
+                            checked={isSelected}
+                            className="mr-2"
+                            id={`role-${role.id}`}
+                          />
+                          <div className="flex items-center">
+                            <span className="mr-2">{role.icon}</span>
+                            <span className="text-slate-200">{role.label}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   {form.formState.errors.roles && (
                     <p className="text-sm font-medium text-red-500 mt-1">
