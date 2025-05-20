@@ -46,6 +46,7 @@ const LoginForm: React.FC = () => {
         description: "Welcome back to Autheo Health",
       });
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message || "Please check your credentials and try again",

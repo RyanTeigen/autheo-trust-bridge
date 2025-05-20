@@ -100,6 +100,7 @@ const SignupForm: React.FC = () => {
         description: "Welcome to Autheo Health. Please check your email for verification.",
       });
     } catch (error: any) {
+      console.error("Registration error:", error);
       toast({
         title: "Registration failed",
         description: error.message || "There was an error during registration",
@@ -249,6 +250,7 @@ const SignupForm: React.FC = () => {
       <Button
         variant="autheo-outline"
         className="w-full"
+        type="button"
         onClick={() => toast({
           title: "Coming Soon",
           description: "Wallet registration will be available in the next update",
