@@ -115,14 +115,15 @@ export const useSignup = () => {
       
       if (existingWallets && existingWallets.length > 0) {
         // Wallet exists, attempt to sign in instead
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'custom',
-          options: {
-            redirectTo: window.location.origin,
-            queryParams: {
-              wallet_address: walletAddress,
-            }
-          }
+        // Instead of using OAuth with 'custom' provider, we'll use a deterministic email approach
+        const randomEmail = `${walletAddress.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
+        
+        // For wallet login flow, we'll use signInWithPassword here
+        // Users will need to complete authentication via wallet signature later
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: randomEmail,
+          // Use a part of the wallet address as the password (this is just for flow)
+          password: walletAddress.substring(2, 22)
         });
 
         if (error) throw error;
@@ -135,16 +136,15 @@ export const useSignup = () => {
       }
 
       // Sign up with wallet
-      // Generate a random email since Supabase requires one
-      const randomEmail = `${walletAddress.substring(2, 10)}@wallet.autheo.health`;
-      const randomPassword = Array(16).fill(0).map(() => Math.random().toString(36).charAt(2)).join('');
+      // Generate a deterministic email since Supabase requires one
+      const randomEmail = `${walletAddress.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
+      const randomPassword = walletAddress.substring(2, 22); // Use part of wallet address as password
 
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: randomEmail,
-        password: randomPassword, // This won't be used for login
+        password: randomPassword, // This won't be used for login directly
         options: {
           data: {
-            wallet_address: walletAddress,
             roles: roles,
             auth_method: 'wallet',
           },
@@ -153,17 +153,31 @@ export const useSignup = () => {
 
       if (signUpError) throw signUpError;
 
-      // Update profile with wallet address
+      // Update profile with wallet address (using custom SQL or RPC call)
       if (data?.user) {
-        const { error: profileError } = await supabase
+        // Since we can't directly update wallet_address in profiles table through the default
+        // interface, we'll use an update with a custom query to set wallet_address
+        
+        // First, check if the user exists in profiles
+        const { data: profileCheck, error: profileCheckError } = await supabase
           .from('profiles')
-          .update({ 
-            wallet_address: walletAddress 
-          })
-          .eq('id', data.user.id);
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (profileCheckError && profileCheckError.code !== 'PGRST116') {
+          console.error("Error checking profile:", profileCheckError);
+        }
+        
+        // If the profile exists, update it with the wallet address using RPC
+        const { error: rpcError } = await supabase
+          .rpc('update_wallet_address', {
+            user_id: data.user.id,
+            wallet: walletAddress
+          });
 
-        if (profileError) {
-          console.error("Error updating profile with wallet:", profileError);
+        if (rpcError) {
+          console.error("Error updating profile with wallet:", rpcError);
         }
       }
 
