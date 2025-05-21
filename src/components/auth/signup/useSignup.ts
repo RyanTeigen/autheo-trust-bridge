@@ -20,8 +20,29 @@ export const useSignup = () => {
 
     setIsLoading(true);
     try {
+      // Check if email already exists before attempting to sign up
+      const { data: existingUsers, error: existingError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', values.email)
+        .limit(1);
+        
+      if (existingError) {
+        console.error("Error checking existing user:", existingError);
+      }
+      
+      if (existingUsers && existingUsers.length > 0) {
+        toast({
+          title: "Email already in use",
+          description: "This email address is already registered. Please use another email or try to log in.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Sign up with email and password
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data, error: signUpError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
         options: {
@@ -37,15 +58,33 @@ export const useSignup = () => {
 
       toast({
         title: "Registration successful",
-        description: "Welcome to Autheo Health. Please check your email for verification.",
+        description: data?.user 
+          ? "Welcome to Autheo Health. Please check your email for verification." 
+          : "Account created successfully. Please check your email to verify your account.",
       });
     } catch (error: any) {
       console.error("Registration error:", error);
-      toast({
-        title: "Registration failed",
-        description: error.message || "There was an error during registration",
-        variant: "destructive",
-      });
+      
+      // Provide more specific error messages based on error type
+      if (error.message?.includes('email')) {
+        toast({
+          title: "Registration failed",
+          description: "Invalid email address or email already in use.",
+          variant: "destructive",
+        });
+      } else if (error.message?.includes('password')) {
+        toast({
+          title: "Registration failed",
+          description: "Password doesn't meet requirements.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Registration failed",
+          description: error.message || "There was an error during registration. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }

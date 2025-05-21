@@ -34,7 +34,7 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ form }) => {
     if (updatedRoles.length === 3) {
       toast({
         title: "Role selection error",
-        description: "You cannot select all three roles",
+        description: "You cannot select all three roles simultaneously",
         variant: "destructive",
       });
       return;
@@ -62,10 +62,10 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ form }) => {
                 return (
                   <label
                     key={role.id}
-                    className={`flex items-center p-2 rounded-md border cursor-pointer ${
+                    className={`flex items-center p-3 rounded-md border transition-all duration-200 cursor-pointer ${
                       isSelected
-                        ? 'border-autheo-primary bg-autheo-primary/10' 
-                        : 'border-slate-600 hover:border-slate-500'
+                        ? 'border-autheo-primary bg-autheo-primary/10 shadow-md shadow-autheo-primary/20' 
+                        : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/30'
                     }`}
                     htmlFor={`role-${role.id}`}
                     onClick={() => handleRoleToggle(role.id)}
@@ -79,15 +79,19 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ form }) => {
                       className="mr-2"
                     />
                     <div className="flex items-center">
-                      <span className="mr-2">{getIcon(role.icon)}</span>
-                      <span className="text-slate-200">{role.label}</span>
+                      <span className={`mr-2 p-1 rounded-full ${isSelected ? 'bg-slate-800' : ''}`}>
+                        {getIcon(role.icon)}
+                      </span>
+                      <span className={`text-slate-200 font-medium ${isSelected ? 'text-autheo-primary' : ''}`}>
+                        {role.label}
+                      </span>
                     </div>
                   </label>
                 );
               })}
             </div>
             {form.formState.errors.roles && (
-              <p className="text-sm font-medium text-red-500 mt-1">
+              <p className="text-sm font-medium text-red-500 mt-2">
                 {form.formState.errors.roles.message}
               </p>
             )}

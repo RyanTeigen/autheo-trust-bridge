@@ -24,9 +24,12 @@ const SignupForm: React.FC = () => {
       password: "",
       roles: [],
     },
+    mode: "onChange", // Enable validation as the user types
   });
 
   const selectedRoles = form.watch('roles') || [];
+  const formState = form.formState;
+  const isFormValid = formState.isValid && selectedRoles.length > 0;
 
   const onSubmit = (values: FormValues) => {
     handleSignup(values);
@@ -39,14 +42,22 @@ const SignupForm: React.FC = () => {
           <SignupFormFields form={form} />
           <RoleSelector form={form} />
 
-          <Button 
-            type="submit"
-            className="w-full"
-            disabled={isLoading || selectedRoles.length === 0}
-            variant="autheo"
-          >
-            {isLoading ? "Creating Account..." : "Create Account"}
-          </Button>
+          <div className="pt-2">
+            <Button 
+              type="submit"
+              className="w-full transition-all"
+              disabled={isLoading || !isFormValid}
+              variant="autheo"
+            >
+              {isLoading ? "Creating Account..." : "Create Account"}
+            </Button>
+            
+            {!isFormValid && formState.isDirty && (
+              <p className="text-xs text-amber-400 mt-2 text-center">
+                Please complete all required fields and select at least one role
+              </p>
+            )}
+          </div>
         </form>
       </Form>
 
