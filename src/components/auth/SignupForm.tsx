@@ -10,10 +10,12 @@ import { formSchema, FormValues } from './signup/schema';
 import { useSignup } from './signup/useSignup';
 import RoleSelector from './signup/RoleSelector';
 import SignupFormFields from './signup/SignupFormFields';
+import { useWallet } from '@/hooks/use-wallet';
 
 const SignupForm: React.FC = () => {
   const { toast } = useToast();
-  const { isLoading, handleSignup } = useSignup();
+  const { isLoading, handleSignup, handleWalletSignup } = useSignup();
+  const { wallet, isConnecting, connectMetaMask } = useWallet();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -34,6 +36,30 @@ const SignupForm: React.FC = () => {
   const onSubmit = (values: FormValues) => {
     handleSignup(values);
   };
+
+  const handleWalletConnect = async () => {
+    if (wallet) {
+      // If already connected, continue with signup
+      await handleWalletSignup(wallet.address, selectedRoles.length > 0 ? selectedRoles : ['patient']);
+    } else {
+      // Connect wallet first
+      await connectMetaMask();
+    }
+  };
+
+  // If wallet is connected after button click, trigger signup
+  React.useEffect(() => {
+    if (wallet && !isLoading && !isConnecting) {
+      const attemptWalletSignup = async () => {
+        // Use default role 'patient' if no roles selected
+        await handleWalletSignup(wallet.address, selectedRoles.length > 0 ? selectedRoles : ['patient']);
+      };
+
+      // Small delay to ensure UI updates first
+      const timer = setTimeout(attemptWalletSignup, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [wallet, isLoading, isConnecting]);
 
   return (
     <div className="space-y-6">
@@ -74,13 +100,11 @@ const SignupForm: React.FC = () => {
         variant="autheo-outline"
         className="w-full"
         type="button"
-        onClick={() => toast({
-          title: "Coming Soon",
-          description: "Wallet registration will be available in the next update",
-        })}
+        disabled={isLoading || isConnecting}
+        onClick={handleWalletConnect}
       >
         <Wallet className="mr-2 h-4 w-4" />
-        Register with Wallet
+        {isConnecting ? "Connecting..." : wallet ? "Register with " + wallet.address.substring(0, 6) + "..." + wallet.address.substring(38) : "Connect MetaMask"}
       </Button>
     </div>
   );

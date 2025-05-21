@@ -90,8 +90,103 @@ export const useSignup = () => {
     }
   };
 
+  const handleWalletSignup = async (walletAddress: string, roles: string[]) => {
+    if (!walletAddress) {
+      toast({
+        title: "Wallet address required",
+        description: "Please connect your wallet first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Check if wallet already exists
+      const { data: existingWallets, error: existingError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('wallet_address', walletAddress)
+        .limit(1);
+        
+      if (existingError) {
+        console.error("Error checking existing wallet:", existingError);
+      }
+      
+      if (existingWallets && existingWallets.length > 0) {
+        // Wallet exists, attempt to sign in instead
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'custom',
+          options: {
+            redirectTo: window.location.origin,
+            queryParams: {
+              wallet_address: walletAddress,
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Wallet already registered",
+          description: "Signing in with your wallet...",
+        });
+        return;
+      }
+
+      // Sign up with wallet
+      // Generate a random email since Supabase requires one
+      const randomEmail = `${walletAddress.substring(2, 10)}@wallet.autheo.health`;
+      const randomPassword = Array(16).fill(0).map(() => Math.random().toString(36).charAt(2)).join('');
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: randomEmail,
+        password: randomPassword, // This won't be used for login
+        options: {
+          data: {
+            wallet_address: walletAddress,
+            roles: roles,
+            auth_method: 'wallet',
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+
+      // Update profile with wallet address
+      if (data?.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            wallet_address: walletAddress 
+          })
+          .eq('id', data.user.id);
+
+        if (profileError) {
+          console.error("Error updating profile with wallet:", profileError);
+        }
+      }
+
+      toast({
+        title: "Wallet registration successful",
+        description: "Your wallet has been connected to Autheo Health",
+      });
+
+    } catch (error: any) {
+      console.error("Wallet registration error:", error);
+      toast({
+        title: "Wallet registration failed",
+        description: error.message || "There was an error connecting your wallet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     isLoading,
-    handleSignup
+    handleSignup,
+    handleWalletSignup
   };
 };

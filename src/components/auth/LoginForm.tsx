@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Wallet, Key } from 'lucide-react';
+import { useWallet } from '@/hooks/use-wallet';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -20,6 +21,7 @@ type FormValues = z.infer<typeof formSchema>;
 const LoginForm: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { wallet, isConnecting, connectMetaMask } = useWallet();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -57,11 +59,81 @@ const LoginForm: React.FC = () => {
     }
   };
 
-  const handleWalletLogin = () => {
-    toast({
-      title: "Wallet Authentication",
-      description: "Digital wallet authentication is coming soon",
-    });
+  const handleWalletLogin = async () => {
+    if (!wallet) {
+      await connectMetaMask();
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Try to find user with this wallet address
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('wallet_address', wallet.address)
+        .limit(1);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      if (!profiles || profiles.length === 0) {
+        toast({
+          title: "Wallet not registered",
+          description: "Please register your wallet first",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Create a nonce for the wallet to sign
+      const nonce = Math.floor(Math.random() * 1000000).toString();
+      const message = `Sign this message to authenticate with Autheo Health: ${nonce}`;
+      
+      // Ask user to sign message
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, wallet.address]
+      });
+
+      if (!signature) {
+        throw new Error("Signature required for authentication");
+      }
+
+      // Custom auth logic with wallet signature
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'custom',
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: {
+            wallet_address: wallet.address,
+            signature: signature,
+            nonce: nonce
+          }
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Wallet login successful",
+        description: "Welcome back to Autheo Health",
+      });
+
+    } catch (error: any) {
+      console.error("Wallet login error:", error);
+      toast({
+        title: "Wallet login failed",
+        description: error.message || "Could not authenticate with wallet",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -130,17 +202,21 @@ const LoginForm: React.FC = () => {
           variant="autheo-outline"
           className="w-full"
           type="button"
+          disabled={isLoading || isConnecting}
           onClick={handleWalletLogin}
         >
           <Wallet className="mr-2 h-4 w-4" />
-          Connect Wallet
+          {isConnecting ? "Connecting..." : wallet ? `Connect with ${wallet.address.substring(0, 6)}...${wallet.address.substring(38)}` : "Connect MetaMask"}
         </Button>
         
         <Button
           variant="outline"
           className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
           type="button"
-          onClick={handleWalletLogin}
+          onClick={() => toast({
+            title: "Coming Soon",
+            description: "DID authentication will be available in the next update",
+          })}
         >
           <Key className="mr-2 h-4 w-4" />
           Connect DID
