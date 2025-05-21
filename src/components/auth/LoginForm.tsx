@@ -102,14 +102,13 @@ const LoginForm: React.FC = () => {
         throw new Error("Signature required for authentication");
       }
 
-      // Custom auth logic with wallet signature
-      // Instead of using signInWithOAuth, we'll use a custom email login approach
-      // since OAuth with 'custom' provider isn't supported in the current version
+      // Generate deterministic email based on wallet address
+      const walletEmail = `${wallet.address.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
+      
+      // Use the wallet signature as a password (truncated)
       const { data, error } = await supabase.auth.signInWithPassword({
-        // Generate a deterministic email based on wallet address
-        email: `${wallet.address.toLowerCase()}@wallet.autheo.health`,
-        // Use the signature as the password (this is just for authentication flow, not actual storage)
-        password: signature.substring(0, 20), // Truncate signature to use as password
+        email: walletEmail,
+        password: signature.substring(2, 22)
       });
 
       if (error) {

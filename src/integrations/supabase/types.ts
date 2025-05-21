@@ -218,6 +218,7 @@ export type Database = {
           last_name: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
+          wallet_address: string | null
         }
         Insert: {
           created_at?: string | null
@@ -227,6 +228,7 @@ export type Database = {
           last_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
+          wallet_address?: string | null
         }
         Update: {
           created_at?: string | null
@@ -236,6 +238,7 @@ export type Database = {
           last_name?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
+          wallet_address?: string | null
         }
         Relationships: []
       }
@@ -414,6 +417,10 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      update_wallet_address: {
+        Args: { user_id: string; wallet: string }
+        Returns: undefined
       }
     }
     Enums: {

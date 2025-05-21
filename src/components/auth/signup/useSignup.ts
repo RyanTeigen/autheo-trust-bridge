@@ -153,23 +153,9 @@ export const useSignup = () => {
 
       if (signUpError) throw signUpError;
 
-      // Update profile with wallet address (using custom SQL or RPC call)
+      // Update profile with wallet address (using RPC function)
       if (data?.user) {
-        // Since we can't directly update wallet_address in profiles table through the default
-        // interface, we'll use an update with a custom query to set wallet_address
-        
-        // First, check if the user exists in profiles
-        const { data: profileCheck, error: profileCheckError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', data.user.id)
-          .single();
-          
-        if (profileCheckError && profileCheckError.code !== 'PGRST116') {
-          console.error("Error checking profile:", profileCheckError);
-        }
-        
-        // If the profile exists, update it with the wallet address using RPC
+        // Call the update_wallet_address RPC function
         const { error: rpcError } = await supabase
           .rpc('update_wallet_address', {
             user_id: data.user.id,
@@ -178,6 +164,7 @@ export const useSignup = () => {
 
         if (rpcError) {
           console.error("Error updating profile with wallet:", rpcError);
+          throw rpcError;
         }
       }
 
