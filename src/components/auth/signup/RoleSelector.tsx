@@ -25,13 +25,19 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ form }) => {
   };
 
   const handleRoleToggle = (roleId: string) => {
-    const roleToToggle = roleId as 'patient' | 'provider' | 'compliance';
-    const updatedRoles = selectedRoles.includes(roleToToggle)
-      ? selectedRoles.filter(role => role !== roleToToggle)
-      : [...selectedRoles, roleToToggle];
+    const currentRoles = [...selectedRoles];
+    const roleIndex = currentRoles.indexOf(roleId as any);
     
+    if (roleIndex > -1) {
+      // Remove role if already selected
+      currentRoles.splice(roleIndex, 1);
+    } else {
+      // Add role if not selected
+      currentRoles.push(roleId as any);
+    }
+
     // Check if adding this role would result in all three roles being selected
-    if (updatedRoles.length === 3) {
+    if (currentRoles.length === 3) {
       toast({
         title: "Role selection error",
         description: "You cannot select all three roles simultaneously",
@@ -41,7 +47,7 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ form }) => {
     }
     
     // Update form value
-    form.setValue('roles', updatedRoles, { shouldValidate: true });
+    form.setValue('roles', currentRoles, { shouldValidate: true });
   };
 
   return (
@@ -67,15 +73,11 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ form }) => {
                         ? 'border-autheo-primary bg-autheo-primary/10 shadow-md shadow-autheo-primary/20' 
                         : 'border-slate-600 hover:border-slate-500 hover:bg-slate-800/30'
                     }`}
-                    htmlFor={`role-${role.id}`}
-                    onClick={() => handleRoleToggle(role.id)}
                   >
                     <Checkbox 
                       id={`role-${role.id}`}
                       checked={isSelected}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent double triggering
-                      }}
+                      onCheckedChange={() => handleRoleToggle(role.id)}
                       className="mr-2"
                     />
                     <div className="flex items-center">
@@ -92,7 +94,7 @@ const RoleSelector: React.FC<RoleSelectorProps> = ({ form }) => {
             </div>
             {form.formState.errors.roles && (
               <p className="text-sm font-medium text-red-500 mt-2">
-                {form.formState.errors.roles.message}
+                {form.formState.errors.roles.message as string}
               </p>
             )}
           </div>

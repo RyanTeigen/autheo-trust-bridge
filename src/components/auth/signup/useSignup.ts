@@ -115,14 +115,10 @@ export const useSignup = () => {
       
       if (existingWallets && existingWallets.length > 0) {
         // Wallet exists, attempt to sign in instead
-        // Instead of using OAuth with 'custom' provider, we'll use a deterministic email approach
         const randomEmail = `${walletAddress.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
         
-        // For wallet login flow, we'll use signInWithPassword here
-        // Users will need to complete authentication via wallet signature later
         const { data, error } = await supabase.auth.signInWithPassword({
           email: randomEmail,
-          // Use a part of the wallet address as the password (this is just for flow)
           password: walletAddress.substring(2, 22)
         });
 

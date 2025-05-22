@@ -67,7 +67,7 @@ const LoginForm: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Try to find user with this wallet address
+      // Check if wallet address exists in the profiles table
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('id')
@@ -108,7 +108,7 @@ const LoginForm: React.FC = () => {
       // Use the wallet signature as a password (truncated)
       const { data, error } = await supabase.auth.signInWithPassword({
         email: walletEmail,
-        password: signature.substring(2, 22)
+        password: wallet.address.substring(2, 22) // Use wallet address part as password, matching signup format
       });
 
       if (error) {
