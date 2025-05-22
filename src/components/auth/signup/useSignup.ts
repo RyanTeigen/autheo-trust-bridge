@@ -51,6 +51,8 @@ export const useSignup = () => {
             last_name: values.lastName,
             roles: values.roles,
           },
+          // Explicitly specify the redirectTo URL to prevent default localhost redirection
+          emailRedirectTo: window.location.origin + '/auth',
         },
       });
 
@@ -59,8 +61,8 @@ export const useSignup = () => {
       toast({
         title: "Registration successful",
         description: data?.user 
-          ? "Welcome to Autheo Health. Please check your email for verification." 
-          : "Account created successfully. Please check your email to verify your account.",
+          ? "Welcome to Autheo Health. Please check your email for verification. Note: Don't click the link in the email, as it may redirect to localhost. Instead, check your email for the verification code and enter it directly in the app."
+          : "Account created successfully. Please check your email for verification instructions.",
       });
     } catch (error: any) {
       console.error("Registration error:", error);

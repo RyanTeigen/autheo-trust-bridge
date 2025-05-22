@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Wallet, Key } from 'lucide-react';
+import { Wallet, Key, AlertCircle } from 'lucide-react';
 import { useWallet } from '@/hooks/use-wallet';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -120,6 +121,13 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <Alert variant="warning" className="bg-amber-900/20 border-amber-800 mb-4">
+        <AlertCircle className="h-4 w-4 text-amber-500" />
+        <AlertDescription className="text-amber-200 text-xs">
+          Email verification links may not work properly. If you receive a verification email, try logging in directly with your credentials.
+        </AlertDescription>
+      </Alert>
+
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
