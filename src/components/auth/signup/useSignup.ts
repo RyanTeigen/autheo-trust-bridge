@@ -131,27 +131,27 @@ export const useSignup = () => {
         return;
       }
 
-      // Sign up with wallet
-      // Generate a deterministic email since Supabase requires one
+      // Generate a deterministic email and password for wallet signup
       const randomEmail = `${walletAddress.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
-      const randomPassword = walletAddress.substring(2, 22); // Use part of wallet address as password
+      const randomPassword = walletAddress.substring(2, 22);
 
+      // Sign up with wallet
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: randomEmail,
-        password: randomPassword, // This won't be used for login directly
+        password: randomPassword,
         options: {
           data: {
             roles: roles,
             auth_method: 'wallet',
+            wallet_address: walletAddress, // Store wallet address in metadata to ensure it's available
           },
         },
       });
 
       if (signUpError) throw signUpError;
 
-      // Update profile with wallet address (using RPC function)
+      // Call the RPC function to update wallet address in profile
       if (data?.user) {
-        // Call the update_wallet_address RPC function
         const { error: rpcError } = await supabase
           .rpc('update_wallet_address', {
             user_id: data.user.id,
@@ -160,7 +160,7 @@ export const useSignup = () => {
 
         if (rpcError) {
           console.error("Error updating profile with wallet:", rpcError);
-          throw rpcError;
+          // Don't throw here - we want the signup to succeed even if the wallet update fails
         }
       }
 

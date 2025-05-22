@@ -88,24 +88,10 @@ const LoginForm: React.FC = () => {
         return;
       }
 
-      // Create a nonce for the wallet to sign
-      const nonce = Math.floor(Math.random() * 1000000).toString();
-      const message = `Sign this message to authenticate with Autheo Health: ${nonce}`;
-      
-      // Ask user to sign message
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, wallet.address]
-      });
-
-      if (!signature) {
-        throw new Error("Signature required for authentication");
-      }
-
       // Generate deterministic email based on wallet address
       const walletEmail = `${wallet.address.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
       
-      // Use the wallet signature as a password (truncated)
+      // Use the wallet address part as password, matching signup format
       const { data, error } = await supabase.auth.signInWithPassword({
         email: walletEmail,
         password: wallet.address.substring(2, 22) // Use wallet address part as password, matching signup format
