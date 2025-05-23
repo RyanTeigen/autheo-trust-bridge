@@ -48,6 +48,7 @@ const App = () => (
                 <Route path="/wallet" element={<WalletPage />} />
                 <Route path="/shared-records" element={<SharedRecordsPage />} />
                 <Route path="/patient-records" element={<PatientRecordsPage />} />
+                <Route path="/medical-notes" element={<MedicalNotesPage />} />
                 
                 {/* Provider routes */}
                 <Route path="/provider-portal" element={
@@ -56,20 +57,9 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                {/* Medical Notes - now accessible to all authenticated users */}
-                <Route path="/medical-notes" element={<MedicalNotesPage />} />
-                
-                {/* Compliance routes */}
-                <Route path="/compliance" element={
-                  <ProtectedRoute requiredRoles={['compliance']}>
-                    <CompliancePage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/audit-logs" element={
-                  <ProtectedRoute requiredRoles={['compliance']}>
-                    <AuditLogsPage />
-                  </ProtectedRoute>
-                } />
+                {/* Compliance routes - now accessible to all authenticated users */}
+                <Route path="/compliance" element={<CompliancePage />} />
+                <Route path="/audit-logs" element={<AuditLogsPage />} />
                 
                 {/* Common routes */}
                 <Route path="/settings" element={<SettingsPage />} />

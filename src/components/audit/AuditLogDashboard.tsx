@@ -1,34 +1,11 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend
-} from 'recharts';
-import { Shield, AlertTriangle, Check, FileText, User } from 'lucide-react';
-
-// Types for our charts
-interface EventCountByType {
-  name: string;
-  value: number;
-  color: string;
-}
-
-interface EventCountByStatus {
-  name: string;
-  success: number;
-  warning: number;
-  error: number;
-}
+import { Shield, AlertTriangle, FileText, User } from 'lucide-react';
+import ActivitySummaryCard from './dashboard/ActivitySummaryCard';
+import EventTypeChart from './dashboard/EventTypeChart';
+import ActivityBarChart from './dashboard/ActivityBarChart';
+import { EventCountByType } from './dashboard/EventTypeChart';
+import { EventCountByStatus } from './dashboard/ActivityBarChart';
 
 interface AuditLogDashboardProps {
   logs: Array<{
@@ -83,66 +60,8 @@ const AuditLogDashboard: React.FC<AuditLogDashboardProps> = ({ logs }) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Audit Events by Type</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={typeData.filter(d => d.value > 0)}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    fill="#8884d8"
-                    paddingAngle={5}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {typeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Audit Activity (Last 7 Days)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={activityByDay}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="success" stackId="a" fill="#10b981" name="Success" />
-                  <Bar dataKey="warning" stackId="a" fill="#f59e0b" name="Warning" />
-                  <Bar dataKey="error" stackId="a" fill="#ef4444" name="Error" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <EventTypeChart data={typeData} />
+        <ActivityBarChart data={activityByDay} />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -172,32 +91,6 @@ const AuditLogDashboard: React.FC<AuditLogDashboardProps> = ({ logs }) => {
         />
       </div>
     </div>
-  );
-};
-
-// Activity summary card component
-interface ActivitySummaryCardProps {
-  icon: React.ReactNode;
-  title: string;
-  count: number;
-  color: string;
-}
-
-const ActivitySummaryCard: React.FC<ActivitySummaryCardProps> = ({ icon, title, count, color }) => {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-full ${color}`}>
-            {icon}
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <h3 className="text-2xl font-bold">{count}</h3>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 

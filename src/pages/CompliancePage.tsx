@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import ComplianceTrendChart from '@/components/compliance/ComplianceTrendChart';
 import ComplianceRadarChart from '@/components/compliance/ComplianceRadarChart';
 import ComplianceScoreCalculator from '@/components/compliance/ComplianceScoreCalculator';
@@ -19,6 +20,10 @@ const CompliancePage = () => {
   const { toast } = useToast();
   const [complianceScore, setComplianceScore] = useState(92);
   const [showMobileView, setShowMobileView] = useState(false);
+  const { profile } = useAuth();
+  
+  // Check if user has compliance role
+  const hasComplianceRole = profile?.roles?.includes('compliance') || profile?.roles?.includes('admin');
   
   // Sample trend data for the compliance trend chart
   const trendData = [
@@ -79,6 +84,15 @@ const CompliancePage = () => {
           </Button>
         </div>
       </div>
+
+      {!hasComplianceRole && (
+        <Alert variant="warning" className="mb-4">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertDescription>
+            You are accessing this page with creator privileges. Normally, this page is restricted to users with compliance or admin roles.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {!showMobileView ? (
         <>

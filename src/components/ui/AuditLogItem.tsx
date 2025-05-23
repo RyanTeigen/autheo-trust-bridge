@@ -1,181 +1,124 @@
 
-import React, { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Badge } from './badge';
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableRow 
-} from '@/components/ui/table';
-import { cn } from '@/lib/utils';
-import { Shield, ShieldAlert, User, FileText, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+  Shield, 
+  AlertTriangle, 
+  CheckCircle, 
+  Clock,
+  User,
+  Network,
+  MapPin,
+  Monitor,
+  Info
+} from 'lucide-react';
+import { AuditLogEntry } from '@/services/audit/AuditLogEntry';
 
-export type AuditLogType = 'access' | 'disclosure' | 'breach' | 'admin' | 'amendment' | 'login' | 'logout';
+export type AuditLogItemProps = AuditLogEntry;
 
-export interface AuditLogItemProps {
-  id: string;
-  type: AuditLogType;
-  timestamp: string;
-  user: string;
-  action: string;
-  resource: string;
-  status: 'success' | 'warning' | 'error';
-  details?: string;
-  ipAddress?: string;
-  resourceId?: string;
-  duration?: number;
-  location?: string;
-  browser?: string;
-  os?: string;
-  className?: string;
-}
-
-export const AuditLogItem: React.FC<AuditLogItemProps> = ({
+const AuditLogItem: React.FC<AuditLogItemProps> = ({
   type,
+  action,
   timestamp,
   user,
-  action,
   resource,
   status,
   details,
   ipAddress,
-  resourceId,
-  duration,
   location,
   browser,
   os,
-  className,
+  duration
 }) => {
-  const [expanded, setExpanded] = useState(false);
-
-  const getStatusColor = () => {
+  const date = new Date(timestamp);
+  const formattedDate = date.toLocaleString();
+  
+  const getStatusBadge = () => {
     switch (status) {
-      case 'success': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'warning': return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300';
-      case 'error': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      case 'success':
+        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">Success</Badge>;
+      case 'warning':
+        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">Warning</Badge>;
+      case 'error':
+        return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">Error</Badge>;
+      default:
+        return null;
     }
   };
-
-  const getTypeColor = () => {
-    switch (type) {
-      case 'access': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'disclosure': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      case 'breach': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      case 'admin': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-      case 'amendment': return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300';
-      case 'login': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'logout': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-    }
-  };
-
+  
   const getTypeIcon = () => {
     switch (type) {
-      case 'access': return <FileText className="h-4 w-4 mr-1" />;
-      case 'disclosure': return <User className="h-4 w-4 mr-1" />;
-      case 'breach': return <ShieldAlert className="h-4 w-4 mr-1" />;
-      case 'admin': return <Shield className="h-4 w-4 mr-1" />;
-      case 'amendment': return <FileText className="h-4 w-4 mr-1" />;
-      case 'login': return <User className="h-4 w-4 mr-1" />;
-      case 'logout': return <User className="h-4 w-4 mr-1" />;
+      case 'access':
+        return <Info className="h-5 w-5 text-blue-500" />;
+      case 'disclosure':
+        return <User className="h-5 w-5 text-purple-500" />;
+      case 'amendment':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'login':
+        return <Shield className="h-5 w-5 text-amber-500" />;
+      case 'logout':
+        return <Shield className="h-5 w-5 text-slate-500" />;
+      case 'breach':
+        return <AlertTriangle className="h-5 w-5 text-red-500" />;
+      case 'admin':
+        return <Shield className="h-5 w-5 text-indigo-500" />;
+      default:
+        return <Info className="h-5 w-5 text-slate-500" />;
     }
   };
-
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
-  };
-
+  
   return (
-    <div className={cn("p-4 border rounded-md bg-card text-card-foreground", className)}>
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
-        <div className="flex-1">
-          <div className="flex flex-wrap gap-2 mb-2">
-            <Badge variant="outline" className={getTypeColor()}>
-              <span className="flex items-center">
-                {getTypeIcon()}
-                {type}
-              </span>
-            </Badge>
-            <Badge variant="outline" className={getStatusColor()}>
-              {status}
-            </Badge>
+    <div className="border rounded-md p-4 bg-card">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3">
+        <div className="flex gap-3">
+          <div className="shrink-0">
+            {getTypeIcon()}
           </div>
-          <p className="font-medium">{action}</p>
-          <p className="text-sm text-muted-foreground mt-1">Resource: {resource}</p>
-          {details && (
-            <p className="text-sm text-muted-foreground mt-1">{details}</p>
-          )}
-        </div>
-        <div className="flex flex-col items-start md:items-end text-sm text-muted-foreground">
-          <span className="flex items-center">
-            <Clock className="h-4 w-4 mr-1" />
-            {new Date(timestamp).toLocaleString()}
-          </span>
-          <span>User: {user}</span>
-          {ipAddress && <span>IP: {ipAddress}</span>}
-        </div>
-      </div>
-      
-      <div className="mt-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-xs w-full flex items-center justify-center"
-          onClick={toggleExpanded}
-        >
-          {expanded ? (
-            <>
-              <ChevronUp className="h-4 w-4 mr-1" /> Hide Details
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-4 w-4 mr-1" /> View Details
-            </>
-          )}
-        </Button>
-        
-        {expanded && (
-          <div className="mt-2 border-t pt-2">
-            <Table>
-              <TableBody>
-                {resourceId && (
-                  <TableRow>
-                    <TableCell className="py-1 font-medium">Resource ID</TableCell>
-                    <TableCell className="py-1">{resourceId}</TableCell>
-                  </TableRow>
-                )}
-                {duration !== undefined && (
-                  <TableRow>
-                    <TableCell className="py-1 font-medium">Duration</TableCell>
-                    <TableCell className="py-1">{duration}ms</TableCell>
-                  </TableRow>
-                )}
-                {browser && (
-                  <TableRow>
-                    <TableCell className="py-1 font-medium">Browser</TableCell>
-                    <TableCell className="py-1">{browser}</TableCell>
-                  </TableRow>
-                )}
-                {os && (
-                  <TableRow>
-                    <TableCell className="py-1 font-medium">OS</TableCell>
-                    <TableCell className="py-1">{os}</TableCell>
-                  </TableRow>
-                )}
-                {location && (
-                  <TableRow>
-                    <TableCell className="py-1 font-medium">Location</TableCell>
-                    <TableCell className="py-1">{location}</TableCell>
-                  </TableRow>
-                )}
-                <TableRow>
-                  <TableCell className="py-1 font-medium">Timestamp</TableCell>
-                  <TableCell className="py-1">{new Date(timestamp).toISOString()}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+          <div>
+            <h3 className="font-medium">{action}</h3>
+            <div className="text-sm text-muted-foreground">{resource}</div>
+            {details && <div className="mt-1 text-sm">{details}</div>}
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+              {user && (
+                <span className="flex items-center gap-1">
+                  <User className="h-3.5 w-3.5" />
+                  {user}
+                </span>
+              )}
+              {ipAddress && (
+                <span className="flex items-center gap-1">
+                  <Network className="h-3.5 w-3.5" />
+                  {ipAddress}
+                </span>
+              )}
+              {location && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" />
+                  {location}
+                </span>
+              )}
+              {(browser || os) && (
+                <span className="flex items-center gap-1">
+                  <Monitor className="h-3.5 w-3.5" />
+                  {browser}{os && `/${os}`}
+                </span>
+              )}
+              {duration !== undefined && (
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  {duration}ms
+                </span>
+              )}
+            </div>
           </div>
-        )}
+        </div>
+        <div className="flex items-center gap-3">
+          {getStatusBadge()}
+          <div className="flex items-center text-xs text-muted-foreground whitespace-nowrap">
+            <Clock className="h-3 w-3 mr-1" />
+            {formattedDate}
+          </div>
+        </div>
       </div>
     </div>
   );

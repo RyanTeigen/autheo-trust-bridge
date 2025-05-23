@@ -1,55 +1,16 @@
 
-import { AuditLogType } from '@/components/ui/AuditLogItem';
-
-export interface AuditLogEntry {
-  id: string;
-  type: AuditLogType;
-  timestamp: string;
-  user: string;
-  action: string;
-  resource: string;
-  status: 'success' | 'warning' | 'error';
-  details?: string;
-  ipAddress?: string;
-  resourceId?: string;
-  duration?: number;
-  location?: string;
-  browser?: string;
-  os?: string;
-}
+import { AuditLogEntry, AuditLogType } from './audit/AuditLogEntry';
+import { 
+  getCurrentUser,
+  getIpAddress,
+  generateId,
+  getBrowserInfo,
+  getUserLocation
+} from './audit/utils';
 
 // In a real application, this would be persisted to a secure database
 // with encryption and access controls in place
 let auditLogs: AuditLogEntry[] = [];
-
-// Mock function to get the current user - would be from auth context in real app
-const getCurrentUser = (): string => {
-  return 'Dr. Sarah Johnson'; // Example user
-};
-
-// Mock function to get the current IP address
-const getIpAddress = (): string => {
-  return '192.168.1.100'; // In a real app, this would be obtained differently
-};
-
-// Generate a unique ID for each log entry
-const generateId = (): string => {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-};
-
-// Get browser and OS information
-const getBrowserInfo = (): { browser: string; os: string } => {
-  // In a real app, this would use proper user-agent parsing
-  return {
-    browser: 'Chrome',
-    os: 'Windows'
-  };
-};
-
-// Get user's location (in a real app, this could be more precise)
-const getUserLocation = (): string => {
-  return 'New York, NY'; // Example location
-};
 
 export const AuditLogService = {
   /**
@@ -83,9 +44,6 @@ export const AuditLogService = {
     
     auditLogs.unshift(logEntry);
     console.log('HIPAA Audit Log:', logEntry);
-    
-    // In a real application, you would persist this to a secure database
-    // and potentially send it to a monitoring service
   },
   
   /**
@@ -209,44 +167,13 @@ export const AuditLogService = {
     console.log('HIPAA Audit Log:', logEntry);
   },
   
-  /**
-   * Get all audit logs
-   */
-  getLogs: (): AuditLogEntry[] => {
-    return [...auditLogs];
-  },
+  // Query methods
+  getLogs: (): AuditLogEntry[] => [...auditLogs],
+  getLogsByType: (type: AuditLogType): AuditLogEntry[] => auditLogs.filter(log => log.type === type),
+  getLogsByStatus: (status: 'success' | 'warning' | 'error'): AuditLogEntry[] => auditLogs.filter(log => log.status === status),
+  getLogsByResourceId: (resourceId: string): AuditLogEntry[] => auditLogs.filter(log => log.resourceId === resourceId),
+  getLogsByUser: (user: string): AuditLogEntry[] => auditLogs.filter(log => log.user === user),
   
-  /**
-   * Filter logs by type
-   */
-  getLogsByType: (type: AuditLogType): AuditLogEntry[] => {
-    return auditLogs.filter(log => log.type === type);
-  },
-
-  /**
-   * Get logs by status
-   */
-  getLogsByStatus: (status: 'success' | 'warning' | 'error'): AuditLogEntry[] => {
-    return auditLogs.filter(log => log.status === status);
-  },
-
-  /**
-   * Get logs by resource ID
-   */
-  getLogsByResourceId: (resourceId: string): AuditLogEntry[] => {
-    return auditLogs.filter(log => log.resourceId === resourceId);
-  },
-
-  /**
-   * Get logs by user
-   */
-  getLogsByUser: (user: string): AuditLogEntry[] => {
-    return auditLogs.filter(log => log.user === user);
-  },
-
-  /**
-   * Get logs by date range
-   */
   getLogsByDateRange: (startDate: Date, endDate: Date): AuditLogEntry[] => {
     return auditLogs.filter(log => {
       const logDate = new Date(log.timestamp);
@@ -254,11 +181,6 @@ export const AuditLogService = {
     });
   },
 
-  /**
-   * Clear all logs
-   * In a real HIPAA-compliant system, this would be restricted or unavailable
-   * as audit logs should typically be immutable
-   */
   clearLogs: (): void => {
     auditLogs = [];
   }
