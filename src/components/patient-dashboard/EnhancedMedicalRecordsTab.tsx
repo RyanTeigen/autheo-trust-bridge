@@ -5,7 +5,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FileText, Share, Users, Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 import EnhancedNotesView from '@/components/health-records/EnhancedNotesView';
 import DecentralizedTransfer from '@/components/patient-dashboard/DecentralizedTransfer';
@@ -26,7 +25,7 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
     const fetchNotes = async () => {
       setLoading(true);
       try {
-        // Fetch SOAP notes with a join to get provider names
+        // Fetch SOAP notes
         const { data, error } = await supabase
           .from('soap_notes')
           .select(`

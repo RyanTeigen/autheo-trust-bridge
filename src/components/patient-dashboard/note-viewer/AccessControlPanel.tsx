@@ -10,7 +10,7 @@ interface AccessControlPanelProps {
   providerId: string;
   providerAccess?: NoteAccessControl;
   accessHistory: AuditLogEntry[];
-  onToggleAccess: (providerId: string, currentAccess: string) => Promise<void>;
+  onToggleAccess: (providerId: string, currentAccess: string) => void;
 }
 
 const AccessControlPanel: React.FC<AccessControlPanelProps> = ({
