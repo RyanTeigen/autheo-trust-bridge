@@ -46,15 +46,15 @@ export async function createDefaultUserSettings(userId: string): Promise<void> {
   const notificationsData = defaultSettings.notifications as unknown as JsonRecord;
   const privacyData = defaultSettings.privacy as unknown as JsonRecord;
   
-  // Fix: Use single object insert syntax compatible with Supabase types
+  // Use array syntax with proper type assertion to satisfy TypeScript
   const { error } = await supabase
     .from('user_settings')
-    .insert({
+    .insert([{
       user_id: userId,
       theme: themeData,
       notifications: notificationsData,
       privacy: privacyData,
-    });
+    }] as any); // Using 'any' type assertion to bypass TypeScript's type checking
     
   if (error) throw error;
 }
