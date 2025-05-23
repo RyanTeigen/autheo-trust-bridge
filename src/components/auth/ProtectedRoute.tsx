@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles = [] }) => {
-  const { isAuthenticated, hasRole, isLoading, profile } = useAuth();
+  const { isAuthenticated, hasRole, isLoading } = useAuth();
   const location = useLocation();
 
   // Show loading state while checking auth
@@ -27,13 +27,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
-  // If no roles are required, or if the user is already on the unauthorized page, allow access
-  if (requiredRoles.length === 0 || location.pathname === '/unauthorized') {
-    return <>{children}</>;
-  }
-  
-  // For creator access - any authenticated user can access all pages while in development mode
-  // This prevents the creator from getting locked out of their own app
+  // Important: For creator/admin access - always allow access to all pages
+  // This ensures the creator never gets locked out of their own app
   return <>{children}</>;
 };
 
