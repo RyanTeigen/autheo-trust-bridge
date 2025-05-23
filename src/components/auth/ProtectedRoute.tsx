@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles = [] }) => {
-  const { isAuthenticated, hasRole, isLoading } = useAuth();
+  const { isAuthenticated, hasRole, isLoading, profile } = useAuth();
   const location = useLocation();
 
   // Show loading state while checking auth
@@ -27,14 +27,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
+  // If no roles are required, or if the user is already on the unauthorized page, allow access
+  if (requiredRoles.length === 0 || location.pathname === '/unauthorized') {
+    return <>{children}</>;
+  }
+  
+  // If the user has no roles yet but roles are required, allow access to the main dashboard
+  // This prevents users from getting stuck after signup
+  if (profile?.roles?.length === 0 && location.pathname === '/') {
+    return <>{children}</>;
+  }
+
   // If roles are required, check if the user has at least one of them
-  if (requiredRoles.length > 0) {
-    const hasRequiredRole = requiredRoles.some(role => hasRole(role));
-    
-    if (!hasRequiredRole) {
-      // Redirect to unauthorized page
-      return <Navigate to="/unauthorized" replace />;
-    }
+  const hasRequiredRole = requiredRoles.some(role => hasRole(role));
+  
+  if (!hasRequiredRole) {
+    // Redirect to unauthorized page
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // If authenticated and has required roles, render the children

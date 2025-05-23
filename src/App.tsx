@@ -43,12 +43,8 @@ const App = () => (
                   <MainLayout />
                 </ProtectedRoute>
               }>
-                {/* Patient routes */}
-                <Route path="/" element={
-                  <ProtectedRoute requiredRoles={['patient']}>
-                    <PatientDashboardPage />
-                  </ProtectedRoute>
-                } />
+                {/* Dashboard - accessible to all authenticated users */}
+                <Route path="/" element={<PatientDashboardPage />} />
                 <Route path="/wallet" element={<WalletPage />} />
                 <Route path="/shared-records" element={<SharedRecordsPage />} />
                 <Route path="/patient-records" element={<PatientRecordsPage />} />
