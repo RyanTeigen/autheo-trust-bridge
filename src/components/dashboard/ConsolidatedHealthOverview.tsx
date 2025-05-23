@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ChartBarIcon, PlusCircle, FileText, PieChart, Activity } from 'lucide-react';
+import { ChartBarIcon, Activity, FileText, PieChart } from 'lucide-react';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 
 // Health metrics mock data
@@ -16,7 +16,7 @@ const mockHealthMetrics = [
 
 const ConsolidatedHealthOverview: React.FC = () => {
   const navigate = useNavigate();
-  const { summary } = useHealthRecords();
+  const { healthRecords, summary } = useHealthRecords();
   
   const handleViewMore = (section: string) => {
     if (section === 'records') {
@@ -28,14 +28,10 @@ const ConsolidatedHealthOverview: React.FC = () => {
     }
   };
   
-  // Chart data for visualization
-  const metricData = [
-    { month: 'Jan', bloodPressure: 120, weight: 165, glucose: 100 },
-    { month: 'Feb', bloodPressure: 118, weight: 163, glucose: 98 },
-    { month: 'Mar', bloodPressure: 119, weight: 161, glucose: 97 },
-    { month: 'Apr', bloodPressure: 120, weight: 160, glucose: 98 },
-    { month: 'May', bloodPressure: 117, weight: 159, glucose: 95 },
-  ];
+  // Get recent records from the healthRecords array
+  const recentRecords = healthRecords
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3);
   
   return (
     <Card className="bg-slate-800 border-slate-700 shadow-xl text-slate-100">
@@ -81,8 +77,8 @@ const ConsolidatedHealthOverview: React.FC = () => {
               </CardHeader>
               <CardContent className="text-xs pt-0">
                 <div className="divide-y divide-slate-700/50">
-                  {Object.entries(summary.recent).map(([id, record], idx) => (
-                    <div key={id} className="py-2 flex justify-between items-center">
+                  {recentRecords.map((record, idx) => (
+                    <div key={record.id} className="py-2 flex justify-between items-center">
                       <div>
                         <p className="font-medium text-white">{record.title}</p>
                         <p className="text-slate-400">{record.provider} • {record.date}</p>
@@ -109,12 +105,15 @@ const ConsolidatedHealthOverview: React.FC = () => {
               </CardHeader>
               <CardContent className="pt-0 px-4 pb-4">
                 <div className="space-y-2">
-                  {Object.entries(summary.categories).map(([category, count]) => (
-                    <div key={category} className="flex justify-between items-center">
-                      <span className="text-xs capitalize">{category}</span>
-                      <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-autheo-primary/10 text-autheo-primary">{count}</span>
-                    </div>
-                  ))}
+                  {summary && summary.categories ? 
+                    Object.entries(summary.categories).map(([category, count]) => (
+                      <div key={category} className="flex justify-between items-center">
+                        <span className="text-xs capitalize">{category}</span>
+                        <span className="text-xs font-medium px-1.5 py-0.5 rounded-full bg-autheo-primary/10 text-autheo-primary">{count}</span>
+                      </div>
+                    )) : 
+                    <div className="text-xs text-slate-400">No categories available</div>
+                  }
                 </div>
               </CardContent>
             </Card>

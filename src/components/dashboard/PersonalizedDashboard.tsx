@@ -14,7 +14,7 @@ interface PersonalizedDashboardProps {
 const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
   patientName = "Patient",
 }) => {
-  const { summary, healthMetrics } = useHealthRecords();
+  const { summary } = useHealthRecords();
   
   // Default appointments
   const defaultAppointments = [
@@ -71,11 +71,7 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
       <EnhancedQuickActions className="bg-slate-800 border-slate-700" />
       
       {/* Consolidated health overview (combines metrics and records) */}
-      <ConsolidatedHealthOverview 
-        healthMetrics={healthMetrics}
-        healthRecords={summary}
-        complianceScore={complianceScore}
-      />
+      <ConsolidatedHealthOverview />
       
       {/* Appointments and medications in a consistent style */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -4,9 +4,10 @@ import DetailedHealthRecords from '@/components/records/DetailedHealthRecords';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Medication, Diagnosis, Immunization, MedicalTest, Allergy } from '@/contexts/HealthRecordsContext';
 
 // Mock data for the detailed health records
-const mockMedications = [
+const mockMedications: Medication[] = [
   {
     id: "med-001",
     name: "Lisinopril",
@@ -27,7 +28,7 @@ const mockMedications = [
   }
 ];
 
-const mockDiagnoses = [
+const mockDiagnoses: Diagnosis[] = [
   {
     id: "diag-001",
     condition: "Hypertension",
@@ -46,7 +47,7 @@ const mockDiagnoses = [
   }
 ];
 
-const mockImmunizations = [
+const mockImmunizations: Immunization[] = [
   {
     id: "imm-001",
     name: "Influenza Vaccine",
@@ -64,7 +65,7 @@ const mockImmunizations = [
   }
 ];
 
-const mockMedicalTests = [
+const mockMedicalTests: MedicalTest[] = [
   {
     id: "test-001",
     name: "Comprehensive Metabolic Panel",
@@ -90,7 +91,7 @@ const mockMedicalTests = [
   }
 ];
 
-const mockAllergies = [
+const mockAllergies: Allergy[] = [
   {
     id: "alg-001",
     name: "Penicillin",
