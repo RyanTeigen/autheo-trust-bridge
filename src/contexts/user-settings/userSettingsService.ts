@@ -41,14 +41,20 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings | 
 }
 
 export async function createDefaultUserSettings(userId: string): Promise<void> {
+  // Convert settings objects to JsonRecord to satisfy TypeScript
+  const themeData = defaultSettings.theme as unknown as JsonRecord;
+  const notificationsData = defaultSettings.notifications as unknown as JsonRecord;
+  const privacyData = defaultSettings.privacy as unknown as JsonRecord;
+  
+  // Fixed: Pass a single object to insert instead of an array of objects
   const { error } = await supabase
     .from('user_settings')
-    .insert([{
+    .insert({
       user_id: userId,
-      theme: defaultSettings.theme as unknown as JsonRecord,
-      notifications: defaultSettings.notifications as unknown as JsonRecord,
-      privacy: defaultSettings.privacy as unknown as JsonRecord,
-    }]);
+      theme: themeData,
+      notifications: notificationsData,
+      privacy: privacyData,
+    });
     
   if (error) throw error;
 }
