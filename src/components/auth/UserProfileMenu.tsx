@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, Settings, User, Shield, Stethoscope, Wallet } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const UserProfileMenu: React.FC = () => {
   const { profile, signOut, hasRole } = useAuth();
@@ -31,6 +32,19 @@ const UserProfileMenu: React.FC = () => {
     navigate('/auth');
   };
 
+  // Determine user roles to display
+  const userRoles = profile?.roles || [];
+  const availablePortals = [
+    { role: 'patient', label: 'Patient Portal', icon: User, path: '/' },
+    { role: 'provider', label: 'Provider Portal', icon: Stethoscope, path: '/provider-portal' },
+    { role: 'compliance', label: 'Compliance Portal', icon: Shield, path: '/compliance' },
+  ];
+
+  // Filter to show only applicable portals based on user roles or all in creator mode
+  const visiblePortals = availablePortals.filter(portal => 
+    hasRole(portal.role)
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -45,33 +59,34 @@ const UserProfileMenu: React.FC = () => {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{profile?.firstName} {profile?.lastName}</p>
-            <p className="text-xs leading-none text-muted-foreground">{profile?.email}</p>
+            <p className="text-sm font-medium leading-none">
+              {profile?.firstName} {profile?.lastName}
+            </p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {profile?.email}
+            </p>
           </div>
         </DropdownMenuLabel>
+        
         <DropdownMenuSeparator />
+        
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Roles</DropdownMenuLabel>
-          {hasRole('patient') && (
-            <DropdownMenuItem onClick={() => navigate('/')}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Patient Portal</span>
+          <DropdownMenuLabel className="flex items-center gap-2">
+            Roles
+            <Badge variant="outline" className="text-[0.65rem] h-4 px-1 py-0 bg-slate-700 hover:bg-slate-700">
+              Creator Mode
+            </Badge>
+          </DropdownMenuLabel>
+          {visiblePortals.map((portal) => (
+            <DropdownMenuItem key={portal.path} onClick={() => navigate(portal.path)}>
+              <portal.icon className="mr-2 h-4 w-4" />
+              <span>{portal.label}</span>
             </DropdownMenuItem>
-          )}
-          {hasRole('provider') && (
-            <DropdownMenuItem onClick={() => navigate('/provider-portal')}>
-              <Stethoscope className="mr-2 h-4 w-4" />
-              <span>Provider Portal</span>
-            </DropdownMenuItem>
-          )}
-          {hasRole('compliance') && (
-            <DropdownMenuItem onClick={() => navigate('/compliance')}>
-              <Shield className="mr-2 h-4 w-4" />
-              <span>Compliance Portal</span>
-            </DropdownMenuItem>
-          )}
+          ))}
         </DropdownMenuGroup>
+        
         <DropdownMenuSeparator />
+        
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => navigate('/wallet')}>
             <Wallet className="mr-2 h-4 w-4" />
@@ -82,7 +97,9 @@ const UserProfileMenu: React.FC = () => {
             <span>Settings</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
+        
         <DropdownMenuSeparator />
+        
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>

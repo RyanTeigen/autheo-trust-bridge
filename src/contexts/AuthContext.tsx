@@ -153,11 +153,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // For creator access - return true for role checks
+  // Improved role checking function
   const hasRole = (role: string): boolean => {
-    // Always return true to ensure admin/creator access
-    // for the current implementation
-    return true;
+    // Creator/admin access - always return true to avoid being locked out
+    if (import.meta.env.DEV) {
+      return true;
+    }
+    
+    // For authenticated users with a profile, check if they have the requested role
+    if (profile && profile.roles) {
+      return profile.roles.includes(role);
+    }
+    
+    // Default deny
+    return false;
   };
 
   const value = {
