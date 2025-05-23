@@ -72,6 +72,48 @@ export type Database = {
         }
         Relationships: []
       }
+      distributed_records: {
+        Row: {
+          created_at: string
+          distribution_status: string
+          encryption_metadata: Json | null
+          id: string
+          node_references: Json | null
+          patient_id: string
+          provider_id: string
+          record_id: string
+          record_type: string
+          signature: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          distribution_status?: string
+          encryption_metadata?: Json | null
+          id?: string
+          node_references?: Json | null
+          patient_id: string
+          provider_id: string
+          record_id: string
+          record_type: string
+          signature?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          distribution_status?: string
+          encryption_metadata?: Json | null
+          id?: string
+          node_references?: Json | null
+          patient_id?: string
+          provider_id?: string
+          record_id?: string
+          record_type?: string
+          signature?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       health_data: {
         Row: {
           created_at: string | null
@@ -159,6 +201,39 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      note_access_controls: {
+        Row: {
+          access_level: string
+          expires_at: string | null
+          granted_at: string
+          id: string
+          note_id: string
+          patient_id: string
+          provider_id: string
+          provider_name: string
+        }
+        Insert: {
+          access_level: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          note_id: string
+          patient_id: string
+          provider_id: string
+          provider_name: string
+        }
+        Update: {
+          access_level?: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          note_id?: string
+          patient_id?: string
+          provider_id?: string
+          provider_name?: string
         }
         Relationships: []
       }
@@ -317,6 +392,8 @@ export type Database = {
         Row: {
           assessment: string
           created_at: string | null
+          decentralized_refs: Json | null
+          distribution_status: string | null
           id: string
           objective: string
           patient_id: string
@@ -330,6 +407,8 @@ export type Database = {
         Insert: {
           assessment: string
           created_at?: string | null
+          decentralized_refs?: Json | null
+          distribution_status?: string | null
           id?: string
           objective: string
           patient_id: string
@@ -343,6 +422,8 @@ export type Database = {
         Update: {
           assessment?: string
           created_at?: string | null
+          decentralized_refs?: Json | null
+          distribution_status?: string | null
           id?: string
           objective?: string
           patient_id?: string
@@ -405,6 +486,72 @@ export type Database = {
           status?: string
           transaction_date?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_keys: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          key_type: string
+          last_used_at: string | null
+          public_key: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_type?: string
+          last_used_at?: string | null
+          public_key: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key_type?: string
+          last_used_at?: string | null
+          public_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          read_at: string | null
+          reference_id: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          read_at?: string | null
+          reference_id?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          read_at?: string | null
+          reference_id?: string | null
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []

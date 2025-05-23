@@ -7,18 +7,10 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Lock, Unlock, Clock, Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { NoteAccessControl, AccessLevel } from '@/components/emr/soap-note/types';
 
 interface PatientNoteViewerProps {
   noteId?: string;
-}
-
-interface NoteAccessControl {
-  id: string;
-  provider_id: string;
-  provider_name: string;
-  access_level: 'full' | 'temporary' | 'revoked';
-  granted_at: string;
-  expires_at: string | null;
 }
 
 const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
@@ -70,11 +62,11 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
     fetchNote();
   }, [noteId, user, toast]);
   
-  const handleToggleAccess = async (providerId: string, currentAccess: string) => {
+  const handleToggleAccess = async (providerId: string, currentAccess: AccessLevel | string) => {
     if (!note || !user?.id) return;
     
     try {
-      const newAccessLevel = currentAccess === 'full' ? 'revoked' : 'full';
+      const newAccessLevel = currentAccess === 'full' ? 'revoked' as AccessLevel : 'full' as AccessLevel;
       
       // Update or create access control
       const { error } = await supabase
@@ -83,6 +75,7 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
           note_id: note.id,
           patient_id: user.id,
           provider_id: providerId,
+          provider_name: note.profiles?.first_name + ' ' + note.profiles?.last_name || 'Doctor',
           access_level: newAccessLevel,
           granted_at: new Date().toISOString(),
           expires_at: newAccessLevel === 'revoked' ? new Date().toISOString() : null

@@ -40,6 +40,7 @@ export const useSOAPNoteSubmission = () => {
           assessment: values.assessment,
           plan: values.plan,
           share_with_patient: values.shareWithPatient,
+          distribution_status: 'pending'
         })
         .select()
         .single();
@@ -112,19 +113,64 @@ export const useSOAPNoteSubmission = () => {
           .from('soap_notes')
           .update({
             distribution_status: 'distributed',
+            decentralized_refs: nodeRefs
           })
           .eq('id', noteData.id);
+        
+        // Record the distributed record
+        await supabase
+          .from('distributed_records')
+          .insert({
+            record_type: 'soap_note',
+            record_id: noteData.id,
+            patient_id: values.patientId,
+            provider_id: providerId,
+            distribution_status: 'distributed',
+            node_references: nodeRefs,
+            encryption_metadata: {
+              algorithm: 'ed25519',
+              encrypted_for: values.patientId,
+              signed_by: providerId
+            },
+            signature: signature
+          });
+          
+        // Create access control record with temporary access if specified
+        if (values.temporaryAccess) {
+          await supabase
+            .from('note_access_controls')
+            .insert({
+              note_id: noteData.id,
+              patient_id: values.patientId,
+              provider_id: providerId,
+              provider_name: values.providerName,
+              access_level: 'temporary',
+              expires_at: new Date(Date.now() + values.accessDuration * 24 * 60 * 60 * 1000).toISOString()
+            });
+        } else {
+          await supabase
+            .from('note_access_controls')
+            .insert({
+              note_id: noteData.id,
+              patient_id: values.patientId,
+              provider_id: providerId,
+              provider_name: values.providerName,
+              access_level: 'full',
+              expires_at: null
+            });
+        }
           
         // Create a notification for the patient
-        await supabase.from('user_notifications').insert({
-          user_id: values.patientId,
-          title: "New Medical Note Available",
-          message: `Dr. ${values.providerName} has created a new medical note from your visit on ${new Date(values.visitDate).toLocaleDateString()}.`,
-          type: "soap_note",
-          reference_id: noteData.id,
-          created_at: new Date().toISOString(),
-          is_read: false
-        });
+        await supabase
+          .from('user_notifications')
+          .insert({
+            user_id: values.patientId,
+            title: "New Medical Note Available",
+            message: `Dr. ${values.providerName} has created a new medical note from your visit on ${new Date(values.visitDate).toLocaleDateString()}.`,
+            type: "soap_note",
+            reference_id: noteData.id,
+            is_read: false
+          });
           
       } catch (distError) {
         console.error("Error in decentralized distribution:", distError);

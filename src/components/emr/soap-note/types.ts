@@ -21,3 +21,16 @@ export interface SOAPNoteStatus {
   isSubmitting: boolean;
   isDistributing: boolean;
 }
+
+export type AccessLevel = 'full' | 'temporary' | 'revoked';
+
+export interface NoteAccessControl {
+  id: string;
+  provider_id: string;
+  provider_name: string;
+  access_level: AccessLevel;
+  granted_at: string;
+  expires_at: string | null;
+  note_id: string;
+  patient_id: string;
+}
