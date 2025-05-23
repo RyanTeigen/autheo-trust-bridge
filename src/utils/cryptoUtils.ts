@@ -1,3 +1,4 @@
+
 /**
  * Utility functions for cryptographic operations in the decentralized EMR
  * Now includes quantum-resistant encryption capabilities
@@ -34,6 +35,7 @@ export async function ensureUserKeypair(userId: string, useQuantumResistant: boo
 
 /**
  * Encrypts data with a recipient's public key using quantum-resistant algorithms
+ * Modified to return a Promise<string> to match the async nature of encryption operations
  */
 export async function encryptForRecipient(data: any, recipientPublicKey: string, useQuantumEncryption: boolean = true): Promise<string> {
   if (useQuantumEncryption) {

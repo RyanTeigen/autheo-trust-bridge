@@ -82,8 +82,8 @@ export const useSOAPNoteSubmission = () => {
         // Sign the data with the provider's key
         const signature = signData(noteDataForEncryption, providerId);
         
-        // Encrypt the note for the patient
-        const encryptedNote = encryptForRecipient(
+        // Encrypt the note for the patient - Fix: await the Promise to get the string
+        const encryptedNote = await encryptForRecipient(
           { ...noteDataForEncryption, signature },
           publicKey
         );
