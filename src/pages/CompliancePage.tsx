@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Info, Calendar, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +14,7 @@ import ComplianceScoreCalculator from '@/components/compliance/ComplianceScoreCa
 import ComplianceRecommendations from '@/components/compliance/ComplianceRecommendations';
 import ZeroKnowledgeVerification from '@/components/compliance/ZeroKnowledgeVerification';
 import ComplianceAlerts from '@/components/compliance/ComplianceAlerts';
+import RealTimeComplianceMonitor from '@/components/compliance/RealTimeComplianceMonitor';
 
 const CompliancePage = () => {
   const { toast } = useToast();
@@ -93,6 +93,9 @@ const CompliancePage = () => {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Add the Real-Time Compliance Monitor */}
+      <RealTimeComplianceMonitor className="mb-6" />
 
       {!showMobileView ? (
         <>
