@@ -121,9 +121,9 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Alert variant="warning" className="bg-amber-900/20 border-amber-800 mb-4">
-        <AlertCircle className="h-4 w-4 text-amber-500" />
-        <AlertDescription className="text-amber-200 text-xs">
+      <Alert variant="warning" className="mb-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription className="text-xs">
           Email verification links may not work properly. If you receive a verification email, try logging in directly with your credentials.
         </AlertDescription>
       </Alert>
