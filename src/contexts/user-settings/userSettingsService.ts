@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { UserSettings, ThemeSettings, NotificationPreferences, PrivacySettings, JsonRecord } from './types';
 import { defaultSettings } from './defaultSettings';
@@ -45,15 +46,15 @@ export async function createDefaultUserSettings(userId: string): Promise<void> {
   const notificationsData = defaultSettings.notifications as unknown as JsonRecord;
   const privacyData = defaultSettings.privacy as unknown as JsonRecord;
   
-  // Fix: Pass an array with a single object to insert as required by Supabase
+  // Fix: Use single object insert syntax compatible with Supabase types
   const { error } = await supabase
     .from('user_settings')
-    .insert([{
+    .insert({
       user_id: userId,
       theme: themeData,
       notifications: notificationsData,
       privacy: privacyData,
-    }]);
+    });
     
   if (error) throw error;
 }
