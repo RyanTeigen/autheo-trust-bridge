@@ -85,9 +85,9 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (data) {
           // If we have settings in the database, use them
           setSettings({
-            theme: data.theme || defaultSettings.theme,
-            notifications: data.notifications || defaultSettings.notifications,
-            privacy: data.privacy || defaultSettings.privacy,
+            theme: data.theme as ThemeSettings,
+            notifications: data.notifications as NotificationPreferences,
+            privacy: data.privacy as PrivacySettings,
           });
         } else {
           // If no settings found, create default settings
