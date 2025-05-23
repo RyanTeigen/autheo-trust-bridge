@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,7 +14,11 @@ const AuthPage = () => {
   const [activeTab, setActiveTab] = useState('login');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+
+  // Get the page they were trying to visit from location state
+  const from = location.state?.from || '/';
 
   // Check if user is already logged in
   useEffect(() => {
@@ -22,7 +26,9 @@ const AuthPage = () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          navigate('/');
+          // If they're already logged in, redirect to the page they were trying to access
+          // or the dashboard if they came directly to /auth
+          navigate(from, { replace: true });
         }
       } catch (error) {
         console.error('Error checking authentication status:', error);
@@ -37,20 +43,21 @@ const AuthPage = () => {
     };
 
     checkAuth();
-  }, [navigate, toast]);
+  }, [navigate, toast, from]);
 
   // Listen for auth changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (session) {
-          navigate('/');
+          // When they log in, redirect to the page they were trying to access
+          navigate(from, { replace: true });
         }
       }
     );
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, from]);
 
   if (loading) {
     return (

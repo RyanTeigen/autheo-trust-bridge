@@ -28,11 +28,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   useEffect(() => {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change event:', event);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -44,6 +46,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }, 0);
         } else {
           setProfile(null);
+          // Only set loading to false if we're explicitly logging out
+          if (event === 'SIGNED_OUT') {
+            setIsLoading(false);
+          }
         }
       }
     );
@@ -52,16 +58,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('Initial auth check, session exists:', !!session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
           await fetchUserProfile(session.user.id);
+        } else {
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-      } finally {
         setIsLoading(false);
+      } finally {
+        setAuthChecked(true);
       }
     };
 
