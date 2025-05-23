@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Info, Calendar, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,8 @@ import ComplianceRecommendations from '@/components/compliance/ComplianceRecomme
 import ZeroKnowledgeVerification from '@/components/compliance/ZeroKnowledgeVerification';
 import ComplianceAlerts from '@/components/compliance/ComplianceAlerts';
 import RealTimeComplianceMonitor from '@/components/compliance/RealTimeComplianceMonitor';
+import RiskAssessmentEngine from '@/components/compliance/risk-assessment/RiskAssessmentEngine';
+import BlockchainAuditTrail from '@/components/compliance/audit-trail/BlockchainAuditTrail';
 
 const CompliancePage = () => {
   const { toast } = useToast();
@@ -94,8 +97,14 @@ const CompliancePage = () => {
         </Alert>
       )}
 
-      {/* Add the Real-Time Compliance Monitor */}
+      {/* Real-Time Compliance Monitor */}
       <RealTimeComplianceMonitor className="mb-6" />
+      
+      {/* AI Risk Assessment Engine */}
+      <RiskAssessmentEngine className="mb-6" />
+      
+      {/* Blockchain Audit Trail */}
+      <BlockchainAuditTrail className="mb-6" />
 
       {!showMobileView ? (
         <>

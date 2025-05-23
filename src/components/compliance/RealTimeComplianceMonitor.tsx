@@ -120,7 +120,7 @@ const RealTimeComplianceMonitor: React.FC<RealTimeComplianceMonitorProps> = ({ c
               </Badge>
             )}
             {warningAlerts.length > 0 && (
-              <Badge variant="warning" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
+              <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
                 {warningAlerts.length} Warnings
               </Badge>
             )}
@@ -152,7 +152,7 @@ const RealTimeComplianceMonitor: React.FC<RealTimeComplianceMonitorProps> = ({ c
           </div>
           
           {(criticalAlerts.length > 0 || warningAlerts.length > 0) && (
-            <Alert variant={criticalAlerts.length > 0 ? "destructive" : "warning"} className="mt-4">
+            <Alert variant={criticalAlerts.length > 0 ? "destructive" : "default"} className={criticalAlerts.length > 0 ? "" : "bg-amber-50 text-amber-800 border-amber-200"}>
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>
                 {criticalAlerts.length > 0 
