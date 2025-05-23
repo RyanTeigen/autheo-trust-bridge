@@ -83,20 +83,39 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
 
         if (data) {
-          // If we have settings in the database, use them
+          // If we have settings in the database, use them with proper type casting
+          const themeData = data.theme as Record<string, unknown>;
+          const notificationsData = data.notifications as Record<string, unknown>;
+          const privacyData = data.privacy as Record<string, unknown>;
+          
           setSettings({
-            theme: data.theme as ThemeSettings,
-            notifications: data.notifications as NotificationPreferences,
-            privacy: data.privacy as PrivacySettings,
+            theme: {
+              mode: (themeData.mode as 'light' | 'dark' | 'system') || defaultSettings.theme.mode,
+              accentColor: (themeData.accentColor as string) || defaultSettings.theme.accentColor,
+            },
+            notifications: {
+              email: (notificationsData.email as boolean) ?? defaultSettings.notifications.email,
+              push: (notificationsData.push as boolean) ?? defaultSettings.notifications.push,
+              sms: (notificationsData.sms as boolean) ?? defaultSettings.notifications.sms,
+            },
+            privacy: {
+              shareHealthData: (privacyData.shareHealthData as boolean) ?? defaultSettings.privacy.shareHealthData,
+              shareContactInfo: (privacyData.shareContactInfo as boolean) ?? defaultSettings.privacy.shareContactInfo,
+              twoFactorAuth: (privacyData.twoFactorAuth as boolean) ?? defaultSettings.privacy.twoFactorAuth,
+            },
           });
         } else {
           // If no settings found, create default settings
-          await supabase.from('user_settings').insert({
-            user_id: user.id,
-            theme: defaultSettings.theme,
-            notifications: defaultSettings.notifications,
-            privacy: defaultSettings.privacy,
-          });
+          const { error: insertError } = await supabase
+            .from('user_settings')
+            .insert({
+              user_id: user.id,
+              theme: defaultSettings.theme,
+              notifications: defaultSettings.notifications,
+              privacy: defaultSettings.privacy,
+            });
+            
+          if (insertError) throw insertError;
         }
       } catch (error) {
         console.error('Failed to load or create user settings:', error);
