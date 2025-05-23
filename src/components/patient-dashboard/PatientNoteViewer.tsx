@@ -39,8 +39,14 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
           .single();
           
         if (error) throw error;
+
+        // Transform the data to ensure it matches our SoapNote type
+        const transformedNote: SoapNote = {
+          ...data,
+          profiles: data.profiles || { first_name: '', last_name: '' }
+        };
         
-        setNote(data);
+        setNote(transformedNote);
         
         // Fetch access controls
         const { data: accessData, error: accessError } = await supabase

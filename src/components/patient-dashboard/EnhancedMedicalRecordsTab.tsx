@@ -41,7 +41,7 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
             decentralized_refs,
             created_at,
             updated_at,
-            providers:provider_id(first_name, last_name)
+            providers:profiles(first_name, last_name)
           `)
           .eq('patient_id', user.id)
           .order('visit_date', { ascending: false });
@@ -51,7 +51,9 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
         // Transform data to include provider name
         const transformedData = data.map(note => ({
           ...note,
-          provider_name: note.providers ? `${note.providers.first_name} ${note.providers.last_name}` : 'Unknown Provider'
+          provider_name: note.providers ? 
+            `${note.providers.first_name || ''} ${note.providers.last_name || ''}`.trim() || 'Unknown Provider'
+            : 'Unknown Provider'
         }));
         
         setNotes(transformedData);

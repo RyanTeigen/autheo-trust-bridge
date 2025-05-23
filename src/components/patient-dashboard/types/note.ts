@@ -37,7 +37,7 @@ export interface SoapNote {
   created_at: string;
   updated_at: string;
   profiles?: {
-    first_name: string;
-    last_name: string;
-  };
+    first_name?: string;
+    last_name?: string;
+  } | null;
 }
