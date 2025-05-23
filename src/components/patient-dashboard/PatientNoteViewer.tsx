@@ -45,7 +45,13 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
           
         if (accessError) throw accessError;
         
-        setAccessControls(accessData || []);
+        // Transform the data to ensure access_level is of type AccessLevel
+        const transformedAccessData = accessData?.map(control => ({
+          ...control,
+          access_level: control.access_level as AccessLevel
+        })) || [];
+        
+        setAccessControls(transformedAccessData);
         
       } catch (err) {
         console.error("Error fetching note details:", err);
@@ -66,6 +72,7 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
     if (!note || !user?.id) return;
     
     try {
+      // Convert the string to AccessLevel type if needed
       const newAccessLevel = currentAccess === 'full' ? 'revoked' as AccessLevel : 'full' as AccessLevel;
       
       // Update or create access control
@@ -83,7 +90,7 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
         
       if (error) throw error;
       
-      // Update local state
+      // Update local state with proper type casting
       const updatedControls = accessControls.map(control => 
         control.provider_id === providerId 
           ? { ...control, access_level: newAccessLevel, expires_at: newAccessLevel === 'revoked' ? new Date().toISOString() : null }
@@ -131,7 +138,7 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
   }
   
   // Find provider in access controls
-  const providerAccess = accessControls.find(control => control.provider_id === note.provider_id);
+  const providerAccess = accessControls.find(control => control.provider_id === note?.provider_id);
   
   return (
     <Card>
@@ -140,16 +147,16 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
           <div>
             <CardTitle>Medical Note</CardTitle>
             <CardDescription>
-              Visit Date: {new Date(note.visit_date).toLocaleDateString()}
+              Visit Date: {note && new Date(note.visit_date).toLocaleDateString()}
             </CardDescription>
           </div>
           <div className="flex gap-2">
-            {note.decentralized_refs && (
+            {note?.decentralized_refs && (
               <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
                 <Shield className="h-3.5 w-3.5 mr-1" /> Decentralized
               </Badge>
             )}
-            {note.distribution_status === 'distributed' ? (
+            {note?.distribution_status === 'distributed' ? (
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
                 Distributed
               </Badge>
@@ -171,15 +178,15 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
             </h3>
             {providerAccess ? (
               providerAccess.access_level === 'full' ? (
-                <Badge className="bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, 'full')}>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
                   <Eye className="h-3.5 w-3.5 mr-1" /> Full Access
                 </Badge>
               ) : providerAccess.access_level === 'temporary' ? (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, 'temporary')}>
+                <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
                   <Clock className="h-3.5 w-3.5 mr-1" /> Temporary Access
                 </Badge>
               ) : (
-                <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, 'revoked')}>
+                <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
                   <EyeOff className="h-3.5 w-3.5 mr-1" /> Access Revoked
                 </Badge>
               )
@@ -213,22 +220,22 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
         <div className="space-y-4">
           <div className="border rounded-md p-4">
             <h3 className="font-medium mb-2">Subjective</h3>
-            <p className="whitespace-pre-wrap">{note.subjective}</p>
+            <p className="whitespace-pre-wrap">{note?.subjective}</p>
           </div>
           
           <div className="border rounded-md p-4">
             <h3 className="font-medium mb-2">Objective</h3>
-            <p className="whitespace-pre-wrap">{note.objective}</p>
+            <p className="whitespace-pre-wrap">{note?.objective}</p>
           </div>
           
           <div className="border rounded-md p-4">
             <h3 className="font-medium mb-2">Assessment</h3>
-            <p className="whitespace-pre-wrap">{note.assessment}</p>
+            <p className="whitespace-pre-wrap">{note?.assessment}</p>
           </div>
           
           <div className="border rounded-md p-4">
             <h3 className="font-medium mb-2">Plan</h3>
-            <p className="whitespace-pre-wrap">{note.plan}</p>
+            <p className="whitespace-pre-wrap">{note?.plan}</p>
           </div>
         </div>
       </CardContent>
