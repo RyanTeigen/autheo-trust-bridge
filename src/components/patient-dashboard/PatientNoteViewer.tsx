@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Lock, Unlock, Clock, Shield, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock, Unlock, Clock, Shield, AlertCircle, Eye, EyeOff, Calendar, UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { NoteAccessControl, AccessLevel } from '@/components/emr/soap-note/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface PatientNoteViewerProps {
   noteId?: string;
@@ -19,6 +20,8 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
   const [note, setNote] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessControls, setAccessControls] = useState<NoteAccessControl[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [accessHistory, setAccessHistory] = useState<any[]>([]);
   
   useEffect(() => {
     if (!noteId || !user?.id) return;
@@ -52,6 +55,18 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
         })) || [];
         
         setAccessControls(transformedAccessData);
+
+        // Fetch access history (audit logs)
+        const { data: historyData, error: historyError } = await supabase
+          .from('audit_logs')
+          .select('*')
+          .eq('resource_id', noteId)
+          .eq('resource', 'note_access')
+          .order('timestamp', { ascending: false });
+          
+        if (!historyError && historyData) {
+          setAccessHistory(historyData);
+        }
         
       } catch (err) {
         console.error("Error fetching note details:", err);
@@ -90,6 +105,18 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
         
       if (error) throw error;
       
+      // Create audit log entry
+      await supabase
+        .from('audit_logs')
+        .insert({
+          user_id: user.id,
+          action: newAccessLevel === 'full' ? 'grant_access' : 'revoke_access',
+          resource: 'note_access',
+          resource_id: noteId,
+          details: `${newAccessLevel === 'full' ? 'Granted' : 'Revoked'} access to provider ${providerId}`,
+          status: 'success'
+        });
+        
       // Update local state with proper type casting
       const updatedControls = accessControls.map(control => 
         control.provider_id === providerId 
@@ -98,6 +125,20 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
       );
       
       setAccessControls(updatedControls);
+      
+      // Update access history
+      const newHistoryEntry = {
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        timestamp: new Date().toISOString(),
+        action: newAccessLevel === 'full' ? 'grant_access' : 'revoke_access',
+        resource: 'note_access',
+        resource_id: noteId,
+        details: `${newAccessLevel === 'full' ? 'Granted' : 'Revoked'} access to provider ${providerId}`,
+        status: 'success'
+      };
+      
+      setAccessHistory([newHistoryEntry, ...accessHistory]);
       
       toast({
         title: newAccessLevel === 'full' ? "Access Granted" : "Access Revoked",
@@ -112,6 +153,11 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
         variant: "destructive",
       });
     }
+  };
+  
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleString();
   };
   
   if (loading) {
@@ -147,14 +193,26 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
           <div>
             <CardTitle>Medical Note</CardTitle>
             <CardDescription>
-              Visit Date: {note && new Date(note.visit_date).toLocaleDateString()}
+              <div className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" />
+                Visit Date: {note && new Date(note.visit_date).toLocaleDateString()}
+              </div>
             </CardDescription>
           </div>
           <div className="flex gap-2">
             {note?.decentralized_refs && (
-              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                <Shield className="h-3.5 w-3.5 mr-1" /> Decentralized
-              </Badge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+                      <Shield className="h-3.5 w-3.5 mr-1" /> Decentralized
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs max-w-[200px]">This note is secured using decentralized encryption</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {note?.distribution_status === 'distributed' ? (
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -176,30 +234,63 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
             <h3 className="font-medium flex items-center">
               <Shield className="h-4 w-4 mr-2 text-blue-600" /> Provider Access
             </h3>
-            {providerAccess ? (
-              providerAccess.access_level === 'full' ? (
-                <Badge className="bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
-                  <Eye className="h-3.5 w-3.5 mr-1" /> Full Access
-                </Badge>
-              ) : providerAccess.access_level === 'temporary' ? (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
-                  <Clock className="h-3.5 w-3.5 mr-1" /> Temporary Access
-                </Badge>
+            <div className="flex gap-2">
+              {providerAccess ? (
+                providerAccess.access_level === 'full' ? (
+                  <Badge className="bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
+                    <Eye className="h-3.5 w-3.5 mr-1" /> Full Access
+                  </Badge>
+                ) : providerAccess.access_level === 'temporary' ? (
+                  <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
+                    <Clock className="h-3.5 w-3.5 mr-1" /> Temporary Access
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
+                    <EyeOff className="h-3.5 w-3.5 mr-1" /> Access Revoked
+                  </Badge>
+                )
               ) : (
-                <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
-                  <EyeOff className="h-3.5 w-3.5 mr-1" /> Access Revoked
+                <Badge variant="outline" className="bg-amber-100 text-amber-800">
+                  <Clock className="h-3.5 w-3.5 mr-1" /> Status Unknown
                 </Badge>
-              )
-            ) : (
-              <Badge variant="outline" className="bg-amber-100 text-amber-800">
-                <Clock className="h-3.5 w-3.5 mr-1" /> Status Unknown
-              </Badge>
-            )}
+              )}
+              
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => setShowHistory(!showHistory)}
+              >
+                {showHistory ? "Hide History" : "View History"}
+              </Button>
+            </div>
           </div>
           
           <p className="text-sm text-muted-foreground">
             Control who can access this medical record and for how long.
           </p>
+          
+          {/* Access History */}
+          {showHistory && accessHistory.length > 0 && (
+            <div className="mt-4 border rounded-md p-3 bg-white">
+              <h4 className="font-medium text-sm mb-2">Access History</h4>
+              <div className="space-y-2 max-h-[120px] overflow-y-auto text-xs">
+                {accessHistory.map((entry) => (
+                  <div key={entry.id} className="flex justify-between border-b pb-1 last:border-0">
+                    <div>
+                      {entry.action === 'grant_access' ? (
+                        <span className="text-green-600">✓ Access granted</span>
+                      ) : (
+                        <span className="text-red-600">✗ Access revoked</span>
+                      )}
+                    </div>
+                    <div className="text-slate-500">
+                      {formatDate(entry.timestamp)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           <div className="flex justify-end">
             <Button 
@@ -239,6 +330,19 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
           </div>
         </div>
       </CardContent>
+      
+      <CardFooter className="border-t pt-4 text-xs text-slate-500">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-1.5">
+            <Shield className="h-4 w-4 text-autheo-primary" />
+            {note?.decentralized_refs ? 'Secured with decentralized encryption' : 'Standard encryption'}
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Calendar className="h-3 w-3" />
+            Last updated: {new Date(note?.updated_at).toLocaleString()}
+          </div>
+        </div>
+      </CardFooter>
     </Card>
   );
 };
