@@ -9,73 +9,17 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MedicalNotesPage = () => {
   const [activeTab, setActiveTab] = useState('create');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Get current session
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
-        
-        // If authenticated, get user role
-        if (session) {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (error) {
-            console.error("Error fetching user role:", error);
-          } else {
-            setUserRole(data?.role);
-          }
-        }
-      } catch (error) {
-        console.error("Auth check error:", error);
-        setIsAuthenticated(false);
-      }
-    };
-    
-    checkAuth();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setIsAuthenticated(!!session);
-        
-        if (session) {
-          try {
-            const { data } = await supabase
-              .from('profiles')
-              .select('role')
-              .eq('id', session.user.id)
-              .single();
-              
-            setUserRole(data?.role);
-          } catch (error) {
-            console.error("Error fetching user role:", error);
-          }
-        } else {
-          setUserRole(null);
-        }
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const { isAuthenticated, isLoading, profile } = useAuth();
 
   // Show loading state while checking auth
-  if (isAuthenticated === null) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-muted-foreground">Loading...</p>
@@ -84,51 +28,30 @@ const MedicalNotesPage = () => {
   }
 
   // Redirect to login if not authenticated
-  if (isAuthenticated === false) {
+  if (!isAuthenticated) {
     return (
       <div className="space-y-6">
-        <div className="border border-amber-200 bg-amber-50 p-4 rounded-md">
-          <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-amber-600 mr-2 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-amber-800">Authentication Required</h3>
-              <p className="text-sm text-amber-700 mt-1">
-                You need to be logged in as a provider to access medical notes.
-              </p>
+        <Alert variant="warning">
+          <AlertCircle className="h-5 w-5" />
+          <AlertDescription>
+            You need to be logged in to access medical notes.
+            <div className="mt-3">
               <Button 
                 variant="outline"
-                className="mt-3"
                 onClick={() => navigate('/auth')}
               >
                 Go to Login
               </Button>
             </div>
-          </div>
-        </div>
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
-  // Check if user has appropriate role
-  if (userRole !== 'provider' && userRole !== 'admin') {
-    return (
-      <div className="space-y-6">
-        <div className="border border-red-200 bg-red-50 p-4 rounded-md">
-          <div className="flex items-start">
-            <AlertCircle className="h-5 w-5 text-red-600 mr-2 mt-0.5" />
-            <div>
-              <h3 className="font-medium text-red-800">Access Denied</h3>
-              <p className="text-sm text-red-700 mt-1">
-                You don't have permission to access this page. 
-                Only providers and administrators can access medical notes.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Display creator access banner when the user doesn't have provider/admin role
+  const hasProviderRole = profile?.roles?.includes('provider') || profile?.roles?.includes('admin');
+  
   return (
     <div className="space-y-6">
       <div>
@@ -137,6 +60,15 @@ const MedicalNotesPage = () => {
           Create and manage clinical documentation for patient records
         </p>
       </div>
+
+      {!hasProviderRole && (
+        <Alert variant="warning" className="mb-4">
+          <AlertCircle className="h-5 w-5" />
+          <AlertDescription>
+            You are accessing this page with creator privileges. Normally, this page is restricted to users with provider or admin roles.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">

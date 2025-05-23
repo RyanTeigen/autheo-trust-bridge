@@ -56,7 +56,7 @@ const App = () => (
                   </ProtectedRoute>
                 } />
 
-                {/* Developer access route to Medical Notes */}
+                {/* Medical Notes - now accessible to all authenticated users */}
                 <Route path="/medical-notes" element={<MedicalNotesPage />} />
                 
                 {/* Compliance routes */}
