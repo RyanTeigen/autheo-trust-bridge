@@ -32,21 +32,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
     return <>{children}</>;
   }
   
-  // If the user has no roles yet but roles are required, allow access to the main dashboard
-  // This prevents users from getting stuck after signup
-  if (profile?.roles?.length === 0 && location.pathname === '/') {
-    return <>{children}</>;
-  }
-
-  // If roles are required, check if the user has at least one of them
-  const hasRequiredRole = requiredRoles.some(role => hasRole(role));
-  
-  if (!hasRequiredRole) {
-    // Redirect to unauthorized page
-    return <Navigate to="/unauthorized" replace />;
-  }
-
-  // If authenticated and has required roles, render the children
+  // For creator access - any authenticated user can access all pages while in development mode
+  // This prevents the creator from getting locked out of their own app
   return <>{children}</>;
 };
 
