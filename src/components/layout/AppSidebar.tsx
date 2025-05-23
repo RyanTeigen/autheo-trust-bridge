@@ -22,7 +22,8 @@ import {
   BookOpen,
   Heart,
   CalendarIcon,
-  Home
+  Home,
+  Activity
 } from 'lucide-react';
 
 export const AppSidebar: React.FC = () => {
@@ -43,6 +44,11 @@ export const AppSidebar: React.FC = () => {
       title: "Home",
       path: "/",
       icon: Home
+    },
+    {
+      title: "Health Tracker",
+      path: "/health-tracker",
+      icon: Activity
     },
     {
       title: "Appointments",

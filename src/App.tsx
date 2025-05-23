@@ -21,6 +21,7 @@ import SharedRecordsPage from "./pages/SharedRecordsPage";
 import SettingsPage from "./pages/SettingsPage";
 import SchedulingPage from "./pages/SchedulingPage";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
+import HealthTrackerPage from "./pages/HealthTrackerPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
                   <Route path="/shared-records" element={<SharedRecordsPage />} />
                   <Route path="/patient-records" element={<PatientRecordsPage />} />
                   <Route path="/medical-notes" element={<MedicalNotesPage />} />
+                  <Route path="/health-tracker" element={<HealthTrackerPage />} />
                   
                   {/* Provider routes */}
                   <Route path="/provider-portal" element={
