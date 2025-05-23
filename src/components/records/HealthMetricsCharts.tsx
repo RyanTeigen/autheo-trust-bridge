@@ -28,13 +28,18 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
   const { toast } = useToast();
   const [timeRange, setTimeRange] = useState<string>('1m');
   
-  // Mock data for the charts
+  // Mock data for the charts - now with more consistent intervals
   const weightData: HealthDataPoint[] = [
-    { date: '2025-04-01', value: 73.5 },
-    { date: '2025-03-15', value: 74.2 },
-    { date: '2025-03-01', value: 75.0 },
-    { date: '2025-02-15', value: 75.8 },
-    { date: '2025-02-01', value: 76.3 },
+    { date: '2025-04-25', value: 73.5 },
+    { date: '2025-04-15', value: 74.0 },
+    { date: '2025-04-05', value: 74.2 },
+    { date: '2025-03-25', value: 74.8 },
+    { date: '2025-03-15', value: 75.0 },
+    { date: '2025-03-05', value: 75.4 },
+    { date: '2025-02-25', value: 75.8 },
+    { date: '2025-02-15', value: 76.1 },
+    { date: '2025-02-05', value: 76.3 },
+    { date: '2025-01-25', value: 76.8 },
     { date: '2025-01-15', value: 77.1 },
   ];
   
@@ -75,9 +80,16 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
     }
   };
   
+  // Define consistent chart colors
+  const chartColors = {
+    weight: "#5EEBC4", // Autheo primary
+    height: "#4A6BF5", // Autheo secondary  
+    bmi: "#7880FF",    // Autheo accent
+  };
+  
   return (
     <Card className="mb-6 bg-slate-800 border-slate-700 text-slate-100">
-      <CardHeader className="bg-slate-700/30 border-b border-slate-700">
+      <CardHeader className="bg-slate-800/50 border-b border-slate-700">
         <div className="flex justify-between items-center">
           <div>
             <CardTitle className="text-autheo-primary">Health Metrics</CardTitle>
@@ -97,67 +109,75 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
       <CardContent className="pt-6">
         <Tabs defaultValue="weight">
           <TabsList className="grid grid-cols-3 mb-4 bg-slate-700/30">
-            <TabsTrigger value="weight" className="flex items-center gap-1 text-autheo-primary data-[state=active]:bg-slate-800 data-[state=active]:text-autheo-primary">
+            <TabsTrigger value="weight" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
               <Scale className="h-4 w-4" /> Weight
             </TabsTrigger>
-            <TabsTrigger value="height" className="flex items-center gap-1 text-autheo-primary data-[state=active]:bg-slate-800 data-[state=active]:text-autheo-primary">
+            <TabsTrigger value="height" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
               <Ruler className="h-4 w-4" /> Height
             </TabsTrigger>
-            <TabsTrigger value="bmi" className="flex items-center gap-1 text-autheo-primary data-[state=active]:bg-slate-800 data-[state=active]:text-autheo-primary">
+            <TabsTrigger value="bmi" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
               <ChartBar className="h-4 w-4" /> BMI
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="weight">
+          <TabsContent value="weight" className="animate-fade-in">
             <HealthDataChart
               title="Weight History"
               description="Your weight measurements over time"
               data={weightData}
               unit="kg"
-              color="#5EEBC4" // Use Autheo primary color
+              color={chartColors.weight}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
+              minValue={72}
+              maxValue={78}
             />
           </TabsContent>
           
-          <TabsContent value="height">
+          <TabsContent value="height" className="animate-fade-in">
             <HealthDataChart
               title="Height History"
               description="Your height measurements over time"
               data={heightData}
               unit="cm"
-              color="#4A6BF5" // Use Autheo secondary color
+              color={chartColors.height}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
+              minValue={170}
+              maxValue={172}
             />
           </TabsContent>
           
-          <TabsContent value="bmi">
+          <TabsContent value="bmi" className="animate-fade-in">
             <HealthDataChart
               title="BMI History"
               description="Your Body Mass Index over time"
               data={bmiData}
-              color="#7880FF" // Use Autheo accent color
-              minValue={16}
-              maxValue={32}
+              color={chartColors.bmi}
+              minValue={24}
+              maxValue={27}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
             />
             <div className="mt-4 text-sm grid grid-cols-4 gap-2">
-              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
-                <p className="font-medium text-autheo-light">Underweight</p>
+              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                <div className="w-3 h-3 rounded-full mb-1 bg-blue-400"></div>
+                <p className="font-medium text-blue-300">Underweight</p>
                 <p className="text-xs text-slate-300">BMI &lt; 18.5</p>
               </div>
-              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
+              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                <div className="w-3 h-3 rounded-full mb-1 bg-autheo-primary"></div>
                 <p className="font-medium text-autheo-primary">Normal</p>
                 <p className="text-xs text-slate-300">BMI 18.5 - 24.9</p>
               </div>
-              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
-                <p className="font-medium text-autheo-secondary">Overweight</p>
+              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                <div className="w-3 h-3 rounded-full mb-1 bg-amber-400"></div>
+                <p className="font-medium text-amber-300">Overweight</p>
                 <p className="text-xs text-slate-300">BMI 25 - 29.9</p>
               </div>
-              <div className="p-2 rounded bg-slate-700/30 border border-slate-600">
-                <p className="font-medium text-autheo-accent">Obese</p>
+              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                <div className="w-3 h-3 rounded-full mb-1 bg-red-500"></div>
+                <p className="font-medium text-red-400">Obese</p>
                 <p className="text-xs text-slate-300">BMI &gt; 30</p>
               </div>
             </div>
