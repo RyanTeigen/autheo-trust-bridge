@@ -26,7 +26,7 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
     const fetchNotes = async () => {
       setLoading(true);
       try {
-        // Fetch SOAP notes
+        // Fetch SOAP notes with a join to get provider names
         const { data, error } = await supabase
           .from('soap_notes')
           .select(`
@@ -40,21 +40,42 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
             distribution_status,
             decentralized_refs,
             created_at,
-            updated_at,
-            providers:profiles(first_name, last_name)
+            updated_at
           `)
           .eq('patient_id', user.id)
           .order('visit_date', { ascending: false });
           
         if (error) throw error;
         
+        // Get provider names in a separate query
+        const providerIds = [...new Set(data.map(note => note.provider_id))];
+        const { data: providersData, error: providersError } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name')
+          .in('id', providerIds);
+          
+        if (providersError) throw providersError;
+        
+        // Create a map of provider IDs to names
+        const providerMap = new Map();
+        providersData?.forEach(provider => {
+          providerMap.set(provider.id, {
+            first_name: provider.first_name || '',
+            last_name: provider.last_name || ''
+          });
+        });
+        
         // Transform data to include provider name
-        const transformedData = data.map(note => ({
-          ...note,
-          provider_name: note.providers ? 
-            `${note.providers.first_name || ''} ${note.providers.last_name || ''}`.trim() || 'Unknown Provider'
-            : 'Unknown Provider'
-        }));
+        const transformedData = data.map(note => {
+          const provider = providerMap.get(note.provider_id);
+          return {
+            ...note,
+            provider_name: provider 
+              ? `${provider.first_name} ${provider.last_name}`.trim() || 'Unknown Provider'
+              : 'Unknown Provider',
+            profiles: provider || { first_name: '', last_name: '' }
+          };
+        });
         
         setNotes(transformedData);
         
@@ -76,7 +97,7 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
     };
     
     fetchNotes();
-  }, [user, toast]);
+  }, [user, toast, selectedNote]);
   
   const handleSelectNote = (noteId: string) => {
     setSelectedNote(noteId);

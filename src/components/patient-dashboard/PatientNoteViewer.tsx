@@ -34,16 +34,23 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
         // Fetch the note
         const { data, error } = await supabase
           .from('soap_notes')
-          .select('*, profiles:provider_id(first_name, last_name)')
+          .select('*')
           .eq('id', noteId)
           .single();
           
         if (error) throw error;
 
-        // Transform the data to ensure it matches our SoapNote type
+        // Fetch provider information separately
+        const { data: providerData, error: providerError } = await supabase
+          .from('profiles')
+          .select('first_name, last_name')
+          .eq('id', data.provider_id)
+          .single();
+        
+        // Create the transformed note with provider info
         const transformedNote: SoapNote = {
           ...data,
-          profiles: data.profiles || { first_name: '', last_name: '' }
+          profiles: providerError ? { first_name: '', last_name: '' } : providerData
         };
         
         setNote(transformedNote);
@@ -135,7 +142,7 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
       setAccessControls(updatedControls);
       
       // Update access history
-      const newHistoryEntry = {
+      const newHistoryEntry: AuditLogEntry = {
         id: crypto.randomUUID(),
         user_id: user.id,
         timestamp: new Date().toISOString(),
