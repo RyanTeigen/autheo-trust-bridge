@@ -106,14 +106,15 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           });
         } else {
           // If no settings found, create default settings
+          // Fix: Using an array for insert to match TypeScript's expected input format
           const { error: insertError } = await supabase
             .from('user_settings')
-            .insert({
+            .insert([{  // Changed to an array of objects
               user_id: user.id,
               theme: defaultSettings.theme,
               notifications: defaultSettings.notifications,
               privacy: defaultSettings.privacy,
-            });
+            }]);
             
           if (insertError) throw insertError;
         }
