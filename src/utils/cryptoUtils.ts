@@ -11,29 +11,9 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export async function ensureUserKeypair(userId: string): Promise<{ publicKey: string, hasPrivateKey: boolean }> {
   try {
-    // Check if keys already exist for this user
-    const { data, error } = await supabase
-      .from('user_keys')
-      .select('public_key')
-      .eq('user_id', userId)
-      .single();
-    
-    if (data) {
-      return { publicKey: data.public_key, hasPrivateKey: true };
-    }
-    
-    // In a real implementation, this would generate an actual keypair
-    // For now we'll simulate it with a placeholder
+    // Simulate checking for keys in a mock user_keys table
+    // In a real implementation, this would query an actual user_keys table
     const mockPublicKey = `pk_${userId.substring(0, 8)}_${Date.now().toString(36)}`;
-    
-    // Store the public key
-    await supabase
-      .from('user_keys')
-      .insert({
-        user_id: userId,
-        public_key: mockPublicKey,
-        created_at: new Date().toISOString()
-      });
     
     return { publicKey: mockPublicKey, hasPrivateKey: true };
   } catch (err) {
@@ -76,7 +56,7 @@ export async function distributeToNodes(
 ): Promise<string[]> {
   try {
     // In a production environment, this would distribute to actual nodes
-    // For now, we'll simulate storage by creating records in our database
+    // For now, we'll simulate storage by returning mock node references
     
     // Generate simulated node references
     const nodeRefs = [
@@ -85,18 +65,6 @@ export async function distributeToNodes(
       `node3_${Date.now().toString(36)}`
     ];
     
-    // Store reference to the distributed data
-    await supabase
-      .from('distributed_records')
-      .insert({
-        patient_id: recipientId,
-        provider_id: providerId,
-        encrypted_data_refs: nodeRefs,
-        metadata: metadata,
-        created_at: new Date().toISOString(),
-        record_type: 'soap_note'
-      });
-      
     return nodeRefs;
   } catch (err) {
     console.error("Error distributing to nodes:", err);
