@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -148,7 +147,7 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
                     </CardContent>
                   </Card>
                 </div>
-                <WalletOverview />
+                <WalletOverview removeBalanceCard={true} />
               </div>
             </TabsContent>
               
