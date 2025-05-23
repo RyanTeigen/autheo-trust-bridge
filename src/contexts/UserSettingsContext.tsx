@@ -106,15 +106,15 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           });
         } else {
           // If no settings found, create default settings
-          // Fix: Convert our TypeScript types to JSON-compatible objects for Supabase
+          // Fix: Using an array for insert to match Supabase's expected format
           const { error: insertError } = await supabase
             .from('user_settings')
-            .insert({
+            .insert([{  // Changed to an array with one object
               user_id: user.id,
               theme: defaultSettings.theme as unknown as Record<string, unknown>,
               notifications: defaultSettings.notifications as unknown as Record<string, unknown>,
               privacy: defaultSettings.privacy as unknown as Record<string, unknown>,
-            });
+            }]);
             
           if (insertError) throw insertError;
         }
