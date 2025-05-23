@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -77,18 +76,20 @@ const SmartContracts = () => {
         
         setContracts(formattedContracts.length > 0 ? formattedContracts : getDemoContracts());
         
-        // Fetch Autheo balance
+        // Fetch Autheo balance - Fixed: Use select() instead of maybeSingle() since there might be multiple records
         const { data: balanceData, error: balanceError } = await supabase
           .from('autheo_balances')
           .select('balance')
-          .eq('user_id', userAuth.id)
-          .maybeSingle();
+          .eq('user_id', userAuth.id);
           
         if (balanceError) throw balanceError;
         
         // Update Autheo info with balance from database or default
+        // If multiple balances are found, use the first one
+        const userBalance = balanceData && balanceData.length > 0 ? balanceData[0].balance : 100;
+        
         setAutheoInfo({
-          balance: balanceData?.balance || 100,
+          balance: userBalance,
           conversionRate: 10 // Fixed rate for now
         });
         
@@ -276,7 +277,7 @@ const SmartContracts = () => {
       const { data: transactionData, error: transactionError } = await supabase
         .from('transactions')
         .insert({
-          user_id: userAuth.id,  // Added the required user_id field
+          user_id: userAuth.id,
           amount: amountValue,
           fee: fee,
           autheo_coins_used: autheoCoinsNeeded,
@@ -288,14 +289,29 @@ const SmartContracts = () => {
         
       if (transactionError) throw transactionError;
       
-      // Update user's Autheo balance
+      // Update user's Autheo balance - Fixed: Get the first balance record if multiple exist
+      const { data: currentBalanceData, error: getBalanceError } = await supabase
+        .from('autheo_balances')
+        .select('id, balance')
+        .eq('user_id', userAuth.id);
+        
+      if (getBalanceError) throw getBalanceError;
+      
+      if (!currentBalanceData || currentBalanceData.length === 0) {
+        throw new Error("No balance record found");
+      }
+      
+      // Update the first balance record
+      const balanceRecord = currentBalanceData[0];
+      const newBalance = balanceRecord.balance - autheoCoinsNeeded;
+      
       const { error: balanceError } = await supabase
         .from('autheo_balances')
         .update({ 
-          balance: autheoInfo.balance - autheoCoinsNeeded,
+          balance: newBalance,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', userAuth.id);
+        .eq('id', balanceRecord.id);
         
       if (balanceError) throw balanceError;
       
@@ -316,7 +332,7 @@ const SmartContracts = () => {
       // Update Autheo coin balance
       setAutheoInfo({
         ...autheoInfo,
-        balance: autheoInfo.balance - autheoCoinsNeeded
+        balance: newBalance
       });
       
       toast({
