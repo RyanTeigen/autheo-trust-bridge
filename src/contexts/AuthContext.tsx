@@ -92,13 +92,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userMetadata = userData.user?.user_metadata;
       
       // Create a profile from either db profile or user metadata
+      // Convert the single 'role' from the database to an array of roles for our app
+      const rolesArray = profileData?.role 
+        ? [profileData.role] 
+        : (userMetadata?.roles || []);
+        
       setProfile({
         id: userId,
         email: userData.user?.email || '',
         firstName: profileData?.first_name || userMetadata?.first_name || '',
         lastName: profileData?.last_name || userMetadata?.last_name || '',
-        // Ensure roles is always at least an empty array to prevent null references
-        roles: profileData?.roles || userMetadata?.roles || [],
+        roles: rolesArray,
       });
       
     } catch (error) {
