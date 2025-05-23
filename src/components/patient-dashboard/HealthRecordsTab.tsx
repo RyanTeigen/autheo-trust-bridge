@@ -7,8 +7,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import HealthRecordsList from '@/components/wallet/HealthRecordsList';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Search, ListFilter } from 'lucide-react';
+import { Search, ListFilter, FileText } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface HealthRecordsTabProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -25,14 +27,31 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
   selectedCategory,
   setSelectedCategory
 }) => {
+  const navigate = useNavigate();
   const [viewType, setViewType] = useState<'advanced' | 'list'>('advanced');
   const { healthRecords } = useHealthRecords();
   
   // Get unique categories for the filter dropdown
   const categories = ['all', 'medication', 'condition', 'lab', 'imaging', 'note', 'visit', 'immunization', 'allergy'];
   
+  const handleViewDetailedRecords = () => {
+    navigate('/my-health-records');
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">My Health Records</h2>
+        <Button 
+          variant="outline"
+          onClick={handleViewDetailedRecords}
+          className="flex items-center gap-1.5 border-autheo-primary/30 text-autheo-primary hover:bg-slate-700"
+        >
+          <FileText className="h-4 w-4" />
+          View Detailed Records
+        </Button>
+      </div>
+      
       <Tabs value={viewType} onValueChange={(value: 'advanced' | 'list') => setViewType(value)}>
         <div className="flex justify-between items-center mb-4">
           <TabsList className="bg-slate-700">

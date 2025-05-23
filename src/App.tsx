@@ -22,6 +22,7 @@ import SettingsPage from "./pages/SettingsPage";
 import SchedulingPage from "./pages/SchedulingPage";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
 import HealthTrackerPage from "./pages/HealthTrackerPage";
+import DetailedHealthRecordsPage from "./pages/DetailedHealthRecordsPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
                   <Route path="/patient-records" element={<PatientRecordsPage />} />
                   <Route path="/medical-notes" element={<MedicalNotesPage />} />
                   <Route path="/health-tracker" element={<HealthTrackerPage />} />
+                  <Route path="/my-health-records" element={<DetailedHealthRecordsPage />} />
                   
                   {/* Provider routes */}
                   <Route path="/provider-portal" element={
