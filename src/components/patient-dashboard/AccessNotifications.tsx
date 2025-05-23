@@ -7,11 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
+type NotificationType = 'access_granted' | 'access_revoked' | 'access_requested' | 'access_expired';
+
 interface AccessNotification {
   id: string;
   title: string;
   message: string;
-  type: 'access_granted' | 'access_revoked' | 'access_requested' | 'access_expired';
+  type: NotificationType;
   created_at: string;
   is_read: boolean;
   reference_id?: string;
@@ -39,7 +41,13 @@ const AccessNotifications: React.FC = () => {
           
         if (error) throw error;
         
-        setNotifications(data || []);
+        // Cast the data to ensure type safety
+        const typedNotifications = (data || []).map(notification => ({
+          ...notification,
+          type: notification.type as NotificationType
+        }));
+        
+        setNotifications(typedNotifications);
       } catch (err) {
         console.error("Error fetching notifications:", err);
       } finally {
@@ -111,7 +119,7 @@ const AccessNotifications: React.FC = () => {
     }
   };
   
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
       case 'access_granted':
         return <Eye className="h-5 w-5 text-green-600" />;

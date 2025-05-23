@@ -1,14 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Lock, Unlock, Clock, Shield, AlertCircle, Eye, EyeOff, Calendar, UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { NoteAccessControl, AccessLevel } from '@/components/emr/soap-note/types';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AccessLevel, NoteAccessControl, AuditLogEntry, SoapNote } from './types/note';
+
+// Import the smaller component parts
+import NoteViewerSkeleton from './note-viewer/NoteViewerSkeleton';
+import NoteHeader from './note-viewer/NoteHeader';
+import AccessControlPanel from './note-viewer/AccessControlPanel';
+import NoteContent from './note-viewer/NoteContent';
+import NoteFooter from './note-viewer/NoteFooter';
 
 interface PatientNoteViewerProps {
   noteId?: string;
@@ -17,11 +20,10 @@ interface PatientNoteViewerProps {
 const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [note, setNote] = useState<any | null>(null);
+  const [note, setNote] = useState<SoapNote | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessControls, setAccessControls] = useState<NoteAccessControl[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
-  const [accessHistory, setAccessHistory] = useState<any[]>([]);
+  const [accessHistory, setAccessHistory] = useState<AuditLogEntry[]>([]);
   
   useEffect(() => {
     if (!noteId || !user?.id) return;
@@ -83,7 +85,7 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
     fetchNote();
   }, [noteId, user, toast]);
   
-  const handleToggleAccess = async (providerId: string, currentAccess: AccessLevel | string) => {
+  const handleToggleAccess = async (providerId: string, currentAccess: string) => {
     if (!note || !user?.id) return;
     
     try {
@@ -133,7 +135,7 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
         timestamp: new Date().toISOString(),
         action: newAccessLevel === 'full' ? 'grant_access' : 'revoke_access',
         resource: 'note_access',
-        resource_id: noteId,
+        resource_id: noteId || '',
         details: `${newAccessLevel === 'full' ? 'Granted' : 'Revoked'} access to provider ${providerId}`,
         status: 'success'
       };
@@ -155,32 +157,13 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
     }
   };
   
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleString();
-  };
-  
+  // Show loading or error states
   if (loading) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">Loading note details...</p>
-        </CardContent>
-      </Card>
-    );
+    return <NoteViewerSkeleton loading />;
   }
   
   if (!note) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="text-center space-y-2">
-            <AlertCircle className="mx-auto h-8 w-8 text-amber-500" />
-            <p>Note not found or you don't have permission to view it.</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <NoteViewerSkeleton error="Note not found or you don't have permission to view it." />;
   }
   
   // Find provider in access controls
@@ -189,160 +172,24 @@ const PatientNoteViewer: React.FC<PatientNoteViewerProps> = ({ noteId }) => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between">
-          <div>
-            <CardTitle>Medical Note</CardTitle>
-            <CardDescription>
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                Visit Date: {note && new Date(note.visit_date).toLocaleDateString()}
-              </div>
-            </CardDescription>
-          </div>
-          <div className="flex gap-2">
-            {note?.decentralized_refs && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                      <Shield className="h-3.5 w-3.5 mr-1" /> Decentralized
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs max-w-[200px]">This note is secured using decentralized encryption</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {note?.distribution_status === 'distributed' ? (
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                Distributed
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                <Clock className="h-3.5 w-3.5 mr-1" /> Pending Distribution
-              </Badge>
-            )}
-          </div>
-        </div>
+        <NoteHeader note={note} />
       </CardHeader>
       
       <CardContent className="space-y-6">
         {/* Provider Access Control */}
-        <div className="border rounded-md p-4 bg-slate-50 space-y-3">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium flex items-center">
-              <Shield className="h-4 w-4 mr-2 text-blue-600" /> Provider Access
-            </h3>
-            <div className="flex gap-2">
-              {providerAccess ? (
-                providerAccess.access_level === 'full' ? (
-                  <Badge className="bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
-                    <Eye className="h-3.5 w-3.5 mr-1" /> Full Access
-                  </Badge>
-                ) : providerAccess.access_level === 'temporary' ? (
-                  <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
-                    <Clock className="h-3.5 w-3.5 mr-1" /> Temporary Access
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="bg-red-100 text-red-800 hover:bg-red-200 transition-colors cursor-pointer" onClick={() => handleToggleAccess(note.provider_id, providerAccess.access_level)}>
-                    <EyeOff className="h-3.5 w-3.5 mr-1" /> Access Revoked
-                  </Badge>
-                )
-              ) : (
-                <Badge variant="outline" className="bg-amber-100 text-amber-800">
-                  <Clock className="h-3.5 w-3.5 mr-1" /> Status Unknown
-                </Badge>
-              )}
-              
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => setShowHistory(!showHistory)}
-              >
-                {showHistory ? "Hide History" : "View History"}
-              </Button>
-            </div>
-          </div>
-          
-          <p className="text-sm text-muted-foreground">
-            Control who can access this medical record and for how long.
-          </p>
-          
-          {/* Access History */}
-          {showHistory && accessHistory.length > 0 && (
-            <div className="mt-4 border rounded-md p-3 bg-white">
-              <h4 className="font-medium text-sm mb-2">Access History</h4>
-              <div className="space-y-2 max-h-[120px] overflow-y-auto text-xs">
-                {accessHistory.map((entry) => (
-                  <div key={entry.id} className="flex justify-between border-b pb-1 last:border-0">
-                    <div>
-                      {entry.action === 'grant_access' ? (
-                        <span className="text-green-600">✓ Access granted</span>
-                      ) : (
-                        <span className="text-red-600">✗ Access revoked</span>
-                      )}
-                    </div>
-                    <div className="text-slate-500">
-                      {formatDate(entry.timestamp)}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="flex justify-end">
-            <Button 
-              size="sm" 
-              variant={providerAccess?.access_level === 'full' ? 'destructive' : 'default'}
-              onClick={() => handleToggleAccess(note.provider_id, providerAccess?.access_level || 'revoked')}
-            >
-              {providerAccess?.access_level === 'full' ? (
-                <><Lock className="h-4 w-4 mr-1" /> Revoke Access</>
-              ) : (
-                <><Unlock className="h-4 w-4 mr-1" /> Grant Access</>
-              )}
-            </Button>
-          </div>
-        </div>
+        <AccessControlPanel 
+          noteId={note.id}
+          providerId={note.provider_id}
+          providerAccess={providerAccess}
+          accessHistory={accessHistory}
+          onToggleAccess={handleToggleAccess}
+        />
       
         {/* Note Content */}
-        <div className="space-y-4">
-          <div className="border rounded-md p-4">
-            <h3 className="font-medium mb-2">Subjective</h3>
-            <p className="whitespace-pre-wrap">{note?.subjective}</p>
-          </div>
-          
-          <div className="border rounded-md p-4">
-            <h3 className="font-medium mb-2">Objective</h3>
-            <p className="whitespace-pre-wrap">{note?.objective}</p>
-          </div>
-          
-          <div className="border rounded-md p-4">
-            <h3 className="font-medium mb-2">Assessment</h3>
-            <p className="whitespace-pre-wrap">{note?.assessment}</p>
-          </div>
-          
-          <div className="border rounded-md p-4">
-            <h3 className="font-medium mb-2">Plan</h3>
-            <p className="whitespace-pre-wrap">{note?.plan}</p>
-          </div>
-        </div>
+        <NoteContent note={note} />
       </CardContent>
       
-      <CardFooter className="border-t pt-4 text-xs text-slate-500">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-1.5">
-            <Shield className="h-4 w-4 text-autheo-primary" />
-            {note?.decentralized_refs ? 'Secured with decentralized encryption' : 'Standard encryption'}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-3 w-3" />
-            Last updated: {new Date(note?.updated_at).toLocaleString()}
-          </div>
-        </div>
-      </CardFooter>
+      <NoteFooter note={note} />
     </Card>
   );
 };

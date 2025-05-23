@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FileText, Share, Users, Bell } from 'lucide-react';
-import { Button } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 import EnhancedNotesView from '@/components/health-records/EnhancedNotesView';
 import DecentralizedTransfer from '@/components/patient-dashboard/DecentralizedTransfer';
@@ -41,7 +41,7 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
             decentralized_refs,
             created_at,
             updated_at,
-            profiles:provider_id(first_name, last_name)
+            providers:provider_id(first_name, last_name)
           `)
           .eq('patient_id', user.id)
           .order('visit_date', { ascending: false });
@@ -51,7 +51,7 @@ const EnhancedMedicalRecordsTab: React.FC = () => {
         // Transform data to include provider name
         const transformedData = data.map(note => ({
           ...note,
-          provider_name: note.profiles ? `${note.profiles.first_name} ${note.profiles.last_name}` : 'Unknown Provider'
+          provider_name: note.providers ? `${note.providers.first_name} ${note.providers.last_name}` : 'Unknown Provider'
         }));
         
         setNotes(transformedData);
