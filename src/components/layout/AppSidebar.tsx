@@ -48,7 +48,8 @@ export const AppSidebar: React.FC = () => {
     {
       title: "Health Tracker",
       path: "/health-tracker",
-      icon: Activity
+      icon: Activity,
+      badge: "Overview"
     },
     {
       title: "Appointments",
@@ -106,7 +107,16 @@ export const AppSidebar: React.FC = () => {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.path} end={item.path === "/"} className={getLinkClass}>
                       <item.icon className="h-4 w-4 mr-2.5 flex-shrink-0" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      {!isCollapsed && (
+                        <div className="flex justify-between items-center w-full">
+                          <span>{item.title}</span>
+                          {item.badge && (
+                            <span className="text-xs bg-autheo-primary/20 text-autheo-primary px-1.5 py-0.5 rounded">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

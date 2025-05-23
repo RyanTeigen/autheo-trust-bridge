@@ -36,6 +36,8 @@ const ConsolidatedHealthOverview: React.FC<ConsolidatedHealthOverviewProps> = ({
       navigate('/my-health-records');
     } else if (section === 'metrics') {
       navigate('/wallet');
+    } else if (section === 'tracker') {
+      navigate('/health-tracker');
     }
   };
   
@@ -97,6 +99,14 @@ const ConsolidatedHealthOverview: React.FC<ConsolidatedHealthOverviewProps> = ({
               Your comprehensive health information in one place
             </CardDescription>
           </div>
+          <Button 
+            variant="outline"
+            onClick={() => handleViewMore('tracker')}
+            className="gap-1.5 border-autheo-primary/30 bg-slate-800 text-autheo-primary hover:bg-slate-700"
+          >
+            <Activity className="h-4 w-4" />
+            Health Tracker
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="p-5">

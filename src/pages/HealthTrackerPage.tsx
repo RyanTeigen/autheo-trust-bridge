@@ -6,15 +6,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, Scale, Heart, Clock, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const HealthTrackerPage: React.FC = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleAddData = (dataType: string) => {
     toast({
       title: "Coming soon",
       description: `The ability to add ${dataType} data will be available soon.`,
     });
+  };
+  
+  const handleBackToDashboard = () => {
+    navigate('/');
   };
 
   return (
@@ -26,10 +32,31 @@ const HealthTrackerPage: React.FC = () => {
             Monitor your health metrics and track your progress over time
           </p>
         </div>
-        <Button onClick={() => handleAddData("health")} className="bg-autheo-primary hover:bg-autheo-primary/90">
-          Add New Data
-        </Button>
+        <div className="space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={handleBackToDashboard}
+            className="bg-transparent border-slate-700"
+          >
+            Back to Dashboard
+          </Button>
+          <Button onClick={() => handleAddData("health")} className="bg-autheo-primary hover:bg-autheo-primary/90">
+            Add New Data
+          </Button>
+        </div>
       </div>
+
+      <Card className="bg-slate-800/50 border-slate-700 p-4">
+        <CardHeader className="px-0 pt-0">
+          <CardTitle className="text-sm text-autheo-primary">Connected to Health Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="px-0 pb-0">
+          <p className="text-sm text-slate-300">
+            Your tracker data is integrated with your health overview dashboard. 
+            All metrics you track here will be reflected in your health overview.
+          </p>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="metrics" className="w-full">
         <TabsList className="w-full justify-start overflow-auto">
