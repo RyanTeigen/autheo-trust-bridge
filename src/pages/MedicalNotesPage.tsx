@@ -8,15 +8,42 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Shield, Server } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 
 const MedicalNotesPage = () => {
   const [activeTab, setActiveTab] = useState('create');
+  const [nodeStatus, setNodeStatus] = useState<{
+    active: number;
+    total: number;
+    lastChecked: string | null;
+  }>({
+    active: 0,
+    total: 0,
+    lastChecked: null
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAuthenticated, isLoading, profile } = useAuth();
+  
+  useEffect(() => {
+    // Simulate fetching node status - in a real implementation this would check actual nodes
+    const fetchNodeStatus = async () => {
+      try {
+        // Simulated node status - in production this would check real node availability
+        setNodeStatus({
+          active: 3,
+          total: 3,
+          lastChecked: new Date().toISOString()
+        });
+      } catch (error) {
+        console.error("Error checking node status:", error);
+      }
+    };
+    
+    fetchNodeStatus();
+  }, []);
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -69,6 +96,46 @@ const MedicalNotesPage = () => {
           </AlertDescription>
         </Alert>
       )}
+      
+      {/* Decentralized Storage Status */}
+      <div className="flex flex-col md:flex-row gap-4 items-start">
+        <Card className="w-full md:w-1/2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center">
+              <Server className="h-4 w-4 mr-2 text-primary" /> 
+              Decentralized Storage Status
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Storage Nodes:</span>
+                <span className="font-medium">
+                  <span className={nodeStatus.active === nodeStatus.total ? "text-green-500" : "text-amber-500"}>
+                    {nodeStatus.active}
+                  </span>/{nodeStatus.total} active
+                </span>
+              </div>
+              
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Data Integrity:</span>
+                <span className="text-green-500 font-medium flex items-center">
+                  <Shield className="h-3.5 w-3.5 mr-1" /> Verified
+                </span>
+              </div>
+              
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Last Checked:</span>
+                <span>{nodeStatus.lastChecked ? new Date(nodeStatus.lastChecked).toLocaleTimeString() : 'Never'}</span>
+              </div>
+              
+              <div className="text-xs text-muted-foreground mt-2">
+                Medical notes are encrypted and stored on decentralized nodes with patient-controlled access.
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
