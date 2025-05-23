@@ -62,7 +62,7 @@ const WalletDashboard: React.FC<WalletDashboardProps> = ({ onSectionChange }) =>
                 value="autheo"
                 className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary"
               >
-                <BadgeDollarSign className="h-4 w-4 mr-2" /> Autheo Coin
+                <BadgeDollarSign className="h-4 w-4 mr-2" /> THEO
               </TabsTrigger>
               <TabsTrigger 
                 value="security"

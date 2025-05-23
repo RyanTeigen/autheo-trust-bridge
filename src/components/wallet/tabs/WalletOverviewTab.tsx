@@ -23,7 +23,7 @@ const WalletOverviewTab: React.FC = () => {
     setTimeout(() => {
       toast({
         title: "Transaction Complete",
-        description: "5 Autheo coins transferred successfully.",
+        description: "5 THEO coins transferred successfully.",
       });
       setBalance(prev => prev - 5);
     }, 1500);
@@ -34,7 +34,7 @@ const WalletOverviewTab: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="bg-slate-800/50 border-slate-700/50 col-span-1">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-slate-300">Autheo Balance</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-300">THEO Balance</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
@@ -43,7 +43,7 @@ const WalletOverviewTab: React.FC = () => {
               </div>
               <div>
                 <div className="text-2xl font-bold text-autheo-primary">{balance}</div>
-                <div className="text-xs text-slate-400">Autheo Coins</div>
+                <div className="text-xs text-slate-400">THEO Coins</div>
               </div>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
