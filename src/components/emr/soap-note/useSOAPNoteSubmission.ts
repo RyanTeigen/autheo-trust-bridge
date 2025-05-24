@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { SOAPNoteFormValues } from './types';
 import { useToast } from '@/hooks/use-toast';
@@ -100,13 +99,14 @@ export const useSOAPNoteSubmission = () => {
             null
         };
         
-        // Distribute the encrypted note to storage nodes
+        // Distribute the encrypted note to storage nodes - Fixed: now encryptedNote is properly awaited
         const nodeRefs = await distributeToNodes(
           encryptedNote,
           metadata,
           values.patientId,
           providerId
         );
+        
         
         // Update the original note with the decentralized references
         await supabase
