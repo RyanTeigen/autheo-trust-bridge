@@ -10,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
   Home,
@@ -142,9 +141,6 @@ const AppSidebar = () => {
 
   return (
     <Sidebar className="bg-slate-900 border-r border-slate-800 text-slate-400 w-64">
-      <SidebarTrigger asChild>
-        <SidebarMenuButton className="ml-2 rounded-md bg-slate-800 p-1.5 text-slate-400 hover:text-slate-100" />
-      </SidebarTrigger>
       <SidebarContent>
         <SidebarGroup className="space-y-4">
           <SidebarGroupLabel>Autheo</SidebarGroupLabel>
