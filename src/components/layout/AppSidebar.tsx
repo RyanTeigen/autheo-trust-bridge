@@ -13,18 +13,12 @@ import {
 } from '@/components/ui/sidebar';
 import {
   User,
-  FileText,
-  Wallet,
-  Share2,
-  Calendar,
   Settings,
-  Activity,
   Building2,
   Shield,
   Stethoscope,
   Users,
   ClipboardList,
-  UserCheck,
   Brain,
   LineChart,
 } from 'lucide-react';
@@ -45,31 +39,6 @@ const AppSidebar = () => {
         title: "Smart Forms",
         url: "/smart-forms",
         icon: Brain,
-      },
-      {
-        title: "Health Records",
-        url: "/health-records", 
-        icon: FileText,
-      },
-      {
-        title: "Smart Wallet",
-        url: "/wallet",
-        icon: Wallet,
-      },
-      {
-        title: "Shared Records",
-        url: "/shared-records",
-        icon: Share2,
-      },
-      {
-        title: "Scheduling",
-        url: "/scheduling",
-        icon: Calendar,
-      },
-      {
-        title: "Health Tracker",
-        url: "/health-tracker",
-        icon: Activity,
       },
       {
         title: "Settings",

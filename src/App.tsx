@@ -12,18 +12,14 @@ import AuthPage from "./pages/AuthPage";
 import Unauthorized from "./pages/Unauthorized";
 import CompliancePage from "./pages/CompliancePage";
 import AuditLogsPage from "./pages/AuditLogsPage";
-import WalletPage from "./pages/WalletPage";
 import NotFound from "./pages/NotFound";
 import PatientRecordsPage from "./pages/PatientRecordsPage";
 import ProviderPortalPage from "./pages/ProviderPortalPage";
 import MedicalNotesPage from "./pages/MedicalNotesPage";
-import SharedRecordsPage from "./pages/SharedRecordsPage";
 import SettingsPage from "./pages/SettingsPage";
-import SchedulingPage from "./pages/SchedulingPage";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
-import HealthTrackerPage from "./pages/HealthTrackerPage";
-import DetailedHealthRecordsPage from "./pages/DetailedHealthRecordsPage";
 import AdminPortalPage from "./pages/AdminPortalPage";
+import SmartFormsPage from "./pages/SmartFormsPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
@@ -50,17 +46,22 @@ const App = () => (
                 }>
                   {/* Dashboard - accessible to all authenticated users */}
                   <Route path="/" element={<PatientDashboardPage />} />
-                  <Route path="/wallet" element={<WalletPage />} />
-                  <Route path="/shared-records" element={<SharedRecordsPage />} />
-                  <Route path="/patient-records" element={<PatientRecordsPage />} />
-                  <Route path="/medical-notes" element={<MedicalNotesPage />} />
-                  <Route path="/health-tracker" element={<HealthTrackerPage />} />
-                  <Route path="/my-health-records" element={<DetailedHealthRecordsPage />} />
+                  <Route path="/smart-forms" element={<SmartFormsPage />} />
                   
                   {/* Provider routes */}
                   <Route path="/provider-portal" element={
                     <ProtectedRoute requiredRoles={['provider']}>
                       <ProviderPortalPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/patient-records" element={
+                    <ProtectedRoute requiredRoles={['provider']}>
+                      <PatientRecordsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/medical-notes" element={
+                    <ProtectedRoute requiredRoles={['provider']}>
+                      <MedicalNotesPage />
                     </ProtectedRoute>
                   } />
 
@@ -77,7 +78,8 @@ const App = () => (
                   
                   {/* Common routes */}
                   <Route path="/settings" element={<SettingsPage />} />
-                  <Route path="/scheduling" element={<SchedulingPage />} />
+                  
+                  {/* Legacy redirects */}
                   <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
                 </Route>
                 
