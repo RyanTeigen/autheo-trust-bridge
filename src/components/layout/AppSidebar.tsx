@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -127,11 +127,11 @@ const AppSidebar = () => {
       },
     ];
 
-    if (profile?.roles?.includes('provider')) {
+    if (profile?.role === 'provider') {
       baseItems.push(...providerItems);
     }
 
-    if (profile?.roles?.includes('admin')) {
+    if (profile?.role === 'admin') {
       baseItems.push(...adminItems);
     }
 
@@ -158,10 +158,10 @@ const AppSidebar = () => {
             {navigationItems.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                  <a href={item.url}>
+                  <Link to={item.url} className="flex items-center">
                     <item.icon className="mr-2 h-4 w-4" />
                     {item.title}
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
