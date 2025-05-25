@@ -40,6 +40,11 @@ const AppSidebar = () => {
         icon: Brain,
       },
       {
+        title: "Compliance",
+        url: "/compliance",
+        icon: Shield,
+      },
+      {
         title: "Settings",
         url: "/settings",
         icon: Settings,
@@ -52,11 +57,6 @@ const AppSidebar = () => {
         url: "/provider-portal",
         icon: Building2,
       },
-      {
-        title: "Patient Records",
-        url: "/patient-records",
-        icon: Users,
-      },
     ];
 
     const adminItems = [
@@ -64,11 +64,6 @@ const AppSidebar = () => {
         title: "Admin Portal",
         url: "/admin-portal",
         icon: Shield,
-      },
-      {
-        title: "Compliance",
-        url: "/compliance",
-        icon: Stethoscope,
       },
       {
         title: "Audit Logs",
