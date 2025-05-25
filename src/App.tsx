@@ -24,6 +24,7 @@ import PatientDashboardPage from "./pages/PatientDashboardPage";
 import HealthTrackerPage from "./pages/HealthTrackerPage";
 import DetailedHealthRecordsPage from "./pages/DetailedHealthRecordsPage";
 import AdminPortalPage from "./pages/AdminPortalPage";
+import ProviderAccess from "./pages/ProviderAccess";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
                   <Route path="/medical-notes" element={<MedicalNotesPage />} />
                   <Route path="/health-tracker" element={<HealthTrackerPage />} />
                   <Route path="/my-health-records" element={<DetailedHealthRecordsPage />} />
+                  <Route path="/provider-access" element={<ProviderAccess />} />
                   
                   {/* Provider routes */}
                   <Route path="/provider-portal" element={
