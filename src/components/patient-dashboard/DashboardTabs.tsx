@@ -1,12 +1,14 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Wallet, Share2, Users } from 'lucide-react';
+import { User, FileText, Wallet, Share2, Users, Calendar, Activity } from 'lucide-react';
 import HealthRecordsTab from './HealthRecordsTab';
 import SmartWalletTab from './SmartWalletTab';
 import SharedRecordsContent from './SharedRecordsContent';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import ProviderAccess from '@/pages/ProviderAccess';
+import SchedulingTabContent from './SchedulingTabContent';
+import HealthTrackerTabContent from './HealthTrackerTabContent';
 
 interface DashboardTabsProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -57,6 +59,18 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({
           <Share2 className="h-4 w-4 mr-1.5" /> Shared Records
         </TabsTrigger>
         <TabsTrigger 
+          value="scheduling" 
+          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+        >
+          <Calendar className="h-4 w-4 mr-1.5" /> Scheduling
+        </TabsTrigger>
+        <TabsTrigger 
+          value="health-tracker" 
+          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+        >
+          <Activity className="h-4 w-4 mr-1.5" /> Health Tracker
+        </TabsTrigger>
+        <TabsTrigger 
           value="provider-access" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
         >
@@ -89,6 +103,14 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({
         <SharedRecordsContent
           handleShareHealthInfo={handleShareHealthInfo}
         />
+      </TabsContent>
+      
+      <TabsContent value="scheduling">
+        <SchedulingTabContent />
+      </TabsContent>
+      
+      <TabsContent value="health-tracker">
+        <HealthTrackerTabContent />
       </TabsContent>
       
       <TabsContent value="provider-access">
