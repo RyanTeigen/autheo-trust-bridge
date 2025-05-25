@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
-import { AppSidebar } from './AppSidebar';
+import AppSidebar from './AppSidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import NotificationCenter from '../notifications/NotificationCenter';
 import GlobalSearch from '../search/GlobalSearch';

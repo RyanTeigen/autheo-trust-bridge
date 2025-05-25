@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import {
@@ -34,7 +35,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import AutheoLogo from '@/components/ui/AutheoLogo';
 
 const AppSidebar = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
 
   const getNavigationItems = () => {
     const baseItems = [
@@ -126,11 +127,11 @@ const AppSidebar = () => {
       },
     ];
 
-    if (user?.roles?.includes('provider')) {
+    if (profile?.roles?.includes('provider')) {
       baseItems.push(...providerItems);
     }
 
-    if (user?.roles?.includes('admin')) {
+    if (profile?.roles?.includes('admin')) {
       baseItems.push(...adminItems);
     }
 
@@ -155,13 +156,13 @@ const AppSidebar = () => {
           </SidebarGroup>
           <SidebarMenu>
             {navigationItems.map((item) => (
-              <SidebarMenuItem
-                key={item.title}
-                href={item.url}
-                active={location.pathname === item.url}
-              >
-                <item.icon className="mr-2 h-4 w-4" />
-                {item.title}
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                  <a href={item.url}>
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.title}
+                  </a>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>

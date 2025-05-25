@@ -133,7 +133,7 @@ const SmartForm: React.FC<SmartFormProps> = ({
             name={field.name}
             label={field.label}
             value={form.watch(field.name) || []}
-            onChange={(value) => form.setValue(field.name, value)}
+            onChange={(value) => form.setValue(field.name, value as string[])}
             type="multiselect"
             category={getCategoryFromFieldName(field.name)}
             required={field.required}
@@ -147,7 +147,7 @@ const SmartForm: React.FC<SmartFormProps> = ({
               name={field.name}
               label={field.label}
               value={form.watch(field.name) || ''}
-              onChange={(value) => form.setValue(field.name, value)}
+              onChange={(value) => form.setValue(field.name, value as string)}
               type="text"
               category={getCategoryFromFieldName(field.name)}
               required={field.required}
