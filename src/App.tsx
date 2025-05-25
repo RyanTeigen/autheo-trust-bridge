@@ -23,6 +23,7 @@ import SchedulingPage from "./pages/SchedulingPage";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
 import HealthTrackerPage from "./pages/HealthTrackerPage";
 import DetailedHealthRecordsPage from "./pages/DetailedHealthRecordsPage";
+import AdminPortalPage from "./pages/AdminPortalPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,13 @@ const App = () => (
                   <Route path="/provider-portal" element={
                     <ProtectedRoute requiredRoles={['provider']}>
                       <ProviderPortalPage />
+                    </ProtectedRoute>
+                  } />
+
+                  {/* Admin routes */}
+                  <Route path="/admin-portal" element={
+                    <ProtectedRoute requiredRoles={['admin', 'supervisor']}>
+                      <AdminPortalPage />
                     </ProtectedRoute>
                   } />
 

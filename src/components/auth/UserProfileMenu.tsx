@@ -37,13 +37,18 @@ const UserProfileMenu: React.FC = () => {
   const availablePortals = [
     { role: 'patient', label: 'Patient Portal', icon: User, path: '/' },
     { role: 'provider', label: 'Provider Portal', icon: Stethoscope, path: '/provider-portal' },
+    { role: 'admin', label: 'Admin Portal', icon: Shield, path: '/admin-portal' },
+    { role: 'supervisor', label: 'Admin Portal', icon: Shield, path: '/admin-portal' },
     { role: 'compliance', label: 'Compliance Portal', icon: Shield, path: '/compliance' },
   ];
 
   // Filter to show only applicable portals based on user roles or all in creator mode
-  const visiblePortals = availablePortals.filter(portal => 
-    hasRole(portal.role)
-  );
+  // Remove duplicates for admin portal (admin and supervisor both go to same portal)
+  const visiblePortals = availablePortals
+    .filter(portal => hasRole(portal.role))
+    .filter((portal, index, self) => 
+      index === self.findIndex(p => p.path === portal.path)
+    );
 
   return (
     <DropdownMenu>
@@ -72,7 +77,7 @@ const UserProfileMenu: React.FC = () => {
         
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-2">
-            Roles
+            Portals
             <Badge variant="outline" className="text-[0.65rem] h-4 px-1 py-0 bg-slate-700 hover:bg-slate-700">
               Creator Mode
             </Badge>
