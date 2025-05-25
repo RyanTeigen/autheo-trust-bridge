@@ -19,6 +19,10 @@ interface SmartFormProps {
   className?: string;
 }
 
+interface FormData {
+  [key: string]: any;
+}
+
 const SmartForm: React.FC<SmartFormProps> = ({
   category,
   title,
@@ -32,7 +36,7 @@ const SmartForm: React.FC<SmartFormProps> = ({
   const [autoSaveStatus, setAutoSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const form = useForm({
+  const form = useForm<FormData>({
     defaultValues: {},
     mode: 'onChange'
   });
@@ -56,7 +60,7 @@ const SmartForm: React.FC<SmartFormProps> = ({
         });
       } else {
         // Pre-fill with patient history where applicable
-        const defaultValues: any = {};
+        const defaultValues: FormData = {};
         selectedTemplate.fields.forEach(field => {
           if (field.name === 'currentMedications') {
             defaultValues[field.name] = patientHistory.medications;
@@ -91,7 +95,7 @@ const SmartForm: React.FC<SmartFormProps> = ({
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: FormData) => {
     // Clear saved progress on successful submit
     localStorage.removeItem(`form_progress_${formId}`);
     
