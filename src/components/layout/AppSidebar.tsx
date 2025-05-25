@@ -18,7 +18,6 @@ import {
   Shield,
   Stethoscope,
   Users,
-  ClipboardList,
   Brain,
   LineChart,
 } from 'lucide-react';
@@ -57,11 +56,6 @@ const AppSidebar = () => {
         title: "Patient Records",
         url: "/patient-records",
         icon: Users,
-      },
-       {
-        title: "Medical Notes",
-        url: "/medical-notes",
-        icon: ClipboardList,
       },
     ];
 
