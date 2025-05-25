@@ -8,7 +8,10 @@ import AppearanceSettings from '@/components/settings/AppearanceSettings';
 import NotificationSettings from '@/components/settings/NotificationSettings';
 import PrivacySettings from '@/components/settings/PrivacySettings';
 import SecuritySettings from '@/components/settings/SecuritySettings';
-import { Shield } from 'lucide-react';
+import EmergencyContactsSettings from '@/components/settings/EmergencyContactsSettings';
+import HealthPreferencesSettings from '@/components/settings/HealthPreferencesSettings';
+import AccessibilitySettings from '@/components/settings/AccessibilitySettings';
+import { Shield, Heart, Users, Accessibility } from 'lucide-react';
 import { useUserSettings } from '@/contexts/UserSettingsContext';
 
 const SettingsPage = () => {
@@ -27,13 +30,15 @@ const SettingsPage = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-2">Settings</h1>
         <p className="text-muted-foreground">
-          Configure your account and application preferences
+          Configure your account, health preferences, and application settings
         </p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="bg-slate-800/50 p-1">
+        <TabsList className="bg-slate-800/50 p-1 grid grid-cols-7 w-full">
           <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="health">Health</TabsTrigger>
+          <TabsTrigger value="emergency">Emergency</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="privacy">Privacy</TabsTrigger>
@@ -42,6 +47,15 @@ const SettingsPage = () => {
         
         <TabsContent value="profile" className="space-y-6">
           <ProfileSettings />
+          <AccessibilitySettings />
+        </TabsContent>
+        
+        <TabsContent value="health" className="space-y-6">
+          <HealthPreferencesSettings />
+        </TabsContent>
+        
+        <TabsContent value="emergency" className="space-y-6">
+          <EmergencyContactsSettings />
         </TabsContent>
         
         <TabsContent value="appearance" className="space-y-6">
