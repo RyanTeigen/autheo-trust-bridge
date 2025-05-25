@@ -89,11 +89,6 @@ const AppSidebar = () => {
         url: "/patient-records",
         icon: Users,
       },
-      {
-        title: "Provider Access",
-        url: "/provider-access",
-        icon: UserCheck,
-      },
        {
         title: "Medical Notes",
         url: "/medical-notes",
