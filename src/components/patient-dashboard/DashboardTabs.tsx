@@ -79,15 +79,14 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="wallet">
-        <SmartWalletTab />
+        <SmartWalletTab
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
       </TabsContent>
       
       <TabsContent value="shared">
         <SharedRecordsContent
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
           handleShareHealthInfo={handleShareHealthInfo}
         />
       </TabsContent>
