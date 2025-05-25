@@ -10,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import {
@@ -142,33 +141,31 @@ const AppSidebar = () => {
   const location = useLocation();
 
   return (
-    <SidebarProvider>
-      <Sidebar className="bg-slate-900 border-r border-slate-800 text-slate-400 w-64">
-        <SidebarTrigger asChild>
-          <SidebarMenuButton className="ml-2 rounded-md bg-slate-800 p-1.5 text-slate-400 hover:text-slate-100" />
-        </SidebarTrigger>
-        <SidebarContent>
-          <SidebarGroup className="space-y-4">
-            <SidebarGroupLabel>Autheo</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <AutheoLogo className="h-8 w-auto" />
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarMenu>
-            {navigationItems.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                  <Link to={item.url} className="flex items-center">
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.title}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
-    </SidebarProvider>
+    <Sidebar className="bg-slate-900 border-r border-slate-800 text-slate-400 w-64">
+      <SidebarTrigger asChild>
+        <SidebarMenuButton className="ml-2 rounded-md bg-slate-800 p-1.5 text-slate-400 hover:text-slate-100" />
+      </SidebarTrigger>
+      <SidebarContent>
+        <SidebarGroup className="space-y-4">
+          <SidebarGroupLabel>Autheo</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <AutheoLogo className="h-8 w-auto" />
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarMenu>
+          {navigationItems.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild isActive={location.pathname === item.url}>
+                <Link to={item.url} className="flex items-center">
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.title}
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
   );
 };
 
