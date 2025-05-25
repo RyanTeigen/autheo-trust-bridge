@@ -12,7 +12,6 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import {
-  Home,
   User,
   FileText,
   Wallet,
@@ -38,13 +37,8 @@ const AppSidebar = () => {
   const getNavigationItems = () => {
     const baseItems = [
       {
-        title: "Dashboard",
+        title: "Patient Access", 
         url: "/",
-        icon: Home,
-      },
-      {
-        title: "Patient Dashboard", 
-        url: "/patient-dashboard",
         icon: User,
       },
       {
