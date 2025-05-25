@@ -125,15 +125,27 @@ const SmartForm: React.FC<SmartFormProps> = ({
     );
   }
 
+  const getFieldValue = (fieldName: string, fieldType: string): string | string[] => {
+    const watchedValue = form.watch(fieldName);
+    
+    if (fieldType === 'multiselect') {
+      return Array.isArray(watchedValue) ? watchedValue : [];
+    }
+    
+    return typeof watchedValue === 'string' ? watchedValue : '';
+  };
+
   const renderField = (field: any) => {
+    const fieldValue = getFieldValue(field.name, field.type);
+
     switch (field.type) {
       case 'multiselect':
         return (
           <SmartInput
             name={field.name}
             label={field.label}
-            value={form.watch(field.name) || []}
-            onChange={(value) => form.setValue(field.name, value as string[])}
+            value={fieldValue as string[]}
+            onChange={(value) => form.setValue(field.name, value)}
             type="multiselect"
             category={getCategoryFromFieldName(field.name)}
             required={field.required}
@@ -146,20 +158,28 @@ const SmartForm: React.FC<SmartFormProps> = ({
             <SmartInput
               name={field.name}
               label={field.label}
-              value={form.watch(field.name) || ''}
-              onChange={(value) => form.setValue(field.name, value as string)}
+              value={fieldValue as string}
+              onChange={(value) => form.setValue(field.name, value)}
               type="text"
               category={getCategoryFromFieldName(field.name)}
               required={field.required}
             />
           );
         } else {
-          return <Input placeholder={`Enter ${field.label.toLowerCase()}...`} {...form.register(field.name)} />;
+          return (
+            <Input 
+              placeholder={`Enter ${field.label.toLowerCase()}...`} 
+              {...form.register(field.name)} 
+            />
+          );
         }
 
       case 'select':
         return (
-          <Select onValueChange={(value) => form.setValue(field.name, value)} value={form.watch(field.name)}>
+          <Select 
+            onValueChange={(value) => form.setValue(field.name, value)} 
+            value={fieldValue as string || ''}
+          >
             <SelectTrigger>
               <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
             </SelectTrigger>
@@ -223,7 +243,6 @@ const SmartForm: React.FC<SmartFormProps> = ({
             </div>
           </div>
           
-          {/* Auto-save status */}
           <div className="flex items-center gap-2 text-sm text-slate-400">
             {autoSaveStatus === 'saving' && (
               <>
@@ -250,7 +269,7 @@ const SmartForm: React.FC<SmartFormProps> = ({
                 control={form.control}
                 name={field.name}
                 rules={{ required: field.required }}
-                render={({ field: formField }) => (
+                render={() => (
                   <FormItem>
                     <FormControl>
                       {renderField(field)}
