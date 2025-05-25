@@ -127,11 +127,11 @@ const AppSidebar = () => {
       },
     ];
 
-    if (profile?.role === 'provider') {
+    if (profile?.roles?.includes('provider')) {
       baseItems.push(...providerItems);
     }
 
-    if (profile?.role === 'admin') {
+    if (profile?.roles?.includes('admin')) {
       baseItems.push(...adminItems);
     }
 
