@@ -9,6 +9,12 @@ interface PatientsTabProps {
 const PatientsTab: React.FC<PatientsTabProps> = ({ patientRecords }) => {
   console.log('PatientsTab rendering with records:', patientRecords.length);
 
+  const handleSearchResults = (results: PatientRecord[]) => {
+    console.log('Search results:', results);
+    // Here you can handle the search results as needed
+    // For now, we'll just log them
+  };
+
   return (
     <div className="space-y-6 bg-slate-900 text-slate-100">
       <div className="flex flex-col space-y-2">
@@ -18,9 +24,7 @@ const PatientsTab: React.FC<PatientsTabProps> = ({ patientRecords }) => {
       
       <AdvancedPatientSearch 
         patients={patientRecords}
-        onSelectPatient={(patient) => {
-          console.log('Selected patient:', patient);
-        }}
+        onSearch={handleSearchResults}
       />
     </div>
   );
