@@ -94,6 +94,21 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  /* Force dark theme */
+  html {
+    @apply dark;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Ensure body and root elements have dark background */
+  html, body, #root {
+    @apply bg-slate-900 text-slate-100;
+    min-height: 100vh;
+  }
 }
 
 @layer utilities {

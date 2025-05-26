@@ -24,74 +24,80 @@ import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <UserSettingsProvider>
-        <HealthRecordsProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                {/* Auth routes - available to unauthenticated users */}
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/unauthorized" element={<Unauthorized />} />
-                
-                {/* Protected routes - require authentication */}
-                <Route element={
-                  <ProtectedRoute>
-                    <MainLayout />
-                  </ProtectedRoute>
-                }>
-                  {/* Dashboard - accessible to all authenticated users */}
-                  <Route path="/" element={<PatientDashboardPage />} />
-                  <Route path="/smart-forms" element={<SmartFormsPage />} />
-                  
-                  {/* Provider routes */}
-                  <Route path="/provider-portal" element={
-                    <ProtectedRoute requiredRoles={['provider']}>
-                      <ProviderPortalPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/patient-records" element={
-                    <ProtectedRoute requiredRoles={['provider']}>
-                      <PatientRecordsPage />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/medical-notes" element={
-                    <ProtectedRoute requiredRoles={['provider']}>
-                      <MedicalNotesPage />
-                    </ProtectedRoute>
-                  } />
+const App = () => {
+  console.log('App rendering...');
+  
+  return (
+    <div className="dark min-h-screen bg-slate-900 text-slate-100">
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <UserSettingsProvider>
+            <HealthRecordsProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <Routes>
+                    {/* Auth routes - available to unauthenticated users */}
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/unauthorized" element={<Unauthorized />} />
+                    
+                    {/* Protected routes - require authentication */}
+                    <Route element={
+                      <ProtectedRoute>
+                        <MainLayout />
+                      </ProtectedRoute>
+                    }>
+                      {/* Dashboard - accessible to all authenticated users */}
+                      <Route path="/" element={<PatientDashboardPage />} />
+                      <Route path="/smart-forms" element={<SmartFormsPage />} />
+                      
+                      {/* Provider routes */}
+                      <Route path="/provider-portal" element={
+                        <ProtectedRoute requiredRoles={['provider']}>
+                          <ProviderPortalPage />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/patient-records" element={
+                        <ProtectedRoute requiredRoles={['provider']}>
+                          <PatientRecordsPage />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/medical-notes" element={
+                        <ProtectedRoute requiredRoles={['provider']}>
+                          <MedicalNotesPage />
+                        </ProtectedRoute>
+                      } />
 
-                  {/* Admin routes */}
-                  <Route path="/admin-portal" element={
-                    <ProtectedRoute requiredRoles={['admin', 'supervisor']}>
-                      <AdminPortalPage />
-                    </ProtectedRoute>
-                  } />
+                      {/* Admin routes */}
+                      <Route path="/admin-portal" element={
+                        <ProtectedRoute requiredRoles={['admin', 'supervisor']}>
+                          <AdminPortalPage />
+                        </ProtectedRoute>
+                      } />
 
-                  {/* Compliance routes - now accessible to all authenticated users */}
-                  <Route path="/compliance" element={<CompliancePage />} />
-                  <Route path="/audit-logs" element={<AuditLogsPage />} />
-                  
-                  {/* Common routes */}
-                  <Route path="/settings" element={<SettingsPage />} />
-                  
-                  {/* Legacy redirects */}
-                  <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
-                </Route>
-                
-                {/* 404 route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </HealthRecordsProvider>
-      </UserSettingsProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+                      {/* Compliance routes - now accessible to all authenticated users */}
+                      <Route path="/compliance" element={<CompliancePage />} />
+                      <Route path="/audit-logs" element={<AuditLogsPage />} />
+                      
+                      {/* Common routes */}
+                      <Route path="/settings" element={<SettingsPage />} />
+                      
+                      {/* Legacy redirects */}
+                      <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
+                    </Route>
+                    
+                    {/* 404 route */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </TooltipProvider>
+            </HealthRecordsProvider>
+          </UserSettingsProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </div>
+  );
+};
 
 export default App;

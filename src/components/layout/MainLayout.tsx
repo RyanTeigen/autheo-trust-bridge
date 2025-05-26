@@ -12,10 +12,12 @@ import UserProfileMenu from '../auth/UserProfileMenu';
 const MainLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   
+  console.log('MainLayout rendering...', { isAuthenticated, isLoading });
+  
   // If still loading auth state, show a loading indicator
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-slate-900">
+      <div className="flex justify-center items-center min-h-screen bg-slate-900 text-slate-100">
         <div className="animate-pulse text-slate-400">Loading application...</div>
       </div>
     );
@@ -23,29 +25,32 @@ const MainLayout: React.FC = () => {
 
   // If not authenticated, redirect to auth page
   if (!isAuthenticated) {
+    console.log('Not authenticated, redirecting to auth...');
     return <Navigate to="/auth" replace />;
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100">
-        <AppHeader>
-          <div className="flex items-center gap-4">
-            <GlobalSearch />
-            <NotificationCenter />
-            <UserProfileMenu />
-          </div>
-        </AppHeader>
-        <div className="flex flex-1 overflow-hidden">
-          <AppSidebar />
-          <main className="flex-1 overflow-auto p-6">
-            <div className="container max-w-7xl mx-auto">
-              <Outlet />
+    <div className="dark">
+      <SidebarProvider>
+        <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100">
+          <AppHeader>
+            <div className="flex items-center gap-4">
+              <GlobalSearch />
+              <NotificationCenter />
+              <UserProfileMenu />
             </div>
-          </main>
+          </AppHeader>
+          <div className="flex flex-1 overflow-hidden">
+            <AppSidebar />
+            <main className="flex-1 overflow-auto p-6 bg-slate-900 text-slate-100">
+              <div className="container max-w-7xl mx-auto">
+                <Outlet />
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 };
 

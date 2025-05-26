@@ -1,60 +1,41 @@
 
 import React, { useState } from 'react';
-import { useHealthRecords, HealthRecordsProvider } from '@/contexts/HealthRecordsContext';
-import { useToast } from '@/hooks/use-toast';
-import DashboardHeader from '@/components/patient-dashboard/DashboardHeader';
 import DashboardTabs from '@/components/patient-dashboard/DashboardTabs';
+import DashboardHeader from '@/components/patient-dashboard/DashboardHeader';
+import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 
-const PatientDashboardContent = () => {
-  const { toggleRecordSharing } = useHealthRecords();
-  const { toast } = useToast();
+const PatientDashboardPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [activeSection, setActiveSection] = useState('records');
+  const [activeSection, setActiveSection] = useState('dashboard');
+  const { toggleShare, shareHealthInfo } = useHealthRecords();
+
+  console.log('PatientDashboardPage rendering...');
 
   const handleToggleShare = (id: string, shared: boolean) => {
-    toggleRecordSharing(id, shared);
-    toast({
-      title: shared ? "Record shared" : "Record unshared",
-      description: `The selected health record has been ${shared ? 'added to' : 'removed from'} your shared data.`,
-    });
+    toggleShare(id, shared);
   };
 
   const handleShareHealthInfo = () => {
-    toast({
-      title: "Health information shared",
-      description: "Your health information has been shared with the selected healthcare provider.",
-    });
-  };
-
-  const handleSectionChange = (section: string) => {
-    setActiveSection(section);
+    shareHealthInfo();
   };
 
   return (
-    <div className="space-y-6">
-      <DashboardHeader />
-      
-      <DashboardTabs
-        handleToggleShare={handleToggleShare}
-        handleShareHealthInfo={handleShareHealthInfo}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        activeSection={activeSection}
-        setActiveSection={handleSectionChange}
-      />
+    <div className="min-h-screen bg-slate-900 text-slate-100">
+      <div className="space-y-6">
+        <DashboardHeader />
+        <DashboardTabs
+          handleToggleShare={handleToggleShare}
+          handleShareHealthInfo={handleShareHealthInfo}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+        />
+      </div>
     </div>
-  );
-};
-
-// Wrap with provider
-const PatientDashboardPage = () => {
-  return (
-    <HealthRecordsProvider>
-      <PatientDashboardContent />
-    </HealthRecordsProvider>
   );
 };
 
