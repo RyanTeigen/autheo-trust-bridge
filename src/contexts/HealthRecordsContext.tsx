@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Standardized data model for health records
@@ -87,6 +88,8 @@ interface HealthRecordsContextType {
   summary: HealthRecordsSummary;
   recentHealthRecords: { title: string; provider: string; date: string }[];
   toggleRecordSharing: (id: string, shared: boolean) => void;
+  toggleShare: (id: string, shared: boolean) => void;
+  shareHealthInfo: () => void;
   getRecordsByCategory: (category: string) => HealthRecord[];
   getRecordsByFilter: (filter: 'all' | 'shared' | 'private' | 'recent') => HealthRecord[];
 }
@@ -334,6 +337,17 @@ export const HealthRecordsProvider: React.FC<{ children: ReactNode }> = ({ child
     );
   };
 
+  // Alias for toggleRecordSharing to match the expected interface
+  const toggleShare = (id: string, shared: boolean) => {
+    toggleRecordSharing(id, shared);
+  };
+
+  // Function to share health info (placeholder implementation)
+  const shareHealthInfo = () => {
+    console.log('Sharing health information...');
+    // This could trigger a dialog or perform an action to share health info
+  };
+
   // Function to get records by category
   const getRecordsByCategory = (category: string) => {
     if (category === 'all') return records;
@@ -368,6 +382,8 @@ export const HealthRecordsProvider: React.FC<{ children: ReactNode }> = ({ child
     summary,
     recentHealthRecords,
     toggleRecordSharing,
+    toggleShare,
+    shareHealthInfo,
     getRecordsByCategory,
     getRecordsByFilter
   };
