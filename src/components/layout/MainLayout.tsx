@@ -30,9 +30,9 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className="dark">
+    <div className="dark min-h-screen bg-slate-900 text-slate-100">
       <SidebarProvider>
-        <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100">
+        <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100 w-full">
           <AppHeader>
             <div className="flex items-center gap-4">
               <GlobalSearch />
@@ -40,10 +40,10 @@ const MainLayout: React.FC = () => {
               <UserProfileMenu />
             </div>
           </AppHeader>
-          <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden w-full">
             <AppSidebar />
-            <main className="flex-1 overflow-auto p-6 bg-slate-900 text-slate-100">
-              <div className="container max-w-7xl mx-auto">
+            <main className="flex-1 overflow-auto bg-slate-900 text-slate-100">
+              <div className="min-h-full bg-slate-900 text-slate-100">
                 <Outlet />
               </div>
             </main>

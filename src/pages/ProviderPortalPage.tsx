@@ -12,6 +12,8 @@ import ScheduleTab from '@/components/provider-portal/ScheduleTab';
 import { ProviderPortalProvider, useProviderPortal } from '@/contexts/ProviderPortalContext';
 
 const ProviderPortalContent: React.FC = () => {
+  console.log('ProviderPortalContent rendering...');
+  
   const { toast } = useToast();
   const {
     activeTab,
@@ -24,6 +26,15 @@ const ProviderPortalContent: React.FC = () => {
     patientRecords
   } = useProviderPortal();
 
+  console.log('ProviderPortal data:', { 
+    activeTab, 
+    notificationsCount: notifications.length,
+    metricsLoaded: !!metrics,
+    appointmentsCount: appointments.length,
+    recentPatientsCount: recentPatients.length,
+    patientRecordsCount: patientRecords.length
+  });
+
   const handleDismissNotification = (id: string) => {
     dismissNotification(id);
     toast({
@@ -32,59 +43,89 @@ const ProviderPortalContent: React.FC = () => {
     });
   };
 
-  return (
-    <div className="space-y-6">
-      <PortalHeader notificationCount={notifications.length} />
-      
-      <NotificationBanner
-        notifications={notifications}
-        onDismiss={handleDismissNotification}
-      />
+  try {
+    return (
+      <div className="space-y-6 bg-slate-900 text-slate-100 min-h-screen p-6">
+        <PortalHeader notificationCount={notifications.length} />
+        
+        <NotificationBanner
+          notifications={notifications}
+          onDismiss={handleDismissNotification}
+        />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="patients">Patient Records</TabsTrigger>
-          <TabsTrigger value="messaging">Messaging</TabsTrigger>
-          <TabsTrigger value="access">Request Access</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="dashboard">
-          <ProviderDashboardTab
-            metrics={metrics}
-            appointments={appointments}
-            recentPatients={recentPatients}
-          />
-        </TabsContent>
-        
-        <TabsContent value="patients">
-          <PatientsTab patientRecords={patientRecords} />
-        </TabsContent>
-        
-        <TabsContent value="messaging">
-          <MessagingTab />
-        </TabsContent>
-        
-        <TabsContent value="access">
-          <AccessRequestTab />
-        </TabsContent>
-        
-        <TabsContent value="schedule">
-          <ScheduleTab appointments={appointments} />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
+            <TabsTrigger value="dashboard" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Dashboard</TabsTrigger>
+            <TabsTrigger value="patients" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Patient Records</TabsTrigger>
+            <TabsTrigger value="messaging" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Messaging</TabsTrigger>
+            <TabsTrigger value="access" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Request Access</TabsTrigger>
+            <TabsTrigger value="schedule" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Schedule</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="dashboard" className="mt-6">
+            <ProviderDashboardTab
+              metrics={metrics}
+              appointments={appointments}
+              recentPatients={recentPatients}
+            />
+          </TabsContent>
+          
+          <TabsContent value="patients" className="mt-6">
+            <PatientsTab patientRecords={patientRecords} />
+          </TabsContent>
+          
+          <TabsContent value="messaging" className="mt-6">
+            <MessagingTab />
+          </TabsContent>
+          
+          <TabsContent value="access" className="mt-6">
+            <AccessRequestTab />
+          </TabsContent>
+          
+          <TabsContent value="schedule" className="mt-6">
+            <ScheduleTab appointments={appointments} />
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  } catch (error) {
+    console.error('Error in ProviderPortalContent:', error);
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 p-6 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-400">Error Loading Provider Portal</h2>
+          <p className="text-slate-400 mt-2">Please check the console for details.</p>
+          <p className="text-sm text-slate-500 mt-4">{error?.toString()}</p>
+        </div>
+      </div>
+    );
+  }
 };
 
 // Wrap the component with the context provider
 const ProviderPortalPage: React.FC = () => {
-  return (
-    <ProviderPortalProvider>
-      <ProviderPortalContent />
-    </ProviderPortalProvider>
-  );
+  console.log('ProviderPortalPage rendering...');
+  
+  try {
+    return (
+      <div className="dark bg-slate-900 text-slate-100 min-h-screen">
+        <ProviderPortalProvider>
+          <ProviderPortalContent />
+        </ProviderPortalProvider>
+      </div>
+    );
+  } catch (error) {
+    console.error('Error in ProviderPortalPage:', error);
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-red-400">Provider Portal Error</h1>
+          <p className="text-slate-400 mt-2">Failed to load the provider portal.</p>
+          <p className="text-sm text-slate-500 mt-4">{error?.toString()}</p>
+        </div>
+      </div>
+    );
+  }
 };
 
 export default ProviderPortalPage;
