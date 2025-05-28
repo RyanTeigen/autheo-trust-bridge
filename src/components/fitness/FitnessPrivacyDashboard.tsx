@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ import {
   AlertTriangle,
   Zap,
   Database,
-  FileShield,
+  File,
   Fingerprint
 } from 'lucide-react';
 import FitnessPrivacyService, { ZeroKnowledgeProof, FitnessDataEncryption } from '@/services/fitness/FitnessPrivacyService';
@@ -354,7 +353,7 @@ const FitnessPrivacyDashboard: React.FC = () => {
                   variant="outline"
                   className="border-autheo-primary/30 text-autheo-primary hover:bg-autheo-primary/10"
                 >
-                  <FileShield className="h-4 w-4 mr-2" />
+                  <File className="h-4 w-4 mr-2" />
                   Encrypt Data
                 </Button>
               </div>
