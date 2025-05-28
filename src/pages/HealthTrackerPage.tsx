@@ -2,8 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
+import FitnessDeviceIntegration from '@/components/fitness/FitnessDeviceIntegration';
+import FitnessDataDisplay from '@/components/fitness/FitnessDataDisplay';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Scale, Heart, Clock, Utensils } from 'lucide-react';
+import { Activity, Scale, Heart, Clock, Utensils, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -63,6 +65,10 @@ const HealthTrackerPage: React.FC = () => {
           <TabsTrigger value="metrics" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
             Metrics
+          </TabsTrigger>
+          <TabsTrigger value="devices" className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4" />
+            Fitness Devices
           </TabsTrigger>
           <TabsTrigger value="activity" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
@@ -143,6 +149,13 @@ const HealthTrackerPage: React.FC = () => {
             </Card>
           </div>
         </TabsContent>
+
+        <TabsContent value="devices" className="mt-4">
+          <div className="space-y-6">
+            <FitnessDeviceIntegration />
+            <FitnessDataDisplay />
+          </div>
+        </TabsContent>
         
         <TabsContent value="activity" className="mt-4">
           <Card>
@@ -150,8 +163,8 @@ const HealthTrackerPage: React.FC = () => {
               <CardTitle>Activity Tracking</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="mb-4 text-muted-foreground">This feature is coming soon. You'll be able to track your physical activities, exercises, steps, and more.</p>
-              <Button onClick={() => handleAddData("activity data")}>Notify When Available</Button>
+              <p className="mb-4 text-muted-foreground">Connect your fitness devices to automatically sync your activity data, or manually log your exercises and workouts.</p>
+              <Button onClick={() => handleAddData("activity data")}>Add Manual Entry</Button>
             </CardContent>
           </Card>
         </TabsContent>
