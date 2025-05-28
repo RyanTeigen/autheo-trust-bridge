@@ -88,103 +88,113 @@ const HealthMetricsCharts: React.FC<HealthMetricsChartsProps> = ({ onShare }) =>
   };
   
   return (
-    <Card className="mb-6 bg-slate-800 border-slate-700 text-slate-100">
-      <CardHeader className="bg-slate-800/50 border-b border-slate-700">
-        <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-autheo-primary">Health Metrics</CardTitle>
-            <CardDescription className="text-slate-300">Track your health metrics over time</CardDescription>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="gap-1 bg-slate-700/30 hover:bg-slate-700/50 text-autheo-primary border-slate-600"
-            onClick={handleShare}
-          >
-            <Share className="h-4 w-4" />
-            Share Metrics
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-6">
-        <Tabs defaultValue="weight">
-          <TabsList className="grid grid-cols-3 mb-4 bg-slate-700/30">
-            <TabsTrigger value="weight" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
-              <Scale className="h-4 w-4" /> Weight
-            </TabsTrigger>
-            <TabsTrigger value="height" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
-              <Ruler className="h-4 w-4" /> Height
-            </TabsTrigger>
-            <TabsTrigger value="bmi" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
-              <ChartBar className="h-4 w-4" /> BMI
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="weight" className="animate-fade-in">
-            <HealthDataChart
-              title="Weight History"
-              description="Your weight measurements over time"
-              data={weightData}
-              unit="kg"
-              color={chartColors.weight}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              minValue={72}
-              maxValue={78}
-            />
-          </TabsContent>
-          
-          <TabsContent value="height" className="animate-fade-in">
-            <HealthDataChart
-              title="Height History"
-              description="Your height measurements over time"
-              data={heightData}
-              unit="cm"
-              color={chartColors.height}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-              minValue={170}
-              maxValue={172}
-            />
-          </TabsContent>
-          
-          <TabsContent value="bmi" className="animate-fade-in">
-            <HealthDataChart
-              title="BMI History"
-              description="Your Body Mass Index over time"
-              data={bmiData}
-              color={chartColors.bmi}
-              minValue={24}
-              maxValue={27}
-              timeRange={timeRange}
-              onTimeRangeChange={setTimeRange}
-            />
-            <div className="mt-4 text-sm grid grid-cols-4 gap-2">
-              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
-                <div className="w-3 h-3 rounded-full mb-1 bg-blue-400"></div>
-                <p className="font-medium text-blue-300">Underweight</p>
-                <p className="text-xs text-slate-300">BMI &lt; 18.5</p>
-              </div>
-              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
-                <div className="w-3 h-3 rounded-full mb-1 bg-autheo-primary"></div>
-                <p className="font-medium text-autheo-primary">Normal</p>
-                <p className="text-xs text-slate-300">BMI 18.5 - 24.9</p>
-              </div>
-              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
-                <div className="w-3 h-3 rounded-full mb-1 bg-amber-400"></div>
-                <p className="font-medium text-amber-300">Overweight</p>
-                <p className="text-xs text-slate-300">BMI 25 - 29.9</p>
-              </div>
-              <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
-                <div className="w-3 h-3 rounded-full mb-1 bg-red-500"></div>
-                <p className="font-medium text-red-400">Obese</p>
-                <p className="text-xs text-slate-300">BMI &gt; 30</p>
-              </div>
+    <div className="w-full">
+      <Card className="mb-6 bg-slate-800 border-slate-700 text-slate-100 w-full">
+        <CardHeader className="bg-slate-800/50 border-b border-slate-700">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-autheo-primary">Health Metrics</CardTitle>
+              <CardDescription className="text-slate-300">Track your health metrics over time</CardDescription>
             </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+            <div className="flex-shrink-0">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-1 bg-slate-700/30 hover:bg-slate-700/50 text-autheo-primary border-slate-600"
+                onClick={handleShare}
+              >
+                <Share className="h-4 w-4" />
+                Share Metrics
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-6 w-full">
+          <Tabs defaultValue="weight" className="w-full">
+            <TabsList className="grid grid-cols-3 mb-4 bg-slate-700/30 w-full">
+              <TabsTrigger value="weight" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
+                <Scale className="h-4 w-4" /> Weight
+              </TabsTrigger>
+              <TabsTrigger value="height" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
+                <Ruler className="h-4 w-4" /> Height
+              </TabsTrigger>
+              <TabsTrigger value="bmi" className="flex items-center gap-1 text-slate-200 data-[state=active]:bg-slate-600 data-[state=active]:text-autheo-primary">
+                <ChartBar className="h-4 w-4" /> BMI
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="weight" className="animate-fade-in w-full">
+              <div className="w-full">
+                <HealthDataChart
+                  title="Weight History"
+                  description="Your weight measurements over time"
+                  data={weightData}
+                  unit="kg"
+                  color={chartColors.weight}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                  minValue={72}
+                  maxValue={78}
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="height" className="animate-fade-in w-full">
+              <div className="w-full">
+                <HealthDataChart
+                  title="Height History"
+                  description="Your height measurements over time"
+                  data={heightData}
+                  unit="cm"
+                  color={chartColors.height}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                  minValue={170}
+                  maxValue={172}
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="bmi" className="animate-fade-in w-full">
+              <div className="w-full space-y-4">
+                <HealthDataChart
+                  title="BMI History"
+                  description="Your Body Mass Index over time"
+                  data={bmiData}
+                  color={chartColors.bmi}
+                  minValue={24}
+                  maxValue={27}
+                  timeRange={timeRange}
+                  onTimeRangeChange={setTimeRange}
+                />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-4">
+                  <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                    <div className="w-3 h-3 rounded-full mb-1 bg-blue-400"></div>
+                    <p className="font-medium text-blue-300 text-sm">Underweight</p>
+                    <p className="text-xs text-slate-300">BMI &lt; 18.5</p>
+                  </div>
+                  <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                    <div className="w-3 h-3 rounded-full mb-1 bg-autheo-primary"></div>
+                    <p className="font-medium text-autheo-primary text-sm">Normal</p>
+                    <p className="text-xs text-slate-300">BMI 18.5 - 24.9</p>
+                  </div>
+                  <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                    <div className="w-3 h-3 rounded-full mb-1 bg-amber-400"></div>
+                    <p className="font-medium text-amber-300 text-sm">Overweight</p>
+                    <p className="text-xs text-slate-300">BMI 25 - 29.9</p>
+                  </div>
+                  <div className="p-2.5 rounded bg-slate-700/30 border border-slate-600 flex flex-col justify-center items-center">
+                    <div className="w-3 h-3 rounded-full mb-1 bg-red-500"></div>
+                    <p className="font-medium text-red-400 text-sm">Obese</p>
+                    <p className="text-xs text-slate-300">BMI &gt; 30</p>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
