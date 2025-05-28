@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -54,6 +53,27 @@ serve(async (req) => {
     if (!action) action = url.searchParams.get('action')
     if (!deviceType) deviceType = url.searchParams.get('device_type')
 
+    // Handle OAuth callback with parameters from URL
+    if (action === 'oauth_callback' || url.searchParams.get('code')) {
+      const code = url.searchParams.get('code')
+      const state = url.searchParams.get('state')
+      const error = url.searchParams.get('error')
+      
+      console.log('OAuth callback received:', { code: code ? 'present' : 'missing', state, error })
+      
+      if (error) {
+        return new Response(
+          JSON.stringify({ error: `OAuth error: ${error}` }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
+      
+      return await handleOAuthCallback(supabase, deviceType, code, state, user.id)
+    }
+
     console.log('Fitness integration request:', { 
       method: req.method,
       action, 
@@ -84,10 +104,6 @@ serve(async (req) => {
           )
         }
         return await generateOAuthUrl(deviceType, user.id)
-      
-      case 'oauth_callback':
-        const { code, state } = requestBody
-        return await handleOAuthCallback(supabase, deviceType, code, state, user.id)
       
       case 'sync_data':
         if (!deviceType) {
@@ -141,14 +157,20 @@ serve(async (req) => {
 async function generateOAuthUrl(deviceType: string, userId: string) {
   try {
     const clientId = Deno.env.get('STRAVA_CLIENT_ID')
-    // Use a clean redirect URI without query parameters
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/fitness-integration`
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
     
     if (!clientId) {
       throw new Error('Missing Strava client ID')
     }
 
-    // Include device type in the state parameter instead of the redirect URI
+    if (!supabaseUrl) {
+      throw new Error('Missing Supabase URL')
+    }
+
+    // Use the exact format that should be registered in Strava
+    const redirectUri = `${supabaseUrl}/functions/v1/fitness-integration`
+    
+    // Include device type in the state parameter
     const state = `${userId}-${deviceType}-${Date.now()}`
     
     let authUrl = ''
@@ -169,6 +191,7 @@ async function generateOAuthUrl(deviceType: string, userId: string) {
     }
 
     console.log('Generated OAuth URL for', deviceType, ':', authUrl)
+    console.log('Redirect URI:', redirectUri)
 
     return new Response(
       JSON.stringify({ authUrl }),
@@ -279,9 +302,34 @@ async function handleStravaCallback(supabase: any, code: string, userId: string)
   // Fetch initial data
   await syncStravaData(supabase, userId, tokenData.access_token)
 
+  // Return success response with redirect to close the OAuth window
   return new Response(
-    JSON.stringify({ success: true, athlete: tokenData.athlete }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    `<!DOCTYPE html>
+    <html>
+    <head>
+      <title>Strava Connected</title>
+      <script>
+        // Close the OAuth popup and notify parent window
+        if (window.opener) {
+          window.opener.postMessage({ type: 'strava_connected', success: true }, '*');
+          window.close();
+        } else {
+          // If not in popup, redirect to app
+          window.location.href = '${Deno.env.get('SITE_URL') || 'https://bef2344b-0d7b-4bef-a762-ede2111f1bda.lovableproject.com'}/health-tracker';
+        }
+      </script>
+    </head>
+    <body>
+      <h1>Strava Connected Successfully!</h1>
+      <p>You can close this window and return to the app.</p>
+    </body>
+    </html>`,
+    { 
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'text/html' 
+      } 
+    }
   )
 }
 
