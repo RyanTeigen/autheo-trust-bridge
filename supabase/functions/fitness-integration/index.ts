@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -37,11 +36,15 @@ serve(async (req) => {
     
     if (req.method === 'POST') {
       try {
-        requestBody = await req.json()
-        action = requestBody.action
-        deviceType = requestBody.device_type
+        const bodyText = await req.text()
+        if (bodyText) {
+          requestBody = JSON.parse(bodyText)
+          action = requestBody.action
+          deviceType = requestBody.device_type
+        }
       } catch (e) {
         console.error('Error parsing request body:', e)
+        // Continue without throwing to allow URL parameter fallback
       }
     }
 
@@ -59,13 +62,25 @@ serve(async (req) => {
     })
 
     if (!action) {
-      throw new Error('Missing action parameter')
+      return new Response(
+        JSON.stringify({ error: 'Missing action parameter' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     switch (action) {
       case 'oauth_url':
         if (!deviceType) {
-          throw new Error('Missing device_type parameter for oauth_url')
+          return new Response(
+            JSON.stringify({ error: 'Missing device_type parameter for oauth_url' }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
         }
         return await generateOAuthUrl(deviceType, user.id)
       
@@ -75,26 +90,47 @@ serve(async (req) => {
       
       case 'sync_data':
         if (!deviceType) {
-          throw new Error('Missing device_type parameter for sync_data')
+          return new Response(
+            JSON.stringify({ error: 'Missing device_type parameter for sync_data' }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
         }
         return await syncDeviceData(supabase, deviceType, user.id)
       
       case 'disconnect':
         if (!deviceType) {
-          throw new Error('Missing device_type parameter for disconnect')
+          return new Response(
+            JSON.stringify({ error: 'Missing device_type parameter for disconnect' }),
+            { 
+              status: 400,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
         }
         return await disconnectDevice(supabase, deviceType, user.id)
       
       default:
-        throw new Error(`Invalid action: ${action}`)
+        return new Response(
+          JSON.stringify({ error: `Invalid action: ${action}` }),
+          { 
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
     }
 
   } catch (error) {
     console.error('Fitness integration error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'An unexpected error occurred',
+        details: error.toString()
+      }),
       { 
-        status: 400,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
@@ -102,38 +138,49 @@ serve(async (req) => {
 })
 
 async function generateOAuthUrl(deviceType: string, userId: string) {
-  const clientId = Deno.env.get('STRAVA_CLIENT_ID')
-  const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/fitness-integration?action=oauth_callback&device_type=${deviceType}`
-  
-  if (!clientId) {
-    throw new Error('Missing Strava client ID')
+  try {
+    const clientId = Deno.env.get('STRAVA_CLIENT_ID')
+    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/fitness-integration?action=oauth_callback&device_type=${deviceType}`
+    
+    if (!clientId) {
+      throw new Error('Missing Strava client ID')
+    }
+
+    const state = `${userId}-${Date.now()}`
+    
+    let authUrl = ''
+    
+    switch (deviceType) {
+      case 'strava':
+        authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&approval_prompt=force&scope=read,activity:read_all,profile:read_all&state=${state}`
+        break
+      
+      case 'garmin':
+        throw new Error('Garmin integration not yet implemented')
+      
+      case 'whoop':
+        throw new Error('WHOOP integration not yet implemented')
+      
+      default:
+        throw new Error('Unsupported device type')
+    }
+
+    console.log('Generated OAuth URL for', deviceType, ':', authUrl)
+
+    return new Response(
+      JSON.stringify({ authUrl }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+  } catch (error) {
+    console.error('Error generating OAuth URL:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
-
-  const state = `${userId}-${Date.now()}`
-  
-  let authUrl = ''
-  
-  switch (deviceType) {
-    case 'strava':
-      authUrl = `https://www.strava.com/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&approval_prompt=force&scope=read,activity:read_all,profile:read_all&state=${state}`
-      break
-    
-    case 'garmin':
-      throw new Error('Garmin integration not yet implemented')
-    
-    case 'whoop':
-      throw new Error('WHOOP integration not yet implemented')
-    
-    default:
-      throw new Error('Unsupported device type')
-  }
-
-  console.log('Generated OAuth URL for', deviceType, ':', authUrl)
-
-  return new Response(
-    JSON.stringify({ authUrl }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  )
 }
 
 async function handleOAuthCallback(supabase: any, deviceType: string, code: string, state: string, userId: string) {

@@ -129,13 +129,16 @@ const FitnessDeviceIntegration: React.FC = () => {
       // Disconnect device
       try {
         const { data, error } = await supabase.functions.invoke('fitness-integration', {
-          body: { 
+          body: JSON.stringify({ 
             action: 'disconnect', 
             device_type: deviceId 
-          }
+          })
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase function error:', error);
+          throw new Error(error.message || 'Failed to disconnect device');
+        }
 
         setDevices(prev => prev.map(d => 
           d.id === deviceId 
@@ -151,7 +154,7 @@ const FitnessDeviceIntegration: React.FC = () => {
         console.error('Error disconnecting device:', error);
         toast({
           title: "Connection Error",
-          description: "Failed to disconnect device. Please try again.",
+          description: `Failed to disconnect device: ${error.message}`,
           variant: "destructive"
         });
       }
@@ -163,29 +166,38 @@ const FitnessDeviceIntegration: React.FC = () => {
           description: `Redirecting to ${device.name} for authorization.`,
         });
 
+        console.log('Invoking fitness-integration function with:', { 
+          action: 'oauth_url', 
+          device_type: deviceId 
+        });
+
         const { data, error } = await supabase.functions.invoke('fitness-integration', {
-          body: { 
+          body: JSON.stringify({ 
             action: 'oauth_url', 
             device_type: deviceId 
-          }
+          })
         });
+
+        console.log('Function response:', { data, error });
 
         if (error) {
           console.error('Supabase function error:', error);
           throw new Error(error.message || 'Failed to get authorization URL');
         }
 
-        if (data?.authUrl) {
+        if (data && data.authUrl) {
+          console.log('Redirecting to OAuth URL:', data.authUrl);
           // Open OAuth URL in same window
           window.location.href = data.authUrl;
         } else {
-          throw new Error('No authorization URL received');
+          console.error('No authorization URL received:', data);
+          throw new Error('No authorization URL received from server');
         }
       } catch (error) {
         console.error('Error connecting device:', error);
         toast({
           title: "Connection Error", 
-          description: `Failed to connect to ${device.name}. Please try again.`,
+          description: `Failed to connect to ${device.name}: ${error.message}`,
           variant: "destructive"
         });
       }
