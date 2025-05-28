@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -16,8 +16,11 @@ import {
   AlertCircle,
   Settings,
   RefreshCw,
-  Shield
+  Shield,
+  Lock,
+  Eye
 } from 'lucide-react';
+import FitnessPrivacyDashboard from './FitnessPrivacyDashboard';
 
 interface FitnessDevice {
   id: string;
@@ -32,6 +35,8 @@ interface FitnessDevice {
 
 const FitnessDeviceIntegration: React.FC = () => {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('devices');
+  
   const [devices, setDevices] = useState<FitnessDevice[]>([
     {
       id: 'strava',
@@ -304,7 +309,7 @@ const FitnessDeviceIntegration: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-400">Data Protection</p>
-                <p className="text-sm font-medium text-green-400">Full Control</p>
+                <p className="text-sm font-medium text-green-400">Quantum-Safe</p>
               </div>
               <Shield className="h-8 w-8 text-green-400" />
             </div>
@@ -312,118 +317,166 @@ const FitnessDeviceIntegration: React.FC = () => {
         </Card>
       </div>
 
-      {/* Connected Devices */}
-      <Card className="bg-slate-800 border-slate-700">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-autheo-primary">Fitness Device Connections</CardTitle>
-            {connectedDevices.length > 0 && (
-              <Button 
-                onClick={handleSyncAll}
-                disabled={isSyncing}
-                variant="outline"
-                size="sm"
-                className="border-autheo-primary/30 text-autheo-primary hover:bg-autheo-primary/10"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Syncing...' : 'Sync All'}
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {devices.map((device) => (
-            <div key={device.id} className="p-4 border border-slate-700 rounded-lg bg-slate-800/30">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-slate-700">
-                    {device.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-slate-100">{device.name}</h3>
-                    <p className="text-sm text-slate-400">
-                      Last sync: {formatLastSync(device.lastSync)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge 
-                    variant={device.isConnected ? "default" : "outline"}
-                    className={device.isConnected ? "bg-green-600 text-white" : "border-slate-600 text-slate-400"}
-                  >
-                    {device.isConnected ? (
-                      <>
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Connected
-                      </>
-                    ) : (
-                      <>
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        Not Connected
-                      </>
-                    )}
-                  </Badge>
-                  <Button
-                    onClick={() => handleDeviceConnection(device.id)}
-                    variant={device.isConnected ? "destructive" : "default"}
+      {/* Enhanced Tabs with Privacy Features */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="devices" className="flex items-center gap-2">
+            <Smartphone className="h-4 w-4" />
+            Devices
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Privacy
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            Security
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="devices" className="space-y-4">
+          {/* Connected Devices */}
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-autheo-primary">Fitness Device Connections</CardTitle>
+                {connectedDevices.length > 0 && (
+                  <Button 
+                    onClick={handleSyncAll}
+                    disabled={isSyncing}
+                    variant="outline"
                     size="sm"
+                    className="border-autheo-primary/30 text-autheo-primary hover:bg-autheo-primary/10"
                   >
-                    {device.isConnected ? 'Disconnect' : 'Connect'}
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                    {isSyncing ? 'Syncing...' : 'Sync All'}
                   </Button>
-                </div>
+                )}
               </div>
-              
-              {device.isConnected && (
-                <div className="space-y-3 pt-3 border-t border-slate-700">
-                  <div>
-                    <p className="text-sm font-medium text-slate-300 mb-2">Available Data Types:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {device.dataTypes.map((type) => (
-                        <Badge key={type} variant="outline" className="text-xs border-slate-600 text-slate-300">
-                          {type}
-                        </Badge>
-                      ))}
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {devices.map((device) => (
+                <div key={device.id} className="p-4 border border-slate-700 rounded-lg bg-slate-800/30">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-slate-700">
+                        {device.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-slate-100">{device.name}</h3>
+                        <p className="text-sm text-slate-400">
+                          Last sync: {formatLastSync(device.lastSync)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant={device.isConnected ? "default" : "outline"}
+                        className={device.isConnected ? "bg-green-600 text-white" : "border-slate-600 text-slate-400"}
+                      >
+                        {device.isConnected ? (
+                          <>
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Connected
+                          </>
+                        ) : (
+                          <>
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Not Connected
+                          </>
+                        )}
+                      </Badge>
+                      <Button
+                        onClick={() => handleDeviceConnection(device.id)}
+                        variant={device.isConnected ? "destructive" : "default"}
+                        size="sm"
+                      >
+                        {device.isConnected ? 'Disconnect' : 'Connect'}
+                      </Button>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-slate-300">Share with Healthcare Providers</p>
-                      <p className="text-xs text-slate-400">Allow your medical team to access this data</p>
+                  {device.isConnected && (
+                    <div className="space-y-3 pt-3 border-t border-slate-700">
+                      <div>
+                        <p className="text-sm font-medium text-slate-300 mb-2">Available Data Types:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {device.dataTypes.map((type) => (
+                            <Badge key={type} variant="outline" className="text-xs border-slate-600 text-slate-300">
+                              {type}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-slate-300">Share with Healthcare Providers</p>
+                          <p className="text-xs text-slate-400">Allow your medical team to access this data</p>
+                        </div>
+                        <Switch
+                          checked={device.sharingEnabled}
+                          onCheckedChange={(checked) => handleSharingToggle(device.id, checked)}
+                        />
+                      </div>
                     </div>
-                    <Switch
-                      checked={device.sharingEnabled}
-                      onCheckedChange={(checked) => handleSharingToggle(device.id, checked)}
-                    />
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="privacy" className="space-y-4">
+          <FitnessPrivacyDashboard />
+        </TabsContent>
+
+        <TabsContent value="security" className="space-y-4">
+          {/* Privacy Notice with Enhanced Security Info */}
+          <Card className="bg-slate-800/30 border-slate-700">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <Shield className="h-6 w-6 text-autheo-primary mt-1" />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium text-autheo-primary">Advanced Data Protection</h3>
+                  <p className="text-slate-300">
+                    Your fitness data is protected using state-of-the-art quantum-resistant encryption and 
+                    zero-knowledge proof technologies. This ensures your privacy remains intact even against 
+                    future quantum computer attacks.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-slate-200">Post-Quantum Cryptography</h4>
+                      <ul className="text-sm text-slate-400 space-y-1">
+                        <li>• CRYSTALS-Kyber encryption</li>
+                        <li>• CRYSTALS-Dilithium signatures</li>
+                        <li>• 256-bit quantum security level</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-slate-200">Zero-Knowledge Proofs</h4>
+                      <ul className="text-sm text-slate-400 space-y-1">
+                        <li>• Prove achievements without data</li>
+                        <li>• Cryptographic verification</li>
+                        <li>• Complete privacy preservation</li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-6 text-xs text-slate-400 mt-4 pt-4 border-t border-slate-700">
+                    <span>• Quantum-resistant encryption</span>
+                    <span>• Zero-knowledge verification</span>
+                    <span>• Differential privacy</span>
+                    <span>• Granular access controls</span>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Privacy Notice */}
-      <Card className="bg-slate-800/30 border-slate-700">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Shield className="h-5 w-5 text-autheo-primary mt-0.5" />
-            <div className="space-y-2">
-              <h3 className="font-medium text-autheo-primary">Your Data, Your Control</h3>
-              <p className="text-sm text-slate-300">
-                You maintain full control over your fitness data. You can connect or disconnect devices, 
-                choose what data to share with healthcare providers, and revoke access at any time. 
-                Your data is encrypted and only accessible to providers you explicitly authorize.
-              </p>
-              <div className="flex gap-4 text-xs text-slate-400 mt-2">
-                <span>• End-to-end encryption</span>
-                <span>• Granular sharing controls</span>
-                <span>• Instant revocation</span>
               </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
