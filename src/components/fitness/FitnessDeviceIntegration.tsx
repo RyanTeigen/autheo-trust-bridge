@@ -84,10 +84,16 @@ const FitnessDeviceIntegration: React.FC = () => {
 
   const loadFitnessIntegrations = async () => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        console.error('User not authenticated');
+        return;
+      }
+
       const { data: integrations, error } = await supabase
         .from('fitness_integrations')
         .select('*')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('user_id', user.user.id);
 
       if (error) {
         console.error('Error loading integrations:', error);
@@ -123,7 +129,10 @@ const FitnessDeviceIntegration: React.FC = () => {
       // Disconnect device
       try {
         const { data, error } = await supabase.functions.invoke('fitness-integration', {
-          body: { action: 'disconnect', device_type: deviceId }
+          body: { 
+            action: 'disconnect', 
+            device_type: deviceId 
+          }
         });
 
         if (error) throw error;
@@ -155,25 +164,22 @@ const FitnessDeviceIntegration: React.FC = () => {
         });
 
         const { data, error } = await supabase.functions.invoke('fitness-integration', {
-          body: { action: 'oauth_url', device_type: deviceId }
+          body: { 
+            action: 'oauth_url', 
+            device_type: deviceId 
+          }
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase function error:', error);
+          throw new Error(error.message || 'Failed to get authorization URL');
+        }
 
         if (data?.authUrl) {
-          // Open OAuth URL in new window
-          const authWindow = window.open(data.authUrl, '_blank', 'width=600,height=600');
-          
-          // Listen for auth completion (you might want to implement a more robust solution)
-          const checkClosed = setInterval(() => {
-            if (authWindow?.closed) {
-              clearInterval(checkClosed);
-              // Reload integrations to check if connection was successful
-              setTimeout(() => {
-                loadFitnessIntegrations();
-              }, 1000);
-            }
-          }, 1000);
+          // Open OAuth URL in same window
+          window.location.href = data.authUrl;
+        } else {
+          throw new Error('No authorization URL received');
         }
       } catch (error) {
         console.error('Error connecting device:', error);
@@ -207,7 +213,10 @@ const FitnessDeviceIntegration: React.FC = () => {
       for (const device of connectedDevices) {
         try {
           const { error } = await supabase.functions.invoke('fitness-integration', {
-            body: { action: 'sync_data', device_type: device.id }
+            body: { 
+              action: 'sync_data', 
+              device_type: device.id 
+            }
           });
           
           if (error) {

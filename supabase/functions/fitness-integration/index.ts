@@ -19,12 +19,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const url = new URL(req.url)
-    const action = url.searchParams.get('action')
-    const deviceType = url.searchParams.get('device_type')
-
-    console.log('Fitness integration request:', { action, deviceType })
-
     // Get user from auth header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -38,23 +32,61 @@ serve(async (req) => {
       throw new Error('Authentication failed')
     }
 
+    // Parse request body and URL parameters
+    let action, deviceType, requestBody = {};
+    
+    if (req.method === 'POST') {
+      try {
+        requestBody = await req.json()
+        action = requestBody.action
+        deviceType = requestBody.device_type
+      } catch (e) {
+        console.error('Error parsing request body:', e)
+      }
+    }
+
+    // Also check URL parameters as fallback
+    const url = new URL(req.url)
+    if (!action) action = url.searchParams.get('action')
+    if (!deviceType) deviceType = url.searchParams.get('device_type')
+
+    console.log('Fitness integration request:', { 
+      method: req.method,
+      action, 
+      deviceType, 
+      hasBody: Object.keys(requestBody).length > 0,
+      urlParams: Object.fromEntries(url.searchParams.entries())
+    })
+
+    if (!action) {
+      throw new Error('Missing action parameter')
+    }
+
     switch (action) {
       case 'oauth_url':
+        if (!deviceType) {
+          throw new Error('Missing device_type parameter for oauth_url')
+        }
         return await generateOAuthUrl(deviceType, user.id)
       
       case 'oauth_callback':
-        const body = await req.json()
-        const { code, state } = body
+        const { code, state } = requestBody
         return await handleOAuthCallback(supabase, deviceType, code, state, user.id)
       
       case 'sync_data':
+        if (!deviceType) {
+          throw new Error('Missing device_type parameter for sync_data')
+        }
         return await syncDeviceData(supabase, deviceType, user.id)
       
       case 'disconnect':
+        if (!deviceType) {
+          throw new Error('Missing device_type parameter for disconnect')
+        }
         return await disconnectDevice(supabase, deviceType, user.id)
       
       default:
-        throw new Error('Invalid action')
+        throw new Error(`Invalid action: ${action}`)
     }
 
   } catch (error) {
@@ -87,16 +119,16 @@ async function generateOAuthUrl(deviceType: string, userId: string) {
       break
     
     case 'garmin':
-      // Garmin Connect IQ OAuth would go here
       throw new Error('Garmin integration not yet implemented')
     
     case 'whoop':
-      // WHOOP API OAuth would go here  
       throw new Error('WHOOP integration not yet implemented')
     
     default:
       throw new Error('Unsupported device type')
   }
+
+  console.log('Generated OAuth URL for', deviceType, ':', authUrl)
 
   return new Response(
     JSON.stringify({ authUrl }),
@@ -105,10 +137,14 @@ async function generateOAuthUrl(deviceType: string, userId: string) {
 }
 
 async function handleOAuthCallback(supabase: any, deviceType: string, code: string, state: string, userId: string) {
-  console.log('Handling OAuth callback for:', deviceType)
+  console.log('Handling OAuth callback for:', deviceType, 'with code:', code ? 'present' : 'missing')
   
+  if (!code) {
+    throw new Error('Missing authorization code')
+  }
+
   // Verify state parameter contains our user ID
-  if (!state.startsWith(userId)) {
+  if (!state || !state.startsWith(userId)) {
     throw new Error('Invalid state parameter')
   }
 
@@ -128,6 +164,8 @@ async function handleStravaCallback(supabase: any, code: string, userId: string)
   if (!clientId || !clientSecret) {
     throw new Error('Missing Strava credentials')
   }
+
+  console.log('Exchanging code for tokens with Strava...')
 
   // Exchange code for tokens
   const tokenResponse = await fetch('https://www.strava.com/oauth/token', {
@@ -150,6 +188,7 @@ async function handleStravaCallback(supabase: any, code: string, userId: string)
   }
 
   const tokenData = await tokenResponse.json()
+  console.log('Received tokens from Strava for athlete:', tokenData.athlete?.id)
   
   // Store integration in database
   const { error: insertError } = await supabase
@@ -225,6 +264,7 @@ async function syncStravaData(supabase: any, userId: string, accessToken: string
   }
 
   const activities = await activitiesResponse.json()
+  console.log(`Found ${activities.length} activities for user ${userId}`)
   
   // Get integration ID
   const { data: integration } = await supabase
@@ -268,6 +308,8 @@ async function syncStravaData(supabase: any, userId: string, accessToken: string
 
     if (dataError) {
       console.error('Error storing fitness data:', dataError)
+    } else {
+      console.log(`Successfully stored ${fitnessData.length} activities`)
     }
   }
 
