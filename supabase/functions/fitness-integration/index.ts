@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -140,13 +141,15 @@ serve(async (req) => {
 async function generateOAuthUrl(deviceType: string, userId: string) {
   try {
     const clientId = Deno.env.get('STRAVA_CLIENT_ID')
-    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/fitness-integration?action=oauth_callback&device_type=${deviceType}`
+    // Use a clean redirect URI without query parameters
+    const redirectUri = `${Deno.env.get('SUPABASE_URL')}/functions/v1/fitness-integration`
     
     if (!clientId) {
       throw new Error('Missing Strava client ID')
     }
 
-    const state = `${userId}-${Date.now()}`
+    // Include device type in the state parameter instead of the redirect URI
+    const state = `${userId}-${deviceType}-${Date.now()}`
     
     let authUrl = ''
     
@@ -190,9 +193,23 @@ async function handleOAuthCallback(supabase: any, deviceType: string, code: stri
     throw new Error('Missing authorization code')
   }
 
-  // Verify state parameter contains our user ID
-  if (!state || !state.startsWith(userId)) {
+  // Parse the state parameter to get device type and verify user ID
+  const stateParts = state?.split('-')
+  if (!stateParts || stateParts.length < 3 || !stateParts[0] || !stateParts[1]) {
     throw new Error('Invalid state parameter')
+  }
+  
+  const stateUserId = stateParts[0]
+  const stateDeviceType = stateParts[1]
+  
+  // Verify state parameter contains our user ID and device type
+  if (stateUserId !== userId) {
+    throw new Error('Invalid state parameter - user mismatch')
+  }
+  
+  // Use device type from state if not provided in the request
+  if (!deviceType) {
+    deviceType = stateDeviceType
   }
 
   switch (deviceType) {
