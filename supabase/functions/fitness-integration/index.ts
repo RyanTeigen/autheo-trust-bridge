@@ -43,7 +43,8 @@ serve(async (req) => {
         return await generateOAuthUrl(deviceType, user.id)
       
       case 'oauth_callback':
-        const { code, state } = await req.json()
+        const body = await req.json()
+        const { code, state } = body
         return await handleOAuthCallback(supabase, deviceType, code, state, user.id)
       
       case 'sync_data':
@@ -143,6 +144,8 @@ async function handleStravaCallback(supabase: any, code: string, userId: string)
   })
 
   if (!tokenResponse.ok) {
+    const errorText = await tokenResponse.text()
+    console.error('Strava token exchange failed:', errorText)
     throw new Error('Failed to exchange code for tokens')
   }
 
@@ -216,34 +219,13 @@ async function syncStravaData(supabase: any, userId: string, accessToken: string
   })
 
   if (!activitiesResponse.ok) {
+    const errorText = await activitiesResponse.text()
+    console.error('Strava API error:', errorText)
     throw new Error('Failed to fetch Strava activities')
   }
 
   const activities = await activitiesResponse.json()
   
-  // Store activities in database
-  const fitnessData = activities.map((activity: any) => ({
-    user_id: userId,
-    integration_id: null, // Will be set by trigger or updated separately
-    data_type: 'activity',
-    external_id: activity.id.toString(),
-    data: {
-      name: activity.name,
-      type: activity.type,
-      distance: activity.distance,
-      moving_time: activity.moving_time,
-      elapsed_time: activity.elapsed_time,
-      total_elevation_gain: activity.total_elevation_gain,
-      start_date: activity.start_date,
-      average_speed: activity.average_speed,
-      max_speed: activity.max_speed,
-      average_heartrate: activity.average_heartrate,
-      max_heartrate: activity.max_heartrate,
-      calories: activity.calories
-    },
-    recorded_at: activity.start_date
-  }))
-
   // Get integration ID
   const { data: integration } = await supabase
     .from('fitness_integrations')
@@ -252,8 +234,29 @@ async function syncStravaData(supabase: any, userId: string, accessToken: string
     .eq('device_type', 'strava')
     .single()
 
-  if (integration) {
-    fitnessData.forEach(item => item.integration_id = integration.id)
+  if (integration && activities.length > 0) {
+    // Store activities in database
+    const fitnessData = activities.map((activity: any) => ({
+      user_id: userId,
+      integration_id: integration.id,
+      data_type: 'activity',
+      external_id: activity.id.toString(),
+      data: {
+        name: activity.name,
+        type: activity.type,
+        distance: activity.distance,
+        moving_time: activity.moving_time,
+        elapsed_time: activity.elapsed_time,
+        total_elevation_gain: activity.total_elevation_gain,
+        start_date: activity.start_date,
+        average_speed: activity.average_speed,
+        max_speed: activity.max_speed,
+        average_heartrate: activity.average_heartrate,
+        max_heartrate: activity.max_heartrate,
+        calories: activity.calories
+      },
+      recorded_at: activity.start_date
+    }))
     
     // Insert fitness data, ignoring duplicates
     const { error: dataError } = await supabase
