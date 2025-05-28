@@ -114,6 +114,89 @@ export type Database = {
         }
         Relationships: []
       }
+      fitness_data: {
+        Row: {
+          data: Json
+          data_type: string
+          external_id: string | null
+          id: string
+          integration_id: string
+          recorded_at: string
+          synced_at: string
+          user_id: string
+        }
+        Insert: {
+          data: Json
+          data_type: string
+          external_id?: string | null
+          id?: string
+          integration_id: string
+          recorded_at: string
+          synced_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          data_type?: string
+          external_id?: string | null
+          id?: string
+          integration_id?: string
+          recorded_at?: string
+          synced_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fitness_data_integration_id_fkey"
+            columns: ["integration_id"]
+            isOneToOne: false
+            referencedRelation: "fitness_integrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fitness_integrations: {
+        Row: {
+          access_token: string | null
+          athlete_id: string | null
+          created_at: string
+          device_type: string
+          id: string
+          is_connected: boolean | null
+          last_sync_at: string | null
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          athlete_id?: string | null
+          created_at?: string
+          device_type: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          athlete_id?: string | null
+          created_at?: string
+          device_type?: string
+          id?: string
+          is_connected?: boolean | null
+          last_sync_at?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       health_data: {
         Row: {
           created_at: string | null

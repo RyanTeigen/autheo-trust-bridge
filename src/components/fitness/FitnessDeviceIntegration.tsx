@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Activity, 
   Smartphone, 
@@ -25,6 +27,7 @@ interface FitnessDevice {
   lastSync?: string;
   dataTypes: string[];
   sharingEnabled: boolean;
+  athleteId?: string;
 }
 
 const FitnessDeviceIntegration: React.FC = () => {
@@ -73,6 +76,44 @@ const FitnessDeviceIntegration: React.FC = () => {
   ]);
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadFitnessIntegrations();
+  }, []);
+
+  const loadFitnessIntegrations = async () => {
+    try {
+      const { data: integrations, error } = await supabase
+        .from('fitness_integrations')
+        .select('*')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (error) {
+        console.error('Error loading integrations:', error);
+        return;
+      }
+
+      if (integrations) {
+        setDevices(prev => prev.map(device => {
+          const integration = integrations.find(i => i.device_type === device.id);
+          if (integration) {
+            return {
+              ...device,
+              isConnected: integration.is_connected,
+              lastSync: integration.last_sync_at,
+              athleteId: integration.athlete_id
+            };
+          }
+          return device;
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading fitness integrations:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleDeviceConnection = async (deviceId: string) => {
     const device = devices.find(d => d.id === deviceId);
@@ -80,36 +121,68 @@ const FitnessDeviceIntegration: React.FC = () => {
 
     if (device.isConnected) {
       // Disconnect device
-      setDevices(prev => prev.map(d => 
-        d.id === deviceId 
-          ? { ...d, isConnected: false, lastSync: undefined, sharingEnabled: false }
-          : d
-      ));
-      
-      toast({
-        title: "Device Disconnected",
-        description: `${device.name} has been disconnected from your account.`,
-      });
-    } else {
-      // Connect device (simulate OAuth flow)
-      toast({
-        title: "Connecting...",
-        description: `Redirecting to ${device.name} for authorization.`,
-      });
+      try {
+        const { data, error } = await supabase.functions.invoke('fitness-integration', {
+          body: { action: 'disconnect', device_type: deviceId }
+        });
 
-      // Simulate connection delay
-      setTimeout(() => {
+        if (error) throw error;
+
         setDevices(prev => prev.map(d => 
           d.id === deviceId 
-            ? { ...d, isConnected: true, lastSync: new Date().toISOString() }
+            ? { ...d, isConnected: false, lastSync: undefined, sharingEnabled: false }
             : d
         ));
         
         toast({
-          title: "Device Connected",
-          description: `${device.name} has been successfully connected to your account.`,
+          title: "Device Disconnected",
+          description: `${device.name} has been disconnected from your account.`,
         });
-      }, 2000);
+      } catch (error) {
+        console.error('Error disconnecting device:', error);
+        toast({
+          title: "Connection Error",
+          description: "Failed to disconnect device. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Connect device (initiate OAuth flow)
+      try {
+        toast({
+          title: "Connecting...",
+          description: `Redirecting to ${device.name} for authorization.`,
+        });
+
+        const { data, error } = await supabase.functions.invoke('fitness-integration', {
+          body: { action: 'oauth_url', device_type: deviceId }
+        });
+
+        if (error) throw error;
+
+        if (data?.authUrl) {
+          // Open OAuth URL in new window
+          const authWindow = window.open(data.authUrl, '_blank', 'width=600,height=600');
+          
+          // Listen for auth completion (you might want to implement a more robust solution)
+          const checkClosed = setInterval(() => {
+            if (authWindow?.closed) {
+              clearInterval(checkClosed);
+              // Reload integrations to check if connection was successful
+              setTimeout(() => {
+                loadFitnessIntegrations();
+              }, 1000);
+            }
+          }, 1000);
+        }
+      } catch (error) {
+        console.error('Error connecting device:', error);
+        toast({
+          title: "Connection Error", 
+          description: `Failed to connect to ${device.name}. Please try again.`,
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -128,19 +201,40 @@ const FitnessDeviceIntegration: React.FC = () => {
   const handleSyncAll = async () => {
     setIsSyncing(true);
     
-    // Simulate sync process
-    setTimeout(() => {
-      const now = new Date().toISOString();
-      setDevices(prev => prev.map(d => 
-        d.isConnected ? { ...d, lastSync: now } : d
-      ));
+    try {
+      const connectedDevices = devices.filter(d => d.isConnected);
       
-      setIsSyncing(false);
+      for (const device of connectedDevices) {
+        try {
+          const { error } = await supabase.functions.invoke('fitness-integration', {
+            body: { action: 'sync_data', device_type: device.id }
+          });
+          
+          if (error) {
+            console.error(`Error syncing ${device.name}:`, error);
+          }
+        } catch (error) {
+          console.error(`Error syncing ${device.name}:`, error);
+        }
+      }
+      
+      // Reload integrations to get updated sync times
+      await loadFitnessIntegrations();
+      
       toast({
         title: "Sync Complete",
         description: "All connected devices have been synchronized.",
       });
-    }, 3000);
+    } catch (error) {
+      console.error('Error during sync:', error);
+      toast({
+        title: "Sync Error",
+        description: "Some devices failed to sync. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const formatLastSync = (lastSync?: string) => {
@@ -151,6 +245,10 @@ const FitnessDeviceIntegration: React.FC = () => {
 
   const connectedDevices = devices.filter(d => d.isConnected);
   const sharedDevices = devices.filter(d => d.isConnected && d.sharingEnabled);
+
+  if (isLoading) {
+    return <div>Loading fitness integrations...</div>;
+  }
 
   return (
     <div className="space-y-6">
