@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import {
   CheckCircle, 
   AlertCircle,
   Settings,
-  Sync,
+  RefreshCw,
   Shield
 } from 'lucide-react';
 
@@ -207,7 +206,7 @@ const FitnessDeviceIntegration: React.FC = () => {
                 size="sm"
                 className="border-autheo-primary/30 text-autheo-primary hover:bg-autheo-primary/10"
               >
-                <Sync className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
                 {isSyncing ? 'Syncing...' : 'Sync All'}
               </Button>
             )}
