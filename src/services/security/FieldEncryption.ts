@@ -1,6 +1,6 @@
-
 import { validateDataIntegrity } from '@/utils/validation';
 import { ValidationError, logError, AppError } from '@/utils/errorHandling';
+import { z } from 'zod';
 
 export interface EncryptionResult {
   encryptedData: string;
@@ -80,10 +80,8 @@ export class FieldEncryption {
         throw new ValidationError('Encryption key not available');
       }
 
-      // Validate input data - fix the function call to include required parameters
-      if (!validateDataIntegrity(data, 'string')) {
-        throw new ValidationError('Invalid data format for encryption');
-      }
+      // Validate input data - use proper Zod schema
+      validateDataIntegrity(data, z.string().min(1, 'Data cannot be empty'));
 
       const encoder = new TextEncoder();
       const dataBuffer = encoder.encode(data);
