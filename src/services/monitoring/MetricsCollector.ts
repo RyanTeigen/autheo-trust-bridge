@@ -32,7 +32,7 @@ export class MetricsCollector {
     unit: string,
     context?: Record<string, any>,
     severity: SystemMetric['severity'] = 'low'
-  ): Promise<void> => {
+  ): Promise<void> {
     try {
       const metric: SystemMetric = {
         id: crypto.randomUUID(),
@@ -90,7 +90,7 @@ export class MetricsCollector {
     return total / filteredMetrics.length;
   }
 
-  private async persistMetric(metric: SystemMetric): Promise<void> => {
+  private async persistMetric(metric: SystemMetric): Promise<void> {
     try {
       // In a real implementation, this would save to a metrics database
       if (import.meta.env.DEV) {
@@ -104,7 +104,7 @@ export class MetricsCollector {
     }
   }
 
-  private async checkMetricThresholds(metric: SystemMetric): Promise<void> => {
+  private async checkMetricThresholds(metric: SystemMetric): Promise<void> {
     try {
       // Check response time threshold
       if (metric.metricType === 'performance' && metric.unit === 'ms') {
