@@ -1,3 +1,4 @@
+
 import { SystemMetric, MonitoringThresholds } from './MonitoringTypes';
 import { AlertManager } from './AlertManager';
 
@@ -31,7 +32,7 @@ export class MetricsCollector {
     unit: string,
     context?: Record<string, any>,
     severity: SystemMetric['severity'] = 'low'
-  ): Promise<void> {
+  ): Promise<void> => {
     try {
       const metric: SystemMetric = {
         id: crypto.randomUUID(),
@@ -57,7 +58,10 @@ export class MetricsCollector {
       await this.checkMetricThresholds(metric);
 
     } catch (error) {
-      console.error('Failed to record metric:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to record metric:', error);
+      }
     }
   }
 
@@ -86,16 +90,21 @@ export class MetricsCollector {
     return total / filteredMetrics.length;
   }
 
-  private async persistMetric(metric: SystemMetric): Promise<void> {
+  private async persistMetric(metric: SystemMetric): Promise<void> => {
     try {
       // In a real implementation, this would save to a metrics database
-      console.log('Persisting metric:', metric);
+      if (import.meta.env.DEV) {
+        console.log('Persisting metric:', metric);
+      }
     } catch (error) {
-      console.error('Failed to persist metric:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to persist metric:', error);
+      }
     }
   }
 
-  private async checkMetricThresholds(metric: SystemMetric): Promise<void> {
+  private async checkMetricThresholds(metric: SystemMetric): Promise<void> => {
     try {
       // Check response time threshold
       if (metric.metricType === 'performance' && metric.unit === 'ms') {
@@ -124,13 +133,19 @@ export class MetricsCollector {
         }
       }
     } catch (error) {
-      console.error('Failed to check metric thresholds:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to check metric thresholds:', error);
+      }
     }
   }
 
   public updateThresholds(newThresholds: Partial<MonitoringThresholds>): void {
     this.thresholds = { ...this.thresholds, ...newThresholds };
-    console.log('Updated monitoring thresholds:', this.thresholds);
+    
+    if (import.meta.env.DEV) {
+      console.log('Updated monitoring thresholds:', this.thresholds);
+    }
   }
 
   public getThresholds(): MonitoringThresholds {

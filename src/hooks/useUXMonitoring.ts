@@ -49,13 +49,14 @@ export const useUXMonitoring = () => {
       if ('navigation' in performance) {
         const navTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
         
-        // Fix: Use proper PerformanceNavigationTiming properties
-        systemMonitor?.recordUXEvent('navigation', {
-          page_load_time: navTiming.loadEventEnd - navTiming.fetchStart,
-          dom_content_loaded: navTiming.domContentLoadedEventEnd - navTiming.fetchStart,
-          first_paint: performance.getEntriesByType('paint').find(p => p.name === 'first-paint')?.startTime || 0,
-          largest_contentful_paint: performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0
-        });
+        if (navTiming) {
+          systemMonitor?.recordUXEvent('navigation', {
+            page_load_time: navTiming.loadEventEnd - navTiming.fetchStart,
+            dom_content_loaded: navTiming.domContentLoadedEventEnd - navTiming.fetchStart,
+            first_paint: performance.getEntriesByType('paint').find(p => p.name === 'first-paint')?.startTime || 0,
+            largest_contentful_paint: performance.getEntriesByType('largest-contentful-paint')[0]?.startTime || 0
+          });
+        }
       }
     };
 

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
 import AppSidebar from './AppSidebar';
@@ -10,57 +10,52 @@ import SessionStatusIndicator from '../security/SessionStatusIndicator';
 import { useAuth } from '@/contexts/AuthContext';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import ErrorBoundary from '../ux/ErrorBoundary';
+import LoadingStates from '../ux/LoadingStates';
 
 const MainLayout: React.FC = () => {
-  console.log('MainLayout: Starting render...');
-  
   const { isAuthenticated, isLoading } = useAuth();
   
-  console.log('MainLayout: Auth state -', { isAuthenticated, isLoading });
-  
-  // If still loading auth state, show a loading indicator
+  // Show loading state while checking authentication
   if (isLoading) {
-    console.log('MainLayout: Still loading auth state');
     return (
       <div className="flex justify-center items-center min-h-screen bg-slate-900 text-slate-100">
-        <div className="animate-pulse text-slate-400">Loading application...</div>
+        <LoadingStates type="security" message="Authenticating..." size="lg" />
       </div>
     );
   }
 
-  // If not authenticated, redirect to auth page
+  // Redirect to auth if not authenticated
   if (!isAuthenticated) {
-    console.log('MainLayout: Not authenticated, redirecting to auth...');
     return <Navigate to="/auth" replace />;
   }
 
-  console.log('MainLayout: Rendering authenticated layout');
-
   return (
-    <div className="dark min-h-screen bg-slate-900 text-slate-100">
-      <SidebarProvider>
-        <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100 w-full">
-          <AppHeader>
-            <div className="flex items-center gap-4">
-              <GlobalSearch />
-              <NotificationCenter />
-              <UserProfileMenu />
-            </div>
-          </AppHeader>
-          <div className="flex flex-1 overflow-hidden w-full">
-            <AppSidebar />
-            <main className="flex-1 overflow-auto bg-slate-900 text-slate-100">
-              <div className="min-h-full bg-slate-900 text-slate-100">
-                <Outlet />
+    <ErrorBoundary fallback={<div className="flex items-center justify-center min-h-screen bg-slate-900 text-slate-100">Application error occurred</div>}>
+      <div className="dark min-h-screen bg-slate-900 text-slate-100">
+        <SidebarProvider>
+          <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100 w-full">
+            <AppHeader>
+              <div className="flex items-center gap-4">
+                <GlobalSearch />
+                <NotificationCenter />
+                <UserProfileMenu />
               </div>
-            </main>
+            </AppHeader>
+            <div className="flex flex-1 overflow-hidden w-full">
+              <AppSidebar />
+              <main className="flex-1 overflow-auto bg-slate-900 text-slate-100">
+                <div className="min-h-full bg-slate-900 text-slate-100">
+                  <Outlet />
+                </div>
+              </main>
+            </div>
+            <ErrorBoundary fallback={<div className="text-slate-400 text-sm p-2">Session status unavailable</div>}>
+              <SessionStatusIndicator />
+            </ErrorBoundary>
           </div>
-          <ErrorBoundary fallback={<div>Session status unavailable</div>}>
-            <SessionStatusIndicator />
-          </ErrorBoundary>
-        </div>
-      </SidebarProvider>
-    </div>
+        </SidebarProvider>
+      </div>
+    </ErrorBoundary>
   );
 };
 

@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { validateDataIntegrity } from '@/utils/validation';
 import { AuthenticationError, logError, AppError } from '@/utils/errorHandling';
 
 export interface SessionConfig {
@@ -20,9 +19,6 @@ export interface SessionInfo {
 export class SessionManager {
   private static instance: SessionManager;
   private config: SessionConfig;
-  private refreshTimer?: NodeJS.Timeout;
-  private warningTimer?: NodeJS.Timeout;
-  private lastActivityTimer?: NodeJS.Timeout;
   private sessionCheckInterval = 60000; // Check every minute
 
   public static getInstance(): SessionManager {
@@ -85,7 +81,6 @@ export class SessionManager {
       
       if (data.session) {
         this.updateLastActivity();
-        console.log('Session refreshed successfully');
         return true;
       }
       
@@ -104,19 +99,12 @@ export class SessionManager {
 
   public async signOut(reason: 'expired' | 'inactive' | 'manual' = 'manual'): Promise<void> {
     try {
-      this.clearTimers();
       localStorage.removeItem('lastActivity');
-      
       await supabase.auth.signOut();
       
-      console.log(`Session ended: ${reason}`);
-      
-      // Show appropriate message based on reason
-      if (reason === 'expired') {
-        // This would be handled by the UI layer
-        console.log('Session expired. Please log in again.');
-      } else if (reason === 'inactive') {
-        console.log('Session ended due to inactivity.');
+      // Don't log in production, but provide user feedback through UI
+      if (import.meta.env.DEV) {
+        console.log(`Session ended: ${reason}`);
       }
     } catch (error) {
       const appError = error instanceof AppError ? error : new AuthenticationError('Sign out error', { originalError: error });
@@ -153,21 +141,6 @@ export class SessionManager {
         await this.refreshSession();
       }
     }, this.sessionCheckInterval);
-  }
-
-  private clearTimers(): void {
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-      this.refreshTimer = undefined;
-    }
-    if (this.warningTimer) {
-      clearTimeout(this.warningTimer);
-      this.warningTimer = undefined;
-    }
-    if (this.lastActivityTimer) {
-      clearTimeout(this.lastActivityTimer);
-      this.lastActivityTimer = undefined;
-    }
   }
 
   public getConfig(): SessionConfig {

@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import SessionManager, { SessionInfo } from '@/services/security/SessionManager';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
 
 export interface UseSessionManagerReturn {
   sessionInfo: SessionInfo | null;
@@ -31,7 +30,7 @@ export const useSessionManager = (): UseSessionManagerReturn => {
       setTimeRemaining(info?.timeRemaining || 0);
       setIsExpiringSoon(info ? info.timeRemaining <= 15 : false);
     } catch (error) {
-      console.error('Error updating session info:', error);
+      // Reset session state on error
       setSessionInfo(null);
       setIsSessionValid(false);
       setTimeRemaining(0);
@@ -57,7 +56,6 @@ export const useSessionManager = (): UseSessionManagerReturn => {
       }
       return success;
     } catch (error) {
-      console.error('Error refreshing session:', error);
       toast({
         title: "Session Refresh Failed",
         description: "Please log in again.",
@@ -71,7 +69,7 @@ export const useSessionManager = (): UseSessionManagerReturn => {
     try {
       sessionManager.updateLastActivity();
     } catch (error) {
-      console.error('Error updating activity:', error);
+      // Silent fail for activity updates
     }
   }, [sessionManager]);
 
@@ -83,7 +81,7 @@ export const useSessionManager = (): UseSessionManagerReturn => {
       setTimeRemaining(0);
       setIsExpiringSoon(false);
     } catch (error) {
-      console.error('Error signing out:', error);
+      // Error handling is done in SessionManager
     }
   }, [sessionManager]);
 

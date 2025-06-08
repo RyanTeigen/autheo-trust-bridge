@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   validateDataIntegrity, 
@@ -10,7 +11,6 @@ import {
   logError 
 } from '@/utils/errorHandling';
 import { requireAuthentication } from '@/utils/security';
-import LoadingStates from '@/components/ux/LoadingStates';
 import { SystemMetric, Alert, UXEvent, HealthcareEvent, SystemHealth } from './MonitoringTypes';
 import { MetricsCollector } from './MetricsCollector';
 import { AlertManager } from './AlertManager';
@@ -205,14 +205,20 @@ export class SystemMonitor {
         this.uxEvents = this.uxEvents.slice(-1000);
       }
       
-      console.log(`[UX Event] ${eventType}:`, eventData);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.log(`[UX Event] ${eventType}:`, eventData);
+      }
 
       // Trigger immediate flush for high severity events
       if (severity === 'high') {
         await this.flushUXEvents();
       }
     } catch (error) {
-      console.error('Failed to record UX event:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to record UX event:', error);
+      }
     }
   };
 
@@ -242,14 +248,20 @@ export class SystemMonitor {
         this.healthcareEvents = this.healthcareEvents.slice(-1000);
       }
       
-      console.log(`[Healthcare Event] ${eventType}:`, eventData);
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.log(`[Healthcare Event] ${eventType}:`, eventData);
+      }
 
       // Immediate flush for critical healthcare events
       if (severity === 'high' || eventType === 'alert_triggered') {
         await this.flushHealthcareEvents();
       }
     } catch (error) {
-      console.error('Failed to record healthcare event:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to record healthcare event:', error);
+      }
     }
   };
 
@@ -259,22 +271,29 @@ export class SystemMonitor {
       try {
         await this.performHealthCheck();
       } catch (error) {
-        console.error('Health check failed:', error);
+        // Silent fail in production
+        if (import.meta.env.DEV) {
+          console.error('Health check failed:', error);
+        }
       }
     }, 60000); // Every minute
   }
 
   private async performHealthCheck(): Promise<void> {
-    // Perform basic system health checks
-    const health = await this.getSystemHealth();
-    
-    await this.recordMetric(
-      'health',
-      health.status === 'healthy' ? 100 : health.status === 'degraded' ? 50 : 0,
-      'percent',
-      health.metrics,
-      health.status === 'critical' ? 'critical' : 'low'
-    );
+    try {
+      // Perform basic system health checks
+      const health = await this.getSystemHealth();
+      
+      await this.recordMetric(
+        'health',
+        health.status === 'healthy' ? 100 : health.status === 'degraded' ? 50 : 0,
+        'percent',
+        health.metrics,
+        health.status === 'critical' ? 'critical' : 'low'
+      );
+    } catch (error) {
+      // Silent fail for health checks
+    }
   }
 
   private generateId(): string {
@@ -286,7 +305,9 @@ export class SystemMonitor {
     this.uxEvents = [];
     
     // In a real implementation, this would persist UX events to database
-    console.log('Flushing UX events:', events);
+    if (import.meta.env.DEV) {
+      console.log('Flushing UX events:', events);
+    }
   }
 
   private async flushHealthcareEvents(): Promise<void> {
@@ -294,7 +315,9 @@ export class SystemMonitor {
     this.healthcareEvents = [];
     
     // In a real implementation, this would persist healthcare events to database
-    console.log('Flushing healthcare events:', events);
+    if (import.meta.env.DEV) {
+      console.log('Flushing healthcare events:', events);
+    }
   }
 }
 

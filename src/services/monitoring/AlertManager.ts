@@ -1,3 +1,4 @@
+
 import { Alert } from './MonitoringTypes';
 
 export class AlertManager {
@@ -44,7 +45,11 @@ export class AlertManager {
       await this.sendAlertNotification(alert);
     }
 
-    console.log(`Alert created: ${alertType} - ${severity} - ${message}`);
+    // Only log in development
+    if (import.meta.env.DEV) {
+      console.log(`Alert created: ${alertType} - ${severity} - ${message}`);
+    }
+    
     return alert.id;
   }
 
@@ -56,7 +61,11 @@ export class AlertManager {
       
       // Update in database (placeholder)
       await this.updateAlertStatus(alertId, true);
-      console.log(`Alert resolved: ${alertId}`);
+      
+      // Only log in development
+      if (import.meta.env.DEV) {
+        console.log(`Alert resolved: ${alertId}`);
+      }
     }
   }
 
@@ -87,27 +96,42 @@ export class AlertManager {
   private async persistAlert(alert: Alert): Promise<void> {
     try {
       // In a real implementation, this would save to a database
-      console.log('Persisting alert:', alert);
+      if (import.meta.env.DEV) {
+        console.log('Persisting alert:', alert);
+      }
     } catch (error) {
-      console.error('Failed to persist alert:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to persist alert:', error);
+      }
     }
   }
 
   private async updateAlertStatus(alertId: string, resolved: boolean): Promise<void> {
     try {
       // In a real implementation, this would update the database
-      console.log('Updating alert status:', alertId, resolved);
+      if (import.meta.env.DEV) {
+        console.log('Updating alert status:', alertId, resolved);
+      }
     } catch (error) {
-      console.error('Failed to update alert status:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to update alert status:', error);
+      }
     }
   }
 
   private async sendAlertNotification(alert: Alert): Promise<void> {
     try {
       // In a real implementation, this would send notifications via email/SMS/Slack
-      console.log('Sending alert notification:', alert);
+      if (import.meta.env.DEV) {
+        console.log('Sending alert notification:', alert);
+      }
     } catch (error) {
-      console.error('Failed to send alert notification:', error);
+      // Silent fail in production
+      if (import.meta.env.DEV) {
+        console.error('Failed to send alert notification:', error);
+      }
     }
   }
 }

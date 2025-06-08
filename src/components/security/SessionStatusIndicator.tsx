@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSessionManager } from '@/hooks/useSessionManager';
+import LoadingStates from '../ux/LoadingStates';
 
 const SessionStatusIndicator: React.FC = () => {
   try {
@@ -16,20 +17,22 @@ const SessionStatusIndicator: React.FC = () => {
       refreshSession 
     } = useSessionManager();
 
+    // Don't render if no session info
     if (!sessionInfo) {
       return null;
     }
 
-    const getStatusColor = () => {
+    const getStatusColor = (): 'destructive' | 'secondary' | 'default' => {
       if (!isSessionValid) return 'destructive';
       if (isExpiringSoon) return 'secondary';
       return 'default';
     };
 
     const getStatusIcon = () => {
-      if (!isSessionValid) return <AlertTriangle className="h-4 w-4" />;
-      if (isExpiringSoon) return <Clock className="h-4 w-4" />;
-      return <Shield className="h-4 w-4" />;
+      const iconClass = "h-4 w-4";
+      if (!isSessionValid) return <AlertTriangle className={iconClass} />;
+      if (isExpiringSoon) return <Clock className={iconClass} />;
+      return <Shield className={iconClass} />;
     };
 
     const formatTimeRemaining = (minutes: number): string => {
@@ -41,14 +44,22 @@ const SessionStatusIndicator: React.FC = () => {
       return `${hours}h ${remainingMinutes}m`;
     };
 
+    const handleRefreshSession = async () => {
+      try {
+        await refreshSession();
+      } catch (error) {
+        // Error handling is done in the hook
+      }
+    };
+
     return (
       <div className="fixed bottom-4 right-4 z-50">
-        <Card className="bg-slate-800/90 border-slate-700 backdrop-blur-sm">
+        <Card className="bg-slate-800/90 border-slate-700 backdrop-blur-sm max-w-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center gap-2">
               {getStatusIcon()}
               <CardTitle className="text-sm text-slate-100">Session Status</CardTitle>
-              <Badge variant={getStatusColor() as any} className="text-xs">
+              <Badge variant={getStatusColor()} className="text-xs">
                 {isSessionValid ? 'Active' : 'Expired'}
               </Badge>
             </div>
@@ -73,7 +84,7 @@ const SessionStatusIndicator: React.FC = () => {
               {isExpiringSoon && (
                 <Button 
                   size="sm" 
-                  onClick={refreshSession}
+                  onClick={handleRefreshSession}
                   className="w-full bg-autheo-primary hover:bg-autheo-primary/90"
                 >
                   Extend Session
@@ -85,8 +96,8 @@ const SessionStatusIndicator: React.FC = () => {
       </div>
     );
   } catch (error) {
-    console.error('SessionStatusIndicator error:', error);
-    return null; // Fail gracefully
+    // Fail gracefully - don't log in production
+    return null;
   }
 };
 
