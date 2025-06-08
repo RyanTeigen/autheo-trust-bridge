@@ -114,6 +114,153 @@ export type Database = {
         }
         Relationships: []
       }
+      fitness_access_permissions: {
+        Row: {
+          conditions: Json | null
+          created_at: string
+          data_categories: string[]
+          expires_at: string | null
+          granted_at: string
+          granted_by: string
+          granted_to_organization: string | null
+          granted_to_user_id: string | null
+          id: string
+          permission_type: string
+          purpose: string
+          revoked_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conditions?: Json | null
+          created_at?: string
+          data_categories: string[]
+          expires_at?: string | null
+          granted_at?: string
+          granted_by: string
+          granted_to_organization?: string | null
+          granted_to_user_id?: string | null
+          id?: string
+          permission_type: string
+          purpose: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conditions?: Json | null
+          created_at?: string
+          data_categories?: string[]
+          expires_at?: string | null
+          granted_at?: string
+          granted_by?: string
+          granted_to_organization?: string | null
+          granted_to_user_id?: string | null
+          id?: string
+          permission_type?: string
+          purpose?: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fitness_audit_logs: {
+        Row: {
+          action: string
+          compliance_category: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string
+          status: string
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          compliance_category: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type: string
+          status?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          compliance_category?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string
+          status?: string
+          timestamp?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fitness_consent_records: {
+        Row: {
+          consent_date: string
+          consent_status: boolean
+          consent_text: string
+          consent_type: string
+          consent_version: string
+          created_at: string
+          digital_signature: string | null
+          expiry_date: string | null
+          id: string
+          ip_address: unknown | null
+          updated_at: string
+          user_id: string
+          withdrawal_date: string | null
+          witness_signature: string | null
+        }
+        Insert: {
+          consent_date?: string
+          consent_status?: boolean
+          consent_text: string
+          consent_type: string
+          consent_version?: string
+          created_at?: string
+          digital_signature?: string | null
+          expiry_date?: string | null
+          id?: string
+          ip_address?: unknown | null
+          updated_at?: string
+          user_id: string
+          withdrawal_date?: string | null
+          witness_signature?: string | null
+        }
+        Update: {
+          consent_date?: string
+          consent_status?: boolean
+          consent_text?: string
+          consent_type?: string
+          consent_version?: string
+          created_at?: string
+          digital_signature?: string | null
+          expiry_date?: string | null
+          id?: string
+          ip_address?: unknown | null
+          updated_at?: string
+          user_id?: string
+          withdrawal_date?: string | null
+          witness_signature?: string | null
+        }
+        Relationships: []
+      }
       fitness_data: {
         Row: {
           data: Json

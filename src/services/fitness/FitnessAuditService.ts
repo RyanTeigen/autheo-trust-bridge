@@ -76,7 +76,7 @@ export class FitnessAuditService {
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('fitness_audit_logs')
         .insert({
           user_id: user.user.id,
@@ -115,7 +115,7 @@ export class FitnessAuditService {
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('fitness_audit_logs')
         .insert({
           user_id: user.user.id,
@@ -158,7 +158,7 @@ export class FitnessAuditService {
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('fitness_consent_records')
         .insert({
           user_id: user.user.id,
@@ -204,7 +204,7 @@ export class FitnessAuditService {
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('fitness_access_permissions')
         .insert({
           user_id: user.user.id,
@@ -251,7 +251,7 @@ export class FitnessAuditService {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('fitness_audit_logs')
         .select('*')
         .eq('user_id', user.user.id)
@@ -263,7 +263,7 @@ export class FitnessAuditService {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as FitnessAuditLogEntry[];
     } catch (error) {
       console.error('Failed to fetch audit logs:', error);
       return [];
@@ -280,7 +280,7 @@ export class FitnessAuditService {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('fitness_consent_records')
         .select('*')
         .eq('user_id', user.user.id)
@@ -291,7 +291,7 @@ export class FitnessAuditService {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as FitnessConsentRecord[];
     } catch (error) {
       console.error('Failed to fetch consent records:', error);
       return [];
@@ -308,7 +308,7 @@ export class FitnessAuditService {
         throw new Error('User not authenticated');
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('fitness_access_permissions')
         .select('*')
         .eq('user_id', user.user.id)
@@ -319,7 +319,7 @@ export class FitnessAuditService {
         throw error;
       }
 
-      return data || [];
+      return (data || []) as FitnessAccessPermission[];
     } catch (error) {
       console.error('Failed to fetch access permissions:', error);
       return [];
