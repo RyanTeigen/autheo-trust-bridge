@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { validateDataIntegrity } from '@/utils/validation';
-import { AuthenticationError, logError } from '@/utils/errorHandling';
+import { AuthenticationError, logError, AppError } from '@/utils/errorHandling';
 
 export interface SessionConfig {
   maxAge: number; // in minutes
@@ -46,7 +46,8 @@ export class SessionManager {
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
-        logError('Session validation error', error);
+        const appError = new AuthenticationError('Session validation error', { originalError: error });
+        logError(appError);
         return null;
       }
       
@@ -66,7 +67,8 @@ export class SessionManager {
         timeRemaining
       };
     } catch (error) {
-      logError('Failed to get current session', error);
+      const appError = error instanceof AppError ? error : new AuthenticationError('Failed to get current session', { originalError: error });
+      logError(appError);
       return null;
     }
   }
@@ -76,7 +78,8 @@ export class SessionManager {
       const { data, error } = await supabase.auth.refreshSession();
       
       if (error) {
-        logError('Session refresh failed', error);
+        const appError = new AuthenticationError('Session refresh failed', { originalError: error });
+        logError(appError);
         return false;
       }
       
@@ -88,7 +91,8 @@ export class SessionManager {
       
       return false;
     } catch (error) {
-      logError('Session refresh error', error);
+      const appError = error instanceof AppError ? error : new AuthenticationError('Session refresh error', { originalError: error });
+      logError(appError);
       return false;
     }
   }
@@ -115,12 +119,13 @@ export class SessionManager {
         console.log('Session ended due to inactivity.');
       }
     } catch (error) {
-      logError('Sign out error', error);
+      const appError = error instanceof AppError ? error : new AuthenticationError('Sign out error', { originalError: error });
+      logError(appError);
     }
   }
 
-  public isSessionExpiringSoon(): boolean {
-    const sessionInfo = this.getCurrentSession();
+  public async isSessionExpiringSoon(): Promise<boolean> {
+    const sessionInfo = await this.getCurrentSession();
     return sessionInfo ? sessionInfo.timeRemaining <= this.config.warningThreshold : false;
   }
 

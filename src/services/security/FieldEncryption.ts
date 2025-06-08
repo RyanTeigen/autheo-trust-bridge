@@ -1,6 +1,6 @@
 
 import { validateDataIntegrity } from '@/utils/validation';
-import { ValidationError, logError } from '@/utils/errorHandling';
+import { ValidationError, logError, AppError } from '@/utils/errorHandling';
 
 export interface EncryptionResult {
   encryptedData: string;
@@ -64,8 +64,9 @@ export class FieldEncryption {
         localStorage.setItem('encryption-key', JSON.stringify(Array.from(new Uint8Array(exportedKey))));
       }
     } catch (error) {
-      logError('Failed to initialize field encryption', error);
-      throw new ValidationError('Encryption initialization failed');
+      const appError = new ValidationError('Encryption initialization failed', { originalError: error });
+      logError(appError);
+      throw appError;
     }
   }
 
@@ -118,8 +119,9 @@ export class FieldEncryption {
         }
       };
     } catch (error) {
-      logError('Field encryption failed', error);
-      throw new ValidationError('Failed to encrypt field data');
+      const appError = error instanceof AppError ? error : new ValidationError('Failed to encrypt field data', { originalError: error });
+      logError(appError);
+      throw appError;
     }
   }
 
@@ -170,7 +172,8 @@ export class FieldEncryption {
         metadata: encryptedResult.metadata
       };
     } catch (error) {
-      logError('Field decryption failed', error);
+      const appError = error instanceof AppError ? error : new ValidationError('Decryption failed', { originalError: error });
+      logError(appError);
       return {
         decryptedData: '',
         isValid: false,
