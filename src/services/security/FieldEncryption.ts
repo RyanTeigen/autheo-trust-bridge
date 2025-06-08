@@ -1,27 +1,14 @@
+
 import { validateDataIntegrity } from '@/utils/validation';
 import { ValidationError, logError, AppError } from '@/utils/errorHandling';
 import { z } from 'zod';
-
-export interface EncryptionResult {
-  encryptedData: string;
-  metadata: {
-    algorithm: string;
-    keyId: string;
-    timestamp: string;
-    checksum: string;
-  };
-}
-
-export interface DecryptionResult {
-  decryptedData: string;
-  isValid: boolean;
-  metadata?: any;
-}
+import { EncryptionResult, DecryptionResult, FieldType } from './types';
+import { EncryptionKeyManager, CryptoOperations } from './encryptionUtils';
+import { ChecksumGenerator } from './checksumUtils';
 
 export class FieldEncryption {
   private static instance: FieldEncryption;
   private encryptionKey?: CryptoKey;
-  private keyId: string;
 
   public static getInstance(): FieldEncryption {
     if (!FieldEncryption.instance) {
@@ -31,38 +18,12 @@ export class FieldEncryption {
   }
 
   private constructor() {
-    this.keyId = 'field-encryption-v1';
     this.initializeEncryption();
   }
 
   private async initializeEncryption(): Promise<void> {
     try {
-      // In a production environment, this key would come from a secure key management service
-      // For now, we'll generate or retrieve a key from secure storage
-      const keyData = localStorage.getItem('encryption-key');
-      
-      if (keyData) {
-        // Import existing key
-        const keyBuffer = new Uint8Array(JSON.parse(keyData));
-        this.encryptionKey = await crypto.subtle.importKey(
-          'raw',
-          keyBuffer,
-          { name: 'AES-GCM' },
-          false,
-          ['encrypt', 'decrypt']
-        );
-      } else {
-        // Generate new key
-        this.encryptionKey = await crypto.subtle.generateKey(
-          { name: 'AES-GCM', length: 256 },
-          true,
-          ['encrypt', 'decrypt']
-        );
-        
-        // Export and store the key (in production, use secure key storage)
-        const exportedKey = await crypto.subtle.exportKey('raw', this.encryptionKey);
-        localStorage.setItem('encryption-key', JSON.stringify(Array.from(new Uint8Array(exportedKey))));
-      }
+      this.encryptionKey = await EncryptionKeyManager.generateOrRetrieveKey();
     } catch (error) {
       const appError = new ValidationError('Encryption initialization failed', { originalError: error });
       logError(appError);
@@ -70,7 +31,7 @@ export class FieldEncryption {
     }
   }
 
-  public async encryptField(data: string, fieldType: 'pii' | 'medical' | 'sensitive' = 'sensitive'): Promise<EncryptionResult> {
+  public async encryptField(data: string, fieldType: FieldType = 'sensitive'): Promise<EncryptionResult> {
     try {
       if (!this.encryptionKey) {
         await this.initializeEncryption();
@@ -83,35 +44,16 @@ export class FieldEncryption {
       // Validate input data - use proper Zod schema
       validateDataIntegrity(data, z.string().min(1, 'Data cannot be empty'));
 
-      const encoder = new TextEncoder();
-      const dataBuffer = encoder.encode(data);
-      
-      // Generate random IV
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      
-      // Encrypt the data
-      const encryptedBuffer = await crypto.subtle.encrypt(
-        { name: 'AES-GCM', iv },
-        this.encryptionKey,
-        dataBuffer
-      );
-
-      // Combine IV and encrypted data
-      const combinedBuffer = new Uint8Array(iv.length + encryptedBuffer.byteLength);
-      combinedBuffer.set(iv);
-      combinedBuffer.set(new Uint8Array(encryptedBuffer), iv.length);
-
-      // Create base64 encoded result
-      const encryptedData = btoa(String.fromCharCode(...combinedBuffer));
+      const { encryptedData } = await CryptoOperations.encryptData(data, this.encryptionKey);
       
       // Generate checksum for integrity verification
-      const checksum = await this.generateChecksum(encryptedData);
+      const checksum = await ChecksumGenerator.generateChecksum(encryptedData);
       
       return {
         encryptedData,
         metadata: {
           algorithm: 'AES-GCM-256',
-          keyId: this.keyId,
+          keyId: EncryptionKeyManager.getKeyId(),
           timestamp: new Date().toISOString(),
           checksum
         }
@@ -134,8 +76,12 @@ export class FieldEncryption {
       }
 
       // Verify checksum first
-      const expectedChecksum = await this.generateChecksum(encryptedResult.encryptedData);
-      if (expectedChecksum !== encryptedResult.metadata.checksum) {
+      const isChecksumValid = await ChecksumGenerator.verifyChecksum(
+        encryptedResult.encryptedData, 
+        encryptedResult.metadata.checksum
+      );
+      
+      if (!isChecksumValid) {
         return {
           decryptedData: '',
           isValid: false,
@@ -143,26 +89,10 @@ export class FieldEncryption {
         };
       }
 
-      // Decode base64
-      const combinedBuffer = new Uint8Array(
-        atob(encryptedResult.encryptedData)
-          .split('')
-          .map(char => char.charCodeAt(0))
+      const decryptedData = await CryptoOperations.decryptData(
+        encryptedResult.encryptedData, 
+        this.encryptionKey
       );
-
-      // Extract IV and encrypted data
-      const iv = combinedBuffer.slice(0, 12);
-      const encryptedData = combinedBuffer.slice(12);
-
-      // Decrypt
-      const decryptedBuffer = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv },
-        this.encryptionKey,
-        encryptedData
-      );
-
-      const decoder = new TextDecoder();
-      const decryptedData = decoder.decode(decryptedBuffer);
 
       return {
         decryptedData,
@@ -178,14 +108,6 @@ export class FieldEncryption {
         metadata: { error: 'Decryption failed' }
       };
     }
-  }
-
-  private async generateChecksum(data: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const dataBuffer = encoder.encode(data);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-    const hashArray = new Uint8Array(hashBuffer);
-    return btoa(String.fromCharCode(...hashArray)).substring(0, 16);
   }
 
   public async encryptSensitiveFields(obj: Record<string, any>, fieldsToEncrypt: string[]): Promise<Record<string, any>> {

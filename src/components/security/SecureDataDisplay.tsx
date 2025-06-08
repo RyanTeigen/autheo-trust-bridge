@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Shield, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DataMasking, { MaskingContext } from '@/services/security/DataMasking';
-import FieldEncryption from '@/services/security/FieldEncryption';
+import { FieldEncryption } from '@/services/security/FieldEncryption';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SecureDataDisplayProps {

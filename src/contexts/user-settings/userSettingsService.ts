@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { UserSettings, ThemeSettings, NotificationPreferences, PrivacySettings, JsonRecord } from './types';
 import { defaultSettings } from './defaultSettings';
-import FieldEncryption from '@/services/security/FieldEncryption';
+import { FieldEncryption } from '@/services/security/FieldEncryption';
 
 const fieldEncryption = FieldEncryption.getInstance();
 
