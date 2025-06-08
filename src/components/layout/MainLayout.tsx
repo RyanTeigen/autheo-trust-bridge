@@ -6,6 +6,7 @@ import AppSidebar from './AppSidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import NotificationCenter from '../notifications/NotificationCenter';
 import GlobalSearch from '../search/GlobalSearch';
+import SessionStatusIndicator from '../security/SessionStatusIndicator';
 import { useAuth } from '@/contexts/AuthContext';
 import UserProfileMenu from '../auth/UserProfileMenu';
 
@@ -48,6 +49,7 @@ const MainLayout: React.FC = () => {
               </div>
             </main>
           </div>
+          <SessionStatusIndicator />
         </div>
       </SidebarProvider>
     </div>

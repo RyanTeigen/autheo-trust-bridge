@@ -1,7 +1,9 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserSettings, ThemeSettings, NotificationPreferences, PrivacySettings, JsonRecord } from './types';
 import { defaultSettings } from './defaultSettings';
+import FieldEncryption from '@/services/security/FieldEncryption';
+
+const fieldEncryption = FieldEncryption.getInstance();
 
 export async function fetchUserSettings(userId: string): Promise<UserSettings | null> {
   const { data, error } = await supabase
@@ -104,10 +106,15 @@ export async function updateUserProfile(
   userId: string,
   profileData: { firstName?: string; lastName?: string; email?: string }
 ): Promise<void> {
-  // Only update fields that were provided
-  const updateData: Record<string, string> = {};
-  if (profileData.firstName !== undefined) updateData.first_name = profileData.firstName;
-  if (profileData.lastName !== undefined) updateData.last_name = profileData.lastName;
+  // Encrypt sensitive profile data before storing
+  const encryptedData = await fieldEncryption.encryptSensitiveFields(
+    profileData,
+    ['firstName', 'lastName'] // Encrypt names but not email for auth purposes
+  );
+
+  const updateData: Record<string, any> = {};
+  if (encryptedData.firstName !== undefined) updateData.first_name = encryptedData.firstName;
+  if (encryptedData.lastName !== undefined) updateData.last_name = encryptedData.lastName;
   
   if (Object.keys(updateData).length > 0) {
     const { error } = await supabase

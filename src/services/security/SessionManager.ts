@@ -1,0 +1,177 @@
+
+import { supabase } from '@/integrations/supabase/client';
+import { validateDataIntegrity } from '@/utils/validation';
+import { AuthenticationError, logError } from '@/utils/errorHandling';
+
+export interface SessionConfig {
+  maxAge: number; // in minutes
+  warningThreshold: number; // in minutes before expiry to warn
+  refreshThreshold: number; // in minutes before expiry to auto-refresh
+}
+
+export interface SessionInfo {
+  userId: string;
+  expiresAt: Date;
+  lastActivity: Date;
+  isValid: boolean;
+  timeRemaining: number; // in minutes
+}
+
+export class SessionManager {
+  private static instance: SessionManager;
+  private config: SessionConfig;
+  private refreshTimer?: NodeJS.Timeout;
+  private warningTimer?: NodeJS.Timeout;
+  private lastActivityTimer?: NodeJS.Timeout;
+  private sessionCheckInterval = 60000; // Check every minute
+
+  public static getInstance(): SessionManager {
+    if (!SessionManager.instance) {
+      SessionManager.instance = new SessionManager();
+    }
+    return SessionManager.instance;
+  }
+
+  private constructor() {
+    this.config = {
+      maxAge: 480, // 8 hours
+      warningThreshold: 15, // Warn 15 minutes before expiry
+      refreshThreshold: 30, // Auto-refresh 30 minutes before expiry
+    };
+    this.startSessionMonitoring();
+  }
+
+  public async getCurrentSession(): Promise<SessionInfo | null> {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        logError('Session validation error', error);
+        return null;
+      }
+      
+      if (!session) {
+        return null;
+      }
+
+      const expiresAt = new Date(session.expires_at! * 1000);
+      const now = new Date();
+      const timeRemaining = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / (1000 * 60)));
+      
+      return {
+        userId: session.user.id,
+        expiresAt,
+        lastActivity: new Date(localStorage.getItem('lastActivity') || now.toISOString()),
+        isValid: timeRemaining > 0,
+        timeRemaining
+      };
+    } catch (error) {
+      logError('Failed to get current session', error);
+      return null;
+    }
+  }
+
+  public async refreshSession(): Promise<boolean> {
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        logError('Session refresh failed', error);
+        return false;
+      }
+      
+      if (data.session) {
+        this.updateLastActivity();
+        console.log('Session refreshed successfully');
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      logError('Session refresh error', error);
+      return false;
+    }
+  }
+
+  public updateLastActivity(): void {
+    const now = new Date().toISOString();
+    localStorage.setItem('lastActivity', now);
+  }
+
+  public async signOut(reason: 'expired' | 'inactive' | 'manual' = 'manual'): Promise<void> {
+    try {
+      this.clearTimers();
+      localStorage.removeItem('lastActivity');
+      
+      await supabase.auth.signOut();
+      
+      console.log(`Session ended: ${reason}`);
+      
+      // Show appropriate message based on reason
+      if (reason === 'expired') {
+        // This would be handled by the UI layer
+        console.log('Session expired. Please log in again.');
+      } else if (reason === 'inactive') {
+        console.log('Session ended due to inactivity.');
+      }
+    } catch (error) {
+      logError('Sign out error', error);
+    }
+  }
+
+  public isSessionExpiringSoon(): boolean {
+    const sessionInfo = this.getCurrentSession();
+    return sessionInfo ? sessionInfo.timeRemaining <= this.config.warningThreshold : false;
+  }
+
+  private startSessionMonitoring(): void {
+    // Check session status every minute
+    setInterval(async () => {
+      const sessionInfo = await this.getCurrentSession();
+      
+      if (!sessionInfo || !sessionInfo.isValid) {
+        await this.signOut('expired');
+        return;
+      }
+      
+      // Check for inactivity
+      const timeSinceLastActivity = Date.now() - sessionInfo.lastActivity.getTime();
+      const inactivityThreshold = 30 * 60 * 1000; // 30 minutes
+      
+      if (timeSinceLastActivity > inactivityThreshold) {
+        await this.signOut('inactive');
+        return;
+      }
+      
+      // Auto-refresh if needed
+      if (sessionInfo.timeRemaining <= this.config.refreshThreshold) {
+        await this.refreshSession();
+      }
+    }, this.sessionCheckInterval);
+  }
+
+  private clearTimers(): void {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = undefined;
+    }
+    if (this.warningTimer) {
+      clearTimeout(this.warningTimer);
+      this.warningTimer = undefined;
+    }
+    if (this.lastActivityTimer) {
+      clearTimeout(this.lastActivityTimer);
+      this.lastActivityTimer = undefined;
+    }
+  }
+
+  public getConfig(): SessionConfig {
+    return { ...this.config };
+  }
+
+  public updateConfig(newConfig: Partial<SessionConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+  }
+}
+
+export default SessionManager;
