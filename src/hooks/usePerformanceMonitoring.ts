@@ -127,7 +127,7 @@ export const usePerformanceMonitoring = () => {
         { 
           resource: resource.name,
           type: 'javascript',
-          loadTime: resource.loadEventEnd - resource.loadEventStart
+          loadTime: resource.responseEnd - resource.requestStart
         },
         'low'
       );
@@ -142,7 +142,7 @@ export const usePerformanceMonitoring = () => {
         { 
           resource: resource.name,
           type: 'css',
-          loadTime: resource.loadEventEnd - resource.loadEventStart
+          loadTime: resource.responseEnd - resource.requestStart
         },
         'low'
       );
