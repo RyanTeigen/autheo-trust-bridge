@@ -1,162 +1,186 @@
 
-import React, { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { UserSettings, ThemeSettings, NotificationSettings, PrivacySettings } from './types';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserSettingsContext } from './UserSettingsContext';
-import { UserSettings, ThemeSettings, NotificationPreferences, PrivacySettings } from './types';
-import { defaultSettings } from './defaultSettings';
-import {
-  fetchUserSettings,
-  createDefaultUserSettings,
-  updateUserTheme,
-  updateUserNotifications,
-  updateUserPrivacy,
-  updateUserProfile
-} from './userSettingsService';
+
+interface UserSettingsContextType {
+  settings: UserSettings;
+  loading: boolean;
+  updateThemeSettings: (theme: Partial<ThemeSettings>) => Promise<void>;
+  updateNotificationSettings: (notifications: Partial<NotificationSettings>) => Promise<void>;
+  updatePrivacySettings: (privacy: Partial<PrivacySettings>) => Promise<void>;
+  resetToDefaults: () => Promise<void>;
+}
+
+const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
+
+const defaultSettings: UserSettings = {
+  theme: {
+    mode: 'system',
+    accentColor: '#0ea5e9'
+  },
+  notifications: {
+    email: true,
+    push: true,
+    sms: false
+  },
+  privacy: {
+    shareHealthData: false,
+    shareContactInfo: false,
+    twoFactorAuth: false
+  }
+};
 
 export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const { user, isAuthenticated } = useAuth();
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  // Load user settings from database when user profile is available
   useEffect(() => {
-    const loadUserSettings = async () => {
-      if (!isAuthenticated || !user) {
-        setIsLoading(false);
+    if (user) {
+      loadUserSettings();
+    } else {
+      setSettings(defaultSettings);
+      setLoading(false);
+    }
+  }, [user]);
+
+  const loadUserSettings = async () => {
+    try {
+      setLoading(true);
+      
+      if (!user?.id) {
+        setSettings(defaultSettings);
         return;
       }
-      
-      try {
-        const userSettings = await fetchUserSettings(user.id);
-        
-        if (userSettings) {
-          // If we have settings in the database, use them
-          setSettings(userSettings);
-        } else {
-          // If no settings found, create default settings
-          await createDefaultUserSettings(user.id);
-        }
-      } catch (error) {
-        console.error('Failed to load or create user settings:', error);
-        toast({
-          title: "Settings Error",
-          description: "Could not load your settings. Using defaults.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
+
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading user settings:', error);
+        setSettings(defaultSettings);
+        return;
       }
+
+      if (data) {
+        setSettings({
+          theme: data.theme || defaultSettings.theme,
+          notifications: data.notifications || defaultSettings.notifications,
+          privacy: data.privacy || defaultSettings.privacy
+        });
+      } else {
+        // Create default settings for new user
+        await createDefaultSettings();
+      }
+    } catch (error) {
+      console.error('Error in loadUserSettings:', error);
+      setSettings(defaultSettings);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDefaultSettings = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .insert([{
+          user_id: user.id,
+          theme: defaultSettings.theme,
+          notifications: defaultSettings.notifications,
+          privacy: defaultSettings.privacy
+        }]);
+
+      if (error) {
+        console.error('Error creating default settings:', error);
+      } else {
+        setSettings(defaultSettings);
+      }
+    } catch (error) {
+      console.error('Error in createDefaultSettings:', error);
+    }
+  };
+
+  const updateSettings = async (newSettings: UserSettings) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert([{
+          user_id: user.id,
+          theme: newSettings.theme,
+          notifications: newSettings.notifications,
+          privacy: newSettings.privacy
+        }]);
+
+      if (error) {
+        console.error('Error updating settings:', error);
+        throw error;
+      }
+
+      setSettings(newSettings);
+    } catch (error) {
+      console.error('Error in updateSettings:', error);
+      throw error;
+    }
+  };
+
+  const updateThemeSettings = async (theme: Partial<ThemeSettings>) => {
+    const newSettings = {
+      ...settings,
+      theme: { ...settings.theme, ...theme }
     };
-
-    loadUserSettings();
-  }, [isAuthenticated, user, toast]);
-
-  const updateTheme = async (theme: Partial<ThemeSettings>) => {
-    if (!user) return;
-    
-    try {
-      await updateUserTheme(user.id, theme, settings.theme);
-      
-      // Update local state
-      setSettings(prev => ({
-        ...prev,
-        theme: { ...prev.theme, ...theme },
-      }));
-      
-      toast({
-        title: "Theme Updated",
-        description: "Your display preferences have been saved.",
-      });
-    } catch (error) {
-      console.error('Error updating theme:', error);
-      toast({
-        title: "Update Failed",
-        description: "Could not update your theme settings.",
-        variant: "destructive",
-      });
-    }
+    await updateSettings(newSettings);
   };
 
-  const updateNotificationPreferences = async (prefs: Partial<NotificationPreferences>) => {
-    if (!user) return;
-    
-    try {
-      await updateUserNotifications(user.id, prefs, settings.notifications);
-      
-      setSettings(prev => ({
-        ...prev,
-        notifications: { ...prev.notifications, ...prefs },
-      }));
-      
-      toast({
-        title: "Notifications Updated",
-        description: "Your notification preferences have been saved.",
-      });
-    } catch (error) {
-      console.error('Error updating notification preferences:', error);
-      toast({
-        title: "Update Failed",
-        description: "Could not update your notification settings.",
-        variant: "destructive",
-      });
-    }
+  const updateNotificationSettings = async (notifications: Partial<NotificationSettings>) => {
+    const newSettings = {
+      ...settings,
+      notifications: { ...settings.notifications, ...notifications }
+    };
+    await updateSettings(newSettings);
   };
 
-  const updatePrivacySettings = async (privacySettings: Partial<PrivacySettings>) => {
-    if (!user) return;
-    
-    try {
-      await updateUserPrivacy(user.id, privacySettings, settings.privacy);
-      
-      setSettings(prev => ({
-        ...prev,
-        privacy: { ...prev.privacy, ...privacySettings },
-      }));
-      
-      toast({
-        title: "Privacy Settings Updated",
-        description: "Your privacy preferences have been saved.",
-      });
-    } catch (error) {
-      console.error('Error updating privacy settings:', error);
-      toast({
-        title: "Update Failed",
-        description: "Could not update your privacy settings.",
-        variant: "destructive",
-      });
-    }
+  const updatePrivacySettings = async (privacy: Partial<PrivacySettings>) => {
+    const newSettings = {
+      ...settings,
+      privacy: { ...settings.privacy, ...privacy }
+    };
+    await updateSettings(newSettings);
   };
 
-  const saveProfileInfo = async (profileData: { firstName?: string; lastName?: string; email?: string }) => {
-    if (!user) return;
-    
-    try {
-      await updateUserProfile(user.id, profileData);
-      
-      toast({
-        title: "Profile Updated",
-        description: "Your profile information has been saved.",
-      });
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: "Update Failed",
-        description: error.message || "Could not update your profile information.",
-        variant: "destructive",
-      });
-    }
+  const resetToDefaults = async () => {
+    await updateSettings(defaultSettings);
   };
 
   const value = {
     settings,
-    isLoading,
-    updateTheme,
-    updateNotificationPreferences,
+    loading,
+    updateThemeSettings,
+    updateNotificationSettings,
     updatePrivacySettings,
-    saveProfileInfo,
+    resetToDefaults
   };
 
-  return <UserSettingsContext.Provider value={value}>{children}</UserSettingsContext.Provider>;
+  return (
+    <UserSettingsContext.Provider value={value}>
+      {children}
+    </UserSettingsContext.Provider>
+  );
+};
+
+export const useUserSettings = () => {
+  const context = useContext(UserSettingsContext);
+  if (context === undefined) {
+    throw new Error('useUserSettings must be used within a UserSettingsProvider');
+  }
+  return context;
 };

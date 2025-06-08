@@ -11,64 +11,16 @@ import {
 } from '@/utils/errorHandling';
 import { requireAuthentication } from '@/utils/security';
 import LoadingStates from '@/components/ux/LoadingStates';
-
-export interface SystemMetric {
-  id: string;
-  metricType: 'performance' | 'security' | 'usage' | 'error' | 'health';
-  value: number;
-  unit: string;
-  timestamp: string;
-  context?: Record<string, any>;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-}
-
-export interface Alert {
-  id: string;
-  alertType: 'system' | 'security' | 'performance' | 'data';
-  severity: 'low' | 'medium' | 'high' | 'critical';
-  message: string;
-  details?: Record<string, any>;
-  timestamp: string;
-  resolved: boolean;
-  resolvedAt?: string;
-}
-
-// Add new interfaces for UX and healthcare events
-export interface UXEvent {
-  id: string;
-  type: 'ux_event';
-  timestamp: string;
-  event_type: 'interaction' | 'navigation' | 'error' | 'accessibility';
-  data: Record<string, any>;
-  severity: 'low' | 'medium' | 'high';
-  user_agent: string;
-  url: string;
-}
-
-export interface HealthcareEvent {
-  id: string;
-  type: 'healthcare_event';
-  timestamp: string;
-  event_type: 'vital_recorded' | 'medication_taken' | 'alert_triggered' | 'appointment_scheduled';
-  patient_id: string;
-  data: Record<string, any>;
-  severity: 'low' | 'medium' | 'high';
-  compliance_relevant: boolean;
-}
+import { SystemMetric, Alert, UXEvent, HealthcareEvent, SystemHealth } from './MonitoringTypes';
+import { MetricsCollector } from './MetricsCollector';
+import { AlertManager } from './AlertManager';
 
 export class SystemMonitor {
   private static instance: SystemMonitor;
-  private metrics: SystemMetric[] = [];
-  private alerts: Alert[] = [];
-  private uxEvents: UXEvent[] = []; // Separate storage for UX events
-  private healthcareEvents: HealthcareEvent[] = []; // Separate storage for healthcare events
-  private thresholds = {
-    errorRate: 0.05, // 5% error rate threshold
-    responseTime: 2000, // 2 second response time threshold
-    memoryUsage: 0.8, // 80% memory usage threshold
-    diskUsage: 0.9, // 90% disk usage threshold
-    failedLogins: 5, // 5 failed login attempts threshold
-  };
+  private metricsCollector: MetricsCollector;
+  private alertManager: AlertManager;
+  private uxEvents: UXEvent[] = [];
+  private healthcareEvents: HealthcareEvent[] = [];
 
   public static getInstance(): SystemMonitor {
     if (!SystemMonitor.instance) {
@@ -78,10 +30,12 @@ export class SystemMonitor {
   }
 
   private constructor() {
+    this.metricsCollector = MetricsCollector.getInstance();
+    this.alertManager = AlertManager.getInstance();
     this.startPeriodicMonitoring();
   }
 
-  // Record system metrics
+  // Record system metrics (delegated to MetricsCollector)
   recordMetric = asyncHandler(async (
     metricType: SystemMetric['metricType'],
     value: number,
@@ -89,68 +43,17 @@ export class SystemMonitor {
     context?: Record<string, any>,
     severity: SystemMetric['severity'] = 'low'
   ): Promise<void> => {
-    try {
-      const metric: SystemMetric = {
-        id: crypto.randomUUID(),
-        metricType,
-        value,
-        unit,
-        timestamp: new Date().toISOString(),
-        context,
-        severity
-      };
-
-      this.metrics.push(metric);
-      
-      // Keep only last 1000 metrics in memory
-      if (this.metrics.length > 1000) {
-        this.metrics = this.metrics.slice(-1000);
-      }
-
-      // Store in database for persistence
-      await this.persistMetric(metric);
-
-      // Check if metric triggers any alerts
-      await this.checkMetricThresholds(metric);
-
-    } catch (error) {
-      console.error('Failed to record metric:', error);
-    }
+    await this.metricsCollector.recordMetric(metricType, value, unit, context, severity);
   });
 
-  // Create system alerts
+  // Create system alerts (delegated to AlertManager)
   createAlert = asyncHandler(async (
     alertType: Alert['alertType'],
     severity: Alert['severity'],
     message: string,
     details?: Record<string, any>
   ): Promise<string> => {
-    const alert: Alert = {
-      id: crypto.randomUUID(),
-      alertType,
-      severity,
-      message: sanitizeString(message),
-      details,
-      timestamp: new Date().toISOString(),
-      resolved: false
-    };
-
-    this.alerts.push(alert);
-    
-    // Keep only last 500 alerts in memory
-    if (this.alerts.length > 500) {
-      this.alerts = this.alerts.slice(-500);
-    }
-
-    // Store in database
-    await this.persistAlert(alert);
-
-    // Send notifications for high/critical alerts
-    if (severity === 'high' || severity === 'critical') {
-      await this.sendAlertNotification(alert);
-    }
-
-    return alert.id;
+    return await this.alertManager.createAlert(alertType, severity, message, details);
   });
 
   // Monitor API response times
@@ -161,7 +64,7 @@ export class SystemMonitor {
     statusCode: number,
     userId?: string
   ): Promise<void> => {
-    const severity = responseTime > this.thresholds.responseTime ? 'medium' : 'low';
+    const severity = responseTime > 2000 ? 'medium' : 'low';
     
     await this.recordMetric(
       'performance',
@@ -175,16 +78,6 @@ export class SystemMonitor {
       },
       severity
     );
-
-    // Create alert for slow responses
-    if (responseTime > this.thresholds.responseTime) {
-      await this.createAlert(
-        'performance',
-        severity,
-        `Slow API response detected: ${endpoint}`,
-        { responseTime, endpoint, method }
-      );
-    }
   });
 
   // Monitor error rates
@@ -204,19 +97,6 @@ export class SystemMonitor {
       },
       'medium'
     );
-
-    // Check error rate threshold
-    const recentErrors = this.getRecentMetrics('error', 300000); // Last 5 minutes
-    const errorRate = recentErrors.length / 300; // errors per second
-
-    if (errorRate > this.thresholds.errorRate) {
-      await this.createAlert(
-        'system',
-        'high',
-        `High error rate detected: ${errorRate.toFixed(2)} errors/second`,
-        { errorRate, recentErrorCount: recentErrors.length }
-      );
-    }
   });
 
   // Monitor user activities
@@ -264,20 +144,12 @@ export class SystemMonitor {
   });
 
   // Get system health status
-  getSystemHealth = asyncHandler(async (): Promise<{
-    status: 'healthy' | 'degraded' | 'critical';
-    metrics: {
-      errorRate: number;
-      avgResponseTime: number;
-      activeAlerts: number;
-      criticalAlerts: number;
-    };
-  }> => {
-    const recentMetrics = this.getRecentMetrics('all', 300000); // Last 5 minutes
+  getSystemHealth = asyncHandler(async (): Promise<SystemHealth> => {
+    const recentMetrics = this.metricsCollector.getRecentMetrics('all', 300000); // Last 5 minutes
     const recentErrors = recentMetrics.filter(m => m.metricType === 'error');
     const recentPerformance = recentMetrics.filter(m => m.metricType === 'performance');
-    const activeAlerts = this.alerts.filter(a => !a.resolved);
-    const criticalAlerts = activeAlerts.filter(a => a.severity === 'critical');
+    const activeAlerts = this.alertManager.getActiveAlerts();
+    const criticalAlerts = this.alertManager.getCriticalAlerts();
 
     const errorRate = recentErrors.length / 300;
     const avgResponseTime = recentPerformance.length > 0
@@ -286,9 +158,9 @@ export class SystemMonitor {
 
     let status: 'healthy' | 'degraded' | 'critical' = 'healthy';
     
-    if (criticalAlerts.length > 0 || errorRate > this.thresholds.errorRate) {
+    if (criticalAlerts.length > 0 || errorRate > 0.05) {
       status = 'critical';
-    } else if (activeAlerts.length > 10 || avgResponseTime > this.thresholds.responseTime) {
+    } else if (activeAlerts.length > 10 || avgResponseTime > 2000) {
       status = 'degraded';
     }
 
@@ -303,19 +175,12 @@ export class SystemMonitor {
     };
   });
 
-  // Resolve alerts
+  // Resolve alerts (delegated to AlertManager)
   resolveAlert = asyncHandler(async (alertId: string): Promise<void> => {
-    const alert = this.alerts.find(a => a.id === alertId);
-    if (alert) {
-      alert.resolved = true;
-      alert.resolvedAt = new Date().toISOString();
-      
-      // Update in database
-      await this.updateAlertStatus(alertId, true);
-    }
+    await this.alertManager.resolveAlert(alertId);
   });
 
-  // Enhanced monitoring with UX feedback - Fixed to store UX events separately
+  // Enhanced monitoring with UX feedback
   public recordUXEvent = async (
     eventType: 'interaction' | 'navigation' | 'error' | 'accessibility',
     eventData: Record<string, any>,
@@ -351,7 +216,7 @@ export class SystemMonitor {
     }
   };
 
-  // Healthcare-specific monitoring - Fixed to store healthcare events separately
+  // Healthcare-specific monitoring
   public recordHealthcareEvent = async (
     eventType: 'vital_recorded' | 'medication_taken' | 'alert_triggered' | 'appointment_scheduled',
     patientId: string,
@@ -388,56 +253,6 @@ export class SystemMonitor {
     }
   };
 
-  // Private helper methods
-  private getRecentMetrics(type: SystemMetric['metricType'] | 'all', timeWindow: number): SystemMetric[] {
-    const cutoff = Date.now() - timeWindow;
-    return this.metrics.filter(m => {
-      const metricTime = new Date(m.timestamp).getTime();
-      return metricTime > cutoff && (type === 'all' || m.metricType === type);
-    });
-  }
-
-  private async persistMetric(metric: SystemMetric): Promise<void> {
-    try {
-      // In a real implementation, this would save to a metrics database
-      console.log('Persisting metric:', metric);
-    } catch (error) {
-      console.error('Failed to persist metric:', error);
-    }
-  }
-
-  private async persistAlert(alert: Alert): Promise<void> {
-    try {
-      // In a real implementation, this would save to an alerts database
-      console.log('Persisting alert:', alert);
-    } catch (error) {
-      console.error('Failed to persist alert:', error);
-    }
-  }
-
-  private async updateAlertStatus(alertId: string, resolved: boolean): Promise<void> {
-    try {
-      // In a real implementation, this would update the database
-      console.log('Updating alert status:', alertId, resolved);
-    } catch (error) {
-      console.error('Failed to update alert status:', error);
-    }
-  }
-
-  private async sendAlertNotification(alert: Alert): Promise<void> {
-    try {
-      // In a real implementation, this would send notifications via email/SMS/Slack
-      console.log('Sending alert notification:', alert);
-    } catch (error) {
-      console.error('Failed to send alert notification:', error);
-    }
-  }
-
-  private async checkMetricThresholds(metric: SystemMetric): Promise<void> {
-    // Implementation for checking various metric thresholds
-    // This would contain logic for detecting anomalies and triggering alerts
-  }
-
   private startPeriodicMonitoring(): void {
     // Start periodic health checks
     setInterval(async () => {
@@ -466,7 +281,6 @@ export class SystemMonitor {
     return crypto.randomUUID();
   }
 
-  // Fixed flush methods to handle the correct event types
   private async flushUXEvents(): Promise<void> {
     const events = this.uxEvents;
     this.uxEvents = [];
@@ -485,3 +299,4 @@ export class SystemMonitor {
 }
 
 export default SystemMonitor;
+export { SystemMetric, Alert, UXEvent, HealthcareEvent };

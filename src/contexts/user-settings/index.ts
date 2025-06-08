@@ -1,5 +1,3 @@
 
-export * from './types';
-export * from './defaultSettings';
-export * from './UserSettingsContext';
-export * from './UserSettingsProvider';
+export { UserSettingsProvider, useUserSettings } from './UserSettingsProvider';
+export type { UserSettings, ThemeSettings, NotificationSettings, PrivacySettings } from './types';

@@ -1,12 +1,10 @@
 
-import { Json } from '@/integrations/supabase/types';
-
 export interface ThemeSettings {
   mode: 'light' | 'dark' | 'system';
   accentColor: string;
 }
 
-export interface NotificationPreferences {
+export interface NotificationSettings {
   email: boolean;
   push: boolean;
   sms: boolean;
@@ -20,23 +18,6 @@ export interface PrivacySettings {
 
 export interface UserSettings {
   theme: ThemeSettings;
-  notifications: NotificationPreferences;
+  notifications: NotificationSettings;
   privacy: PrivacySettings;
 }
-
-export interface UserSettingsContextType {
-  settings: UserSettings;
-  isLoading: boolean;
-  updateTheme: (theme: Partial<ThemeSettings>) => Promise<void>;
-  updateNotificationPreferences: (prefs: Partial<NotificationPreferences>) => Promise<void>;
-  updatePrivacySettings: (settings: Partial<PrivacySettings>) => Promise<void>;
-  saveProfileInfo: (profileData: { firstName?: string; lastName?: string; email?: string }) => Promise<void>;
-}
-
-export interface ProfileData {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-}
-
-export type JsonRecord = Record<string, unknown>;

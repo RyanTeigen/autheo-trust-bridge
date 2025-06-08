@@ -1,84 +1,95 @@
 
-import { HealthRecord } from '@/contexts/HealthRecordsContext';
+// Utility functions for health record filtering and management
 
-export const filterHealthRecords = (
+export interface HealthRecord {
+  id: string;
+  title: string;
+  category: string;
+  provider: string;
+  date: string;
+  isShared: boolean;
+  details?: string;
+}
+
+export interface FilterOptions {
+  searchQuery?: string;
+  category?: string;
+  sharedFilter?: 'shared' | 'private';
+}
+
+export function filterHealthRecords(
   records: HealthRecord[],
-  options: {
-    searchQuery?: string;
-    category?: string;
-    dateRange?: { start: string | null; end: string | null };
-    sharedFilter?: 'all' | 'shared' | 'private';
-    provider?: string;
+  options: FilterOptions
+): HealthRecord[] {
+  let filtered = [...records];
+
+  // Apply search query filter
+  if (options.searchQuery && options.searchQuery.trim()) {
+    const query = options.searchQuery.toLowerCase().trim();
+    filtered = filtered.filter(record =>
+      record.title.toLowerCase().includes(query) ||
+      record.provider.toLowerCase().includes(query) ||
+      record.category.toLowerCase().includes(query) ||
+      (record.details && record.details.toLowerCase().includes(query))
+    );
   }
-) => {
-  const { searchQuery, category, dateRange, sharedFilter, provider } = options;
+
+  // Apply category filter
+  if (options.category && options.category !== 'all') {
+    filtered = filtered.filter(record => record.category === options.category);
+  }
+
+  // Apply shared filter
+  if (options.sharedFilter) {
+    const isShared = options.sharedFilter === 'shared';
+    filtered = filtered.filter(record => record.isShared === isShared);
+  }
+
+  // Sort by date (most recent first)
+  filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  return filtered;
+}
+
+export function getRecordCategories(records: HealthRecord[]): string[] {
+  const categories = new Set(records.map(record => record.category));
+  return Array.from(categories).sort();
+}
+
+export function getSharedRecordsCount(records: HealthRecord[]): number {
+  return records.filter(record => record.isShared).length;
+}
+
+export function getRecentRecordsCount(records: HealthRecord[], days: number = 30): number {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - days);
   
-  return records.filter(record => {
-    // Filter by search query
-    if (searchQuery && !record.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !record.provider.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !record.details.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    
-    // Filter by category
-    if (category && category !== 'all' && record.category !== category) {
-      return false;
-    }
-    
-    // Filter by date range
-    if (dateRange?.start) {
-      const recordDate = new Date(record.date);
-      const startDate = new Date(dateRange.start);
-      if (recordDate < startDate) {
-        return false;
-      }
-    }
-    
-    if (dateRange?.end) {
-      const recordDate = new Date(record.date);
-      const endDate = new Date(dateRange.end);
-      // Set end date to the end of the day
-      endDate.setHours(23, 59, 59, 999);
-      if (recordDate > endDate) {
-        return false;
-      }
-    }
-    
-    // Filter by shared status
-    if (sharedFilter === 'shared' && !record.isShared) {
-      return false;
-    }
-    
-    if (sharedFilter === 'private' && record.isShared) {
-      return false;
-    }
-    
-    // Filter by provider
-    if (provider && provider !== 'all' && record.provider !== provider) {
-      return false;
-    }
-    
-    return true;
-  });
-};
+  return records.filter(record => new Date(record.date) >= cutoffDate).length;
+}
 
-export const formatDateToLocale = (dateString: string): string => {
-  try {
-    return new Date(dateString).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  } catch (e) {
-    return dateString;
+export function validateHealthRecord(record: Partial<HealthRecord>): string[] {
+  const errors: string[] = [];
+
+  if (!record.title || record.title.trim().length === 0) {
+    errors.push('Title is required');
   }
-};
 
-export const getCategoryIcon = (category: string) => {
-  return category.charAt(0).toUpperCase() + category.slice(1);
-};
+  if (!record.category || record.category.trim().length === 0) {
+    errors.push('Category is required');
+  }
 
-export const getSharingStatusText = (isShared: boolean): string => {
-  return isShared ? 'Shared with providers' : 'Private';
-};
+  if (!record.provider || record.provider.trim().length === 0) {
+    errors.push('Provider is required');
+  }
+
+  if (!record.date) {
+    errors.push('Date is required');
+  } else {
+    const date = new Date(record.date);
+    if (isNaN(date.getTime())) {
+      errors.push('Invalid date format');
+    }
+  }
+
+  return errors;
+}
