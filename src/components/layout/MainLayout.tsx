@@ -9,6 +9,7 @@ import GlobalSearch from '../search/GlobalSearch';
 import SessionStatusIndicator from '../security/SessionStatusIndicator';
 import { useAuth } from '@/contexts/AuthContext';
 import UserProfileMenu from '../auth/UserProfileMenu';
+import ErrorBoundary from '../ux/ErrorBoundary';
 
 const MainLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -49,7 +50,9 @@ const MainLayout: React.FC = () => {
               </div>
             </main>
           </div>
-          <SessionStatusIndicator />
+          <ErrorBoundary fallback={<div>Session status unavailable</div>}>
+            <SessionStatusIndicator />
+          </ErrorBoundary>
         </div>
       </SidebarProvider>
     </div>
