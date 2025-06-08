@@ -10,6 +10,7 @@ import {
   logError 
 } from '@/utils/errorHandling';
 import { requireAuthentication } from '@/utils/security';
+import LoadingStates from '@/components/ux/LoadingStates';
 
 export interface SystemMetric {
   id: string;
@@ -36,6 +37,7 @@ export class SystemMonitor {
   private static instance: SystemMonitor;
   private metrics: SystemMetric[] = [];
   private alerts: Alert[] = [];
+  private metricsBuffer: SystemMetric[] = [];
   private thresholds = {
     errorRate: 0.05, // 5% error rate threshold
     responseTime: 2000, // 2 second response time threshold
@@ -289,6 +291,67 @@ export class SystemMonitor {
     }
   });
 
+  // Enhanced monitoring with UX feedback
+  public recordUXEvent = async (
+    eventType: 'interaction' | 'navigation' | 'error' | 'accessibility',
+    eventData: Record<string, any>,
+    severity: 'low' | 'medium' | 'high' = 'low'
+  ): Promise<void> => {
+    try {
+      const metric = {
+        id: this.generateId(),
+        type: 'ux_event',
+        timestamp: new Date().toISOString(),
+        event_type: eventType,
+        data: eventData,
+        severity,
+        user_agent: navigator.userAgent,
+        url: window.location.href
+      };
+
+      this.metricsBuffer.push(metric);
+      console.log(`[UX Event] ${eventType}:`, eventData);
+
+      // Trigger immediate flush for high severity events
+      if (severity === 'high') {
+        await this.flushMetrics();
+      }
+    } catch (error) {
+      console.error('Failed to record UX event:', error);
+    }
+  };
+
+  // Healthcare-specific monitoring
+  public recordHealthcareEvent = async (
+    eventType: 'vital_recorded' | 'medication_taken' | 'alert_triggered' | 'appointment_scheduled',
+    patientId: string,
+    eventData: Record<string, any>,
+    severity: 'low' | 'medium' | 'high' = 'low'
+  ): Promise<void> => {
+    try {
+      const metric = {
+        id: this.generateId(),
+        type: 'healthcare_event',
+        timestamp: new Date().toISOString(),
+        event_type: eventType,
+        patient_id: patientId,
+        data: eventData,
+        severity,
+        compliance_relevant: ['medication_taken', 'vital_recorded'].includes(eventType)
+      };
+
+      this.metricsBuffer.push(metric);
+      console.log(`[Healthcare Event] ${eventType}:`, eventData);
+
+      // Immediate flush for critical healthcare events
+      if (severity === 'high' || eventType === 'alert_triggered') {
+        await this.flushMetrics();
+      }
+    } catch (error) {
+      console.error('Failed to record healthcare event:', error);
+    }
+  };
+
   // Private helper methods
   private getRecentMetrics(type: SystemMetric['metricType'] | 'all', timeWindow: number): SystemMetric[] {
     const cutoff = Date.now() - timeWindow;
@@ -361,6 +424,16 @@ export class SystemMonitor {
       health.metrics,
       health.status === 'critical' ? 'critical' : 'low'
     );
+  }
+
+  private generateId(): string {
+    return crypto.randomUUID();
+  }
+
+  private async flushMetrics(): Promise<void> {
+    const metrics = this.metricsBuffer;
+    this.metricsBuffer = [];
+    await this.persistMetric(metrics);
   }
 }
 
