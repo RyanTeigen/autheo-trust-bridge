@@ -108,7 +108,7 @@ export class PerformanceMonitor {
 
     // First Input Delay (FID)
     this.observeMetric('first-input', (entries) => {
-      const fid = entries[0];
+      const fid = entries[0] as PerformanceEventTiming;
       const delay = fid.processingStart - fid.startTime;
       this.systemMonitor.recordMetric(
         'performance',
