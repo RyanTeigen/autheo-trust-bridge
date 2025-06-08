@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import SessionManager, { SessionInfo } from '@/services/security/SessionManager';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 export interface UseSessionManagerReturn {
   sessionInfo: SessionInfo | null;
@@ -73,12 +74,13 @@ export const useSessionManager = (): UseSessionManagerReturn => {
         title: "Session Expiring Soon",
         description: `Your session will expire in ${timeRemaining} minutes. Click to refresh.`,
         action: (
-          <button 
+          <Button 
             onClick={refreshSession}
-            className="bg-autheo-primary text-white px-3 py-1 rounded text-sm"
+            size="sm"
+            className="bg-autheo-primary hover:bg-autheo-primary/90"
           >
             Refresh
-          </button>
+          </Button>
         ),
       });
     }
