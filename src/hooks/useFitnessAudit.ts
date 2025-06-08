@@ -45,7 +45,6 @@ export const useFitnessAudit = () => {
   ) => {
     try {
       await auditService.logFitnessDataAccess(action, resourceType, resourceId, details);
-      // Refresh audit logs after logging
       await fetchAuditData();
     } catch (err) {
       console.error('Error logging data access:', err);
@@ -59,7 +58,6 @@ export const useFitnessAudit = () => {
   ) => {
     try {
       await auditService.recordConsent(consentType, consentStatus, consentText);
-      // Refresh data after recording consent
       await fetchAuditData();
     } catch (err) {
       console.error('Error recording consent:', err);
@@ -82,7 +80,6 @@ export const useFitnessAudit = () => {
         purpose,
         expiresAt
       );
-      // Refresh data after granting permission
       await fetchAuditData();
     } catch (err) {
       console.error('Error granting access permission:', err);

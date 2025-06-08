@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import FitnessPrivacyService, { ZeroKnowledgeProof } from '@/services/fitness/FitnessPrivacyService';
+import { useFitnessData } from '@/hooks/useFitnessData';
+import { useFitnessAudit } from '@/hooks/useFitnessAudit';
+import { evaluateQuantumSecurity } from '@/utils/quantumCrypto';
+import SecurityStatusCards from './privacy/SecurityStatusCards';
+import PrivacySettingsTab from './privacy/PrivacySettingsTab';
+import AuditTrailTab from './privacy/AuditTrailTab';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
 import { 
   Shield, 
   Lock, 
@@ -20,10 +26,6 @@ import {
   Clock,
   FileText
 } from 'lucide-react';
-import FitnessPrivacyService, { ZeroKnowledgeProof, FitnessDataEncryption } from '@/services/fitness/FitnessPrivacyService';
-import { useFitnessData } from '@/hooks/useFitnessData';
-import { useFitnessAudit } from '@/hooks/useFitnessAudit';
-import { evaluateQuantumSecurity } from '@/utils/quantumCrypto';
 
 interface PrivacySettings {
   quantumEncryption: boolean;
@@ -47,11 +49,7 @@ const FitnessPrivacyDashboard: React.FC = () => {
     dataMinimization: true
   });
 
-  const [encryptionStatus, setEncryptionStatus] = useState<{
-    level: string;
-    score: number;
-    isQuantumSafe: boolean;
-  }>({
+  const [encryptionStatus, setEncryptionStatus] = useState({
     level: 'quantum-safe',
     score: 95,
     isQuantumSafe: true
@@ -63,14 +61,12 @@ const FitnessPrivacyDashboard: React.FC = () => {
   useEffect(() => {
     if (fitnessData.length > 0) {
       assessDataSecurity();
-      // Log that the user accessed their fitness privacy dashboard
       logDataAccess('Viewed fitness privacy dashboard', 'privacy_dashboard');
     }
   }, [fitnessData]);
 
   const assessDataSecurity = async () => {
     try {
-      // Simulate assessment of current encryption
       const mockEncryptionMetadata = {
         algorithm: 'CRYSTALS-Kyber',
         securityLevel: 5,
@@ -92,7 +88,6 @@ const FitnessPrivacyDashboard: React.FC = () => {
     const newValue = !privacySettings[setting];
     setPrivacySettings(prev => ({ ...prev, [setting]: newValue }));
     
-    // Log the privacy setting change
     await logDataAccess(
       `Privacy setting changed: ${setting}`,
       'privacy_setting',
@@ -100,7 +95,6 @@ const FitnessPrivacyDashboard: React.FC = () => {
       { setting, new_value: newValue, old_value: !newValue }
     );
 
-    // Record consent for data sharing if applicable
     if (setting === 'anonymousSharing' && newValue) {
       try {
         await recordConsent(
@@ -278,44 +272,11 @@ const FitnessPrivacyDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Security Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Quantum Security</p>
-                <p className="text-2xl font-bold text-green-400">{encryptionStatus.score}%</p>
-              </div>
-              <Shield className="h-8 w-8 text-green-400" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Privacy Proofs</p>
-                <p className="text-2xl font-bold text-autheo-primary">{zkProofs.length}</p>
-              </div>
-              <Key className="h-8 w-8 text-autheo-primary" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Audit Events</p>
-                <p className="text-2xl font-bold text-blue-400">{auditLogs.length}</p>
-              </div>
-              <Database className="h-8 w-8 text-blue-400" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <SecurityStatusCards
+        encryptionScore={encryptionStatus.score}
+        zkProofCount={zkProofs.length}
+        auditLogCount={auditLogs.length}
+      />
 
       <Tabs defaultValue="settings" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -326,36 +287,10 @@ const FitnessPrivacyDashboard: React.FC = () => {
         </TabsList>
 
         <TabsContent value="settings" className="space-y-4">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-autheo-primary">Advanced Privacy Controls</CardTitle>
-              <CardDescription>
-                Configure quantum-resistant privacy features for your fitness data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {Object.entries(privacySettings).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-slate-300">
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {key === 'quantumEncryption' && 'Protect data against quantum computer attacks'}
-                      {key === 'zeroKnowledgeProofs' && 'Prove achievements without revealing data'}
-                      {key === 'differentialPrivacy' && 'Add noise to prevent identification'}
-                      {key === 'anonymousSharing' && 'Share aggregated data anonymously'}
-                      {key === 'dataMinimization' && 'Only collect necessary data points'}
-                    </p>
-                  </div>
-                  <Switch
-                    checked={value}
-                    onCheckedChange={() => handlePrivacySettingChange(key as keyof PrivacySettings)}
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+          <PrivacySettingsTab
+            privacySettings={privacySettings}
+            onSettingChange={handlePrivacySettingChange}
+          />
         </TabsContent>
 
         <TabsContent value="proofs" className="space-y-4">
@@ -479,70 +414,7 @@ const FitnessPrivacyDashboard: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="audit" className="space-y-4">
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-autheo-primary">HIPAA Audit Trail</CardTitle>
-              <CardDescription>
-                Complete audit log of all access and modifications to your fitness data
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {auditLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-autheo-primary mx-auto"></div>
-                  <p className="text-slate-400 mt-2">Loading audit logs...</p>
-                </div>
-              ) : auditLogs.length === 0 ? (
-                <div className="text-center py-8">
-                  <Database className="mx-auto h-12 w-12 text-slate-400 mb-4" />
-                  <h3 className="text-lg font-medium text-slate-300 mb-2">No Audit Logs</h3>
-                  <p className="text-sm text-slate-400">
-                    Audit logs will appear here as you interact with your fitness data
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {auditLogs.slice(0, 10).map((log) => (
-                    <div key={log.id} className="p-3 border border-slate-700 rounded-lg bg-slate-800/30">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          {getAuditActionIcon(log.action)}
-                          <span className="text-sm font-medium text-slate-200">{log.action}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            variant="outline" 
-                            className={
-                              log.status === 'success' ? 'text-green-400 border-green-400' :
-                              log.status === 'warning' ? 'text-yellow-400 border-yellow-400' :
-                              'text-red-400 border-red-400'
-                            }
-                          >
-                            {log.status}
-                          </Badge>
-                          <Clock className="h-3 w-3 text-slate-400" />
-                          <span className="text-xs text-slate-400">
-                            {new Date(log.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-xs text-slate-400">
-                        <p>Resource: {log.resource_type}</p>
-                        {log.details && (
-                          <p>Details: {JSON.stringify(log.details)}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {auditLogs.length > 10 && (
-                    <p className="text-xs text-slate-400 text-center">
-                      ... and {auditLogs.length - 10} more audit entries
-                    </p>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <AuditTrailTab auditLogs={auditLogs} loading={auditLoading} />
         </TabsContent>
       </Tabs>
     </div>
