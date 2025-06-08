@@ -22,7 +22,7 @@ const SessionStatusIndicator: React.FC = () => {
 
     const getStatusColor = () => {
       if (!isSessionValid) return 'destructive';
-      if (isExpiringSoon) return 'warning';
+      if (isExpiringSoon) return 'secondary';
       return 'default';
     };
 

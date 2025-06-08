@@ -24,41 +24,67 @@ export const useSessionManager = (): UseSessionManagerReturn => {
   const sessionManager = SessionManager.getInstance();
 
   const updateSessionInfo = useCallback(async () => {
-    const info = await sessionManager.getCurrentSession();
-    setSessionInfo(info);
-    setIsSessionValid(info?.isValid || false);
-    setTimeRemaining(info?.timeRemaining || 0);
-    setIsExpiringSoon(info ? info.timeRemaining <= 15 : false);
+    try {
+      const info = await sessionManager.getCurrentSession();
+      setSessionInfo(info);
+      setIsSessionValid(info?.isValid || false);
+      setTimeRemaining(info?.timeRemaining || 0);
+      setIsExpiringSoon(info ? info.timeRemaining <= 15 : false);
+    } catch (error) {
+      console.error('Error updating session info:', error);
+      setSessionInfo(null);
+      setIsSessionValid(false);
+      setTimeRemaining(0);
+      setIsExpiringSoon(false);
+    }
   }, [sessionManager]);
 
   const refreshSession = useCallback(async (): Promise<boolean> => {
-    const success = await sessionManager.refreshSession();
-    if (success) {
-      await updateSessionInfo();
-      toast({
-        title: "Session Refreshed",
-        description: "Your session has been extended.",
-      });
-    } else {
+    try {
+      const success = await sessionManager.refreshSession();
+      if (success) {
+        await updateSessionInfo();
+        toast({
+          title: "Session Refreshed",
+          description: "Your session has been extended.",
+        });
+      } else {
+        toast({
+          title: "Session Refresh Failed",
+          description: "Please log in again.",
+          variant: "destructive",
+        });
+      }
+      return success;
+    } catch (error) {
+      console.error('Error refreshing session:', error);
       toast({
         title: "Session Refresh Failed",
         description: "Please log in again.",
         variant: "destructive",
       });
+      return false;
     }
-    return success;
   }, [sessionManager, updateSessionInfo, toast]);
 
   const updateActivity = useCallback(() => {
-    sessionManager.updateLastActivity();
+    try {
+      sessionManager.updateLastActivity();
+    } catch (error) {
+      console.error('Error updating activity:', error);
+    }
   }, [sessionManager]);
 
   const signOut = useCallback(async () => {
-    await sessionManager.signOut('manual');
-    setSessionInfo(null);
-    setIsSessionValid(false);
-    setTimeRemaining(0);
-    setIsExpiringSoon(false);
+    try {
+      await sessionManager.signOut('manual');
+      setSessionInfo(null);
+      setIsSessionValid(false);
+      setTimeRemaining(0);
+      setIsExpiringSoon(false);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   }, [sessionManager]);
 
   useEffect(() => {
@@ -68,25 +94,8 @@ export const useSessionManager = (): UseSessionManagerReturn => {
     // Set up periodic session monitoring
     const interval = setInterval(updateSessionInfo, 60000); // Check every minute
 
-    // Show warning when session is expiring soon
-    if (isExpiringSoon && timeRemaining > 0) {
-      toast({
-        title: "Session Expiring Soon",
-        description: `Your session will expire in ${timeRemaining} minutes. Click to refresh.`,
-        action: (
-          <Button 
-            onClick={refreshSession}
-            size="sm"
-            className="bg-autheo-primary hover:bg-autheo-primary/90"
-          >
-            Refresh
-          </Button>
-        ),
-      });
-    }
-
     return () => clearInterval(interval);
-  }, [updateSessionInfo, isExpiringSoon, timeRemaining, refreshSession, toast]);
+  }, [updateSessionInfo]);
 
   // Track user activity
   useEffect(() => {
