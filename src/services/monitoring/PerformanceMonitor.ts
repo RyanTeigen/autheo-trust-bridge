@@ -1,10 +1,21 @@
 
 import SystemMonitor from './SystemMonitor';
+import WebVitalsMonitor from './WebVitalsMonitor';
+import NetworkMonitor from './NetworkMonitor';
+import MemoryMonitor from './MemoryMonitor';
+import ComponentPerformanceMonitor from './ComponentPerformanceMonitor';
+import APIPerformanceMonitor from './APIPerformanceMonitor';
+import PerformanceObserverManager from './PerformanceObserverManager';
 
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private systemMonitor: SystemMonitor;
-  private performanceObserver?: PerformanceObserver;
+  private webVitalsMonitor: WebVitalsMonitor;
+  private networkMonitor: NetworkMonitor;
+  private memoryMonitor: MemoryMonitor;
+  private componentPerformanceMonitor: ComponentPerformanceMonitor;
+  private apiPerformanceMonitor: APIPerformanceMonitor;
+  private performanceObserverManager: PerformanceObserverManager;
 
   public static getInstance(): PerformanceMonitor {
     if (!PerformanceMonitor.instance) {
@@ -15,7 +26,12 @@ export class PerformanceMonitor {
 
   private constructor() {
     this.systemMonitor = SystemMonitor.getInstance();
-    this.initializePerformanceObserver();
+    this.webVitalsMonitor = new WebVitalsMonitor(this.systemMonitor);
+    this.networkMonitor = new NetworkMonitor(this.systemMonitor);
+    this.memoryMonitor = new MemoryMonitor(this.systemMonitor);
+    this.componentPerformanceMonitor = new ComponentPerformanceMonitor(this.systemMonitor);
+    this.apiPerformanceMonitor = new APIPerformanceMonitor(this.systemMonitor);
+    this.performanceObserverManager = new PerformanceObserverManager(this.systemMonitor);
   }
 
   // Monitor React component render times
@@ -23,25 +39,7 @@ export class PerformanceMonitor {
     componentName: string,
     renderFunction: () => void | Promise<void>
   ): Promise<void> => {
-    const startTime = performance.now();
-    
-    try {
-      await renderFunction();
-    } finally {
-      const endTime = performance.now();
-      const renderTime = endTime - startTime;
-      
-      await this.systemMonitor.recordMetric(
-        'performance',
-        renderTime,
-        'ms',
-        { 
-          component: componentName,
-          type: 'render'
-        },
-        renderTime > 100 ? 'medium' : 'low'
-      );
-    }
+    return this.componentPerformanceMonitor.measureComponentRender(componentName, renderFunction);
   };
 
   // Monitor API call performance
@@ -50,166 +48,29 @@ export class PerformanceMonitor {
     method: string,
     apiCall: () => Promise<T>
   ): Promise<T> => {
-    const startTime = performance.now();
-    let statusCode = 200;
-    
-    try {
-      const result = await apiCall();
-      return result;
-    } catch (error) {
-      statusCode = 500;
-      throw error;
-    } finally {
-      const endTime = performance.now();
-      const responseTime = endTime - startTime;
-      
-      await this.systemMonitor.recordAPIResponse(
-        endpoint,
-        method,
-        responseTime,
-        statusCode
-      );
-    }
+    return this.apiPerformanceMonitor.measureAPICall(endpoint, method, apiCall);
   };
 
   // Monitor memory usage
   measureMemoryUsage = async (): Promise<void> => {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      const memoryUsage = memory.usedJSHeapSize / memory.totalJSHeapSize;
-      
-      await this.systemMonitor.recordMetric(
-        'performance',
-        memoryUsage * 100,
-        'percent',
-        {
-          usedHeapSize: memory.usedJSHeapSize,
-          totalHeapSize: memory.totalJSHeapSize,
-          heapSizeLimit: memory.jsHeapSizeLimit
-        },
-        memoryUsage > 0.8 ? 'high' : memoryUsage > 0.6 ? 'medium' : 'low'
-      );
-    }
+    return this.memoryMonitor.measureMemoryUsage();
   };
 
   // Monitor Core Web Vitals
   measureWebVitals = (): void => {
-    // Largest Contentful Paint (LCP)
-    this.observeMetric('largest-contentful-paint', (entries) => {
-      const lcp = entries[entries.length - 1];
-      this.systemMonitor.recordMetric(
-        'performance',
-        lcp.startTime,
-        'ms',
-        { metric: 'LCP' },
-        lcp.startTime > 2500 ? 'high' : lcp.startTime > 1000 ? 'medium' : 'low'
-      );
-    });
-
-    // First Input Delay (FID)
-    this.observeMetric('first-input', (entries) => {
-      const fid = entries[0] as PerformanceEventTiming;
-      const delay = fid.processingStart - fid.startTime;
-      this.systemMonitor.recordMetric(
-        'performance',
-        delay,
-        'ms',
-        { metric: 'FID' },
-        delay > 100 ? 'high' : delay > 50 ? 'medium' : 'low'
-      );
-    });
-
-    // Cumulative Layout Shift (CLS)
-    this.observeMetric('layout-shift', (entries) => {
-      let clsValue = 0;
-      for (const entry of entries) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value;
-        }
-      }
-      this.systemMonitor.recordMetric(
-        'performance',
-        clsValue,
-        'score',
-        { metric: 'CLS' },
-        clsValue > 0.25 ? 'high' : clsValue > 0.1 ? 'medium' : 'low'
-      );
-    });
+    this.webVitalsMonitor.measureWebVitals();
   };
 
   // Monitor network performance
   measureNetworkPerformance = (): void => {
-    if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
-      this.systemMonitor.recordMetric(
-        'performance',
-        connection.downlink || 0,
-        'mbps',
-        {
-          effectiveType: connection.effectiveType,
-          rtt: connection.rtt,
-          saveData: connection.saveData
-        },
-        'low'
-      );
-    }
+    this.networkMonitor.measureNetworkPerformance();
   };
-
-  private initializePerformanceObserver(): void {
-    if (typeof PerformanceObserver !== 'undefined') {
-      this.performanceObserver = new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        entries.forEach((entry) => {
-          this.systemMonitor.recordMetric(
-            'performance',
-            entry.duration || entry.startTime,
-            'ms',
-            {
-              name: entry.name,
-              entryType: entry.entryType
-            },
-            'low'
-          );
-        });
-      });
-
-      try {
-        this.performanceObserver.observe({ 
-          entryTypes: ['navigation', 'resource', 'paint', 'mark', 'measure'] 
-        });
-      } catch (error) {
-        console.warn('PerformanceObserver not fully supported:', error);
-      }
-    }
-  }
-
-  private observeMetric(
-    entryType: string, 
-    callback: (entries: PerformanceEntry[]) => void
-  ): void {
-    if (typeof PerformanceObserver !== 'undefined') {
-      try {
-        const observer = new PerformanceObserver((list) => {
-          callback(list.getEntries());
-        });
-        observer.observe({ entryTypes: [entryType] });
-      } catch (error) {
-        console.warn(`Cannot observe ${entryType}:`, error);
-      }
-    }
-  }
 
   // Start periodic monitoring
   startMonitoring(): void {
-    // Monitor memory usage every 30 seconds
-    setInterval(() => {
-      this.measureMemoryUsage();
-    }, 30000);
-
-    // Monitor network performance every minute
-    setInterval(() => {
-      this.measureNetworkPerformance();
-    }, 60000);
+    // Start periodic monitoring for memory and network
+    this.memoryMonitor.startPeriodicMonitoring();
+    this.networkMonitor.startPeriodicMonitoring();
 
     // Initialize web vitals monitoring
     this.measureWebVitals();
@@ -217,9 +78,7 @@ export class PerformanceMonitor {
 
   // Stop monitoring
   stopMonitoring(): void {
-    if (this.performanceObserver) {
-      this.performanceObserver.disconnect();
-    }
+    this.performanceObserverManager.stopMonitoring();
   }
 }
 
