@@ -16,10 +16,13 @@ import {
   Zap,
   Database,
   File,
-  Fingerprint
+  Fingerprint,
+  Clock,
+  FileText
 } from 'lucide-react';
 import FitnessPrivacyService, { ZeroKnowledgeProof, FitnessDataEncryption } from '@/services/fitness/FitnessPrivacyService';
 import { useFitnessData } from '@/hooks/useFitnessData';
+import { useFitnessAudit } from '@/hooks/useFitnessAudit';
 import { evaluateQuantumSecurity } from '@/utils/quantumCrypto';
 
 interface PrivacySettings {
@@ -33,6 +36,7 @@ interface PrivacySettings {
 const FitnessPrivacyDashboard: React.FC = () => {
   const { toast } = useToast();
   const { fitnessData, loading } = useFitnessData();
+  const { auditLogs, consentRecords, logDataAccess, recordConsent, loading: auditLoading } = useFitnessAudit();
   const [privacyService] = useState(() => FitnessPrivacyService.getInstance());
   
   const [privacySettings, setPrivacySettings] = useState<PrivacySettings>({
@@ -59,6 +63,8 @@ const FitnessPrivacyDashboard: React.FC = () => {
   useEffect(() => {
     if (fitnessData.length > 0) {
       assessDataSecurity();
+      // Log that the user accessed their fitness privacy dashboard
+      logDataAccess('Viewed fitness privacy dashboard', 'privacy_dashboard');
     }
   }, [fitnessData]);
 
@@ -82,16 +88,34 @@ const FitnessPrivacyDashboard: React.FC = () => {
     }
   };
 
-  const handlePrivacySettingChange = (setting: keyof PrivacySettings) => {
-    setPrivacySettings(prev => {
-      const newSettings = { ...prev, [setting]: !prev[setting] };
-      
-      toast({
-        title: "Privacy Setting Updated",
-        description: `${setting.replace(/([A-Z])/g, ' $1').toLowerCase()} has been ${newSettings[setting] ? 'enabled' : 'disabled'}.`,
-      });
-      
-      return newSettings;
+  const handlePrivacySettingChange = async (setting: keyof PrivacySettings) => {
+    const newValue = !privacySettings[setting];
+    setPrivacySettings(prev => ({ ...prev, [setting]: newValue }));
+    
+    // Log the privacy setting change
+    await logDataAccess(
+      `Privacy setting changed: ${setting}`,
+      'privacy_setting',
+      setting,
+      { setting, new_value: newValue, old_value: !newValue }
+    );
+
+    // Record consent for data sharing if applicable
+    if (setting === 'anonymousSharing' && newValue) {
+      try {
+        await recordConsent(
+          'data_sharing',
+          true,
+          'User has consented to anonymous data sharing for research and analytics purposes.'
+        );
+      } catch (error) {
+        console.error('Error recording consent:', error);
+      }
+    }
+    
+    toast({
+      title: "Privacy Setting Updated",
+      description: `${setting.replace(/([A-Z])/g, ' $1').toLowerCase()} has been ${newValue ? 'enabled' : 'disabled'}.`,
     });
   };
 
@@ -108,6 +132,9 @@ const FitnessPrivacyDashboard: React.FC = () => {
     setIsGeneratingProofs(true);
     
     try {
+      // Log that the user is generating zero-knowledge proofs
+      await logDataAccess('Started zero-knowledge proof generation', 'zk_proof_generation');
+
       const proofs: ZeroKnowledgeProof[] = [];
       
       // Generate activity threshold proof
@@ -133,6 +160,14 @@ const FitnessPrivacyDashboard: React.FC = () => {
       proofs.push(consistencyProof);
       
       setZkProofs(proofs);
+
+      // Log successful proof generation
+      await logDataAccess(
+        'Zero-knowledge proofs generated successfully',
+        'zk_proof',
+        undefined,
+        { proof_count: proofs.length, proof_types: proofs.map(p => p.claimType) }
+      );
       
       toast({
         title: "Zero-Knowledge Proofs Generated",
@@ -140,6 +175,15 @@ const FitnessPrivacyDashboard: React.FC = () => {
       });
     } catch (error) {
       console.error('Error generating zero-knowledge proofs:', error);
+      
+      // Log the error
+      await logDataAccess(
+        'Zero-knowledge proof generation failed',
+        'zk_proof_generation',
+        undefined,
+        { error: error instanceof Error ? error.message : 'Unknown error' }
+      );
+      
       toast({
         title: "Error",
         description: "Failed to generate zero-knowledge proofs.",
@@ -161,10 +205,24 @@ const FitnessPrivacyDashboard: React.FC = () => {
     }
 
     try {
+      // Log the encryption attempt
+      await logDataAccess('Started fitness data encryption', 'data_encryption');
+
       const encryptedData = await privacyService.encryptFitnessData(
         fitnessData[0], // Encrypt first piece of data as example
         'user-id', // This would be the actual user ID
         'confidential'
+      );
+
+      // Log successful encryption
+      await logDataAccess(
+        'Fitness data encrypted successfully',
+        'data_encryption',
+        fitnessData[0].id,
+        { 
+          algorithm: encryptedData.encryptionMetadata.algorithm,
+          privacy_level: encryptedData.privacyLevel
+        }
       );
       
       toast({
@@ -175,6 +233,15 @@ const FitnessPrivacyDashboard: React.FC = () => {
       console.log('Encrypted fitness data:', encryptedData);
     } catch (error) {
       console.error('Error encrypting fitness data:', error);
+      
+      // Log the encryption failure
+      await logDataAccess(
+        'Fitness data encryption failed',
+        'data_encryption',
+        undefined,
+        { error: error instanceof Error ? error.message : 'Unknown error' }
+      );
+      
       toast({
         title: "Encryption Failed",
         description: "Failed to encrypt fitness data.",
@@ -199,6 +266,14 @@ const FitnessPrivacyDashboard: React.FC = () => {
       case 'consistency_pattern': return 'Consistency Pattern';
       default: return 'Unknown Proof';
     }
+  };
+
+  const getAuditActionIcon = (action: string) => {
+    if (action.includes('encryption')) return <Lock className="h-4 w-4" />;
+    if (action.includes('proof')) return <Key className="h-4 w-4" />;
+    if (action.includes('consent')) return <FileText className="h-4 w-4" />;
+    if (action.includes('dashboard')) return <Eye className="h-4 w-4" />;
+    return <Shield className="h-4 w-4" />;
   };
 
   return (
@@ -233,8 +308,8 @@ const FitnessPrivacyDashboard: React.FC = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Data Status</p>
-                <p className="text-sm font-medium text-blue-400">Quantum-Safe</p>
+                <p className="text-sm text-slate-400">Audit Events</p>
+                <p className="text-2xl font-bold text-blue-400">{auditLogs.length}</p>
               </div>
               <Database className="h-8 w-8 text-blue-400" />
             </div>
@@ -243,10 +318,11 @@ const FitnessPrivacyDashboard: React.FC = () => {
       </div>
 
       <Tabs defaultValue="settings" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="settings">Privacy Settings</TabsTrigger>
           <TabsTrigger value="proofs">Zero-Knowledge Proofs</TabsTrigger>
           <TabsTrigger value="encryption">Quantum Encryption</TabsTrigger>
+          <TabsTrigger value="audit">Audit Trail</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings" className="space-y-4">
@@ -398,6 +474,73 @@ const FitnessPrivacyDashboard: React.FC = () => {
                   for decades to come.
                 </p>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="audit" className="space-y-4">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-autheo-primary">HIPAA Audit Trail</CardTitle>
+              <CardDescription>
+                Complete audit log of all access and modifications to your fitness data
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {auditLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-autheo-primary mx-auto"></div>
+                  <p className="text-slate-400 mt-2">Loading audit logs...</p>
+                </div>
+              ) : auditLogs.length === 0 ? (
+                <div className="text-center py-8">
+                  <Database className="mx-auto h-12 w-12 text-slate-400 mb-4" />
+                  <h3 className="text-lg font-medium text-slate-300 mb-2">No Audit Logs</h3>
+                  <p className="text-sm text-slate-400">
+                    Audit logs will appear here as you interact with your fitness data
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {auditLogs.slice(0, 10).map((log) => (
+                    <div key={log.id} className="p-3 border border-slate-700 rounded-lg bg-slate-800/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          {getAuditActionIcon(log.action)}
+                          <span className="text-sm font-medium text-slate-200">{log.action}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              log.status === 'success' ? 'text-green-400 border-green-400' :
+                              log.status === 'warning' ? 'text-yellow-400 border-yellow-400' :
+                              'text-red-400 border-red-400'
+                            }
+                          >
+                            {log.status}
+                          </Badge>
+                          <Clock className="h-3 w-3 text-slate-400" />
+                          <span className="text-xs text-slate-400">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-400">
+                        <p>Resource: {log.resource_type}</p>
+                        {log.details && (
+                          <p>Details: {JSON.stringify(log.details)}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {auditLogs.length > 10 && (
+                    <p className="text-xs text-slate-400 text-center">
+                      ... and {auditLogs.length - 10} more audit entries
+                    </p>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

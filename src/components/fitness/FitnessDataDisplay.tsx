@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,13 +17,25 @@ import {
   Lock
 } from 'lucide-react';
 import { useFitnessData } from '@/hooks/useFitnessData';
+import { useFitnessAudit } from '@/hooks/useFitnessAudit';
 import { useToast } from '@/hooks/use-toast';
 
 const FitnessDataDisplay: React.FC = () => {
   const { fitnessData, loading, error } = useFitnessData();
+  const { logDataAccess } = useFitnessAudit();
   const { toast } = useToast();
   const [showRawData, setShowRawData] = useState(false);
   const [privacyMode, setPrivacyMode] = useState(true);
+
+  // Log when fitness data is accessed
+  useEffect(() => {
+    if (fitnessData.length > 0) {
+      logDataAccess('Viewed fitness data display', 'fitness_data_view', undefined, {
+        data_count: fitnessData.length,
+        privacy_mode: privacyMode
+      });
+    }
+  }, [fitnessData, privacyMode]);
 
   const formatDuration = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -91,14 +102,37 @@ const FitnessDataDisplay: React.FC = () => {
     return '***';
   };
 
-  const togglePrivacyMode = () => {
-    setPrivacyMode(!privacyMode);
+  const togglePrivacyMode = async () => {
+    const newPrivacyMode = !privacyMode;
+    setPrivacyMode(newPrivacyMode);
+    
+    // Log privacy mode change
+    await logDataAccess(
+      `Privacy mode ${newPrivacyMode ? 'enabled' : 'disabled'}`,
+      'privacy_setting',
+      'privacy_mode',
+      { privacy_mode: newPrivacyMode }
+    );
+    
     toast({
-      title: privacyMode ? "Privacy Mode Disabled" : "Privacy Mode Enabled",
-      description: privacyMode 
-        ? "Showing actual fitness data values" 
-        : "Showing approximated values for privacy",
+      title: newPrivacyMode ? "Privacy Mode Enabled" : "Privacy Mode Disabled",
+      description: newPrivacyMode 
+        ? "Showing approximated values for privacy" 
+        : "Showing actual fitness data values",
     });
+  };
+
+  const handleRawDataToggle = async () => {
+    const newShowRawData = !showRawData;
+    setShowRawData(newShowRawData);
+    
+    // Log raw data view toggle
+    await logDataAccess(
+      `Raw data view ${newShowRawData ? 'enabled' : 'disabled'}`,
+      'raw_data_view',
+      undefined,
+      { show_raw_data: newShowRawData }
+    );
   };
 
   if (loading) {
@@ -199,7 +233,7 @@ const FitnessDataDisplay: React.FC = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowRawData(!showRawData)}
+              onClick={handleRawDataToggle}
               className="text-slate-400 hover:text-slate-300"
             >
               {showRawData ? 'Hide' : 'Show'} Raw Data
@@ -278,7 +312,7 @@ const FitnessDataDisplay: React.FC = () => {
               <div className="flex items-center justify-between pt-3 border-t border-slate-700">
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   <Shield className="h-3 w-3 text-green-400" />
-                  <span>Quantum encrypted • Zero-knowledge proofs available</span>
+                  <span>Quantum encrypted • Zero-knowledge proofs available • HIPAA audited</span>
                 </div>
                 <Badge variant="outline" className="text-xs text-green-400 border-green-400">
                   Protected
