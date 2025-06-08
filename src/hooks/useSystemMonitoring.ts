@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import SystemMonitor, { SystemMetric, Alert } from '@/services/monitoring/SystemMonitor';
 import PerformanceMonitor from '@/services/monitoring/PerformanceMonitor';
@@ -138,6 +137,7 @@ export const useSystemMonitoring = () => {
     systemHealth,
     loading,
     error,
+    systemMonitor,
     fetchSystemHealth,
     recordMetric,
     createAlert,
