@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { PageHeader } from '@/components/dashboard/PageHeader';
+import PageHeader from '@/components/dashboard/PageHeader';
 import ProductionReadinessChecker from '@/components/production/ProductionReadinessChecker';
 import DeploymentPipeline from '@/components/production/DeploymentPipeline';
 import SecurityHardening from '@/components/production/SecurityHardening';
@@ -82,7 +81,6 @@ const ProductionDeploymentPage: React.FC = () => {
         <PageHeader
           title="Production Deployment"
           description="Production readiness validation and deployment pipeline management"
-          icon={<Rocket className="h-6 w-6" />}
         />
         
         {/* Environment Status */}

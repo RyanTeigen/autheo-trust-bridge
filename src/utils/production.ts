@@ -1,3 +1,4 @@
+
 // Production utilities for environment-specific behavior
 
 export const isProduction = (): boolean => {
@@ -79,8 +80,6 @@ export interface DeploymentStatus {
   status: 'deploying' | 'deployed' | 'failed' | 'rollback';
   healthScore: number;
 }
-
-import { getEnvironment, getAppVersion } from './environment';
 
 export const getDeploymentStatus = (): DeploymentStatus => {
   return {

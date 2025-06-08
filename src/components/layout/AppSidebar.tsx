@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -18,13 +19,13 @@ import {
 } from 'lucide-react';
 
 const AppSidebar: React.FC = () => {
-  const { isOpen, toggleSidebar } = useSidebar();
+  const { open, toggleSidebar } = useSidebar();
 
   return (
     <aside
       className={cn(
         "fixed left-0 top-0 z-50 flex h-full w-64 flex-col overflow-y-auto border-r border-r-slate-800 bg-slate-900 px-3 py-4 transition-transform duration-200 ease-in-out dark:bg-slate-900",
-        isOpen ? "translate-x-0" : "-translate-x-full",
+        open ? "translate-x-0" : "-translate-x-full",
       )}
     >
       <nav className="flex flex-col flex-1 gap-2">

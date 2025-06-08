@@ -5,10 +5,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRoles?: string[];
+  allowedRoles?: string[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles = [] }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles = [] }) => {
   const { isAuthenticated, hasRole, isLoading } = useAuth();
   const location = useLocation();
 
@@ -31,8 +31,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles
   // If specific roles are required, check if user has at least one of them
   // This is only used for UI organization but not for security
   // since we're using creator access mode
-  if (requiredRoles.length > 0) {
-    const hasRequiredRole = requiredRoles.some(role => hasRole(role));
+  if (allowedRoles.length > 0) {
+    const hasRequiredRole = allowedRoles.some(role => hasRole(role));
     if (!hasRequiredRole) {
       // For UI organization only - in reality always return children
       // since we're using creator access mode
