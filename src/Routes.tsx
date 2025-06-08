@@ -1,89 +1,159 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import MainLayout from '@/components/layout/MainLayout';
+import LazyRoute from '@/components/common/LazyRoute';
 
-// Pages
+// Lazy imports for code splitting
+import { 
+  LazyPatientDashboard,
+  LazyProviderPortal,
+  LazyAdminPortal,
+  LazyWalletPage,
+  LazySchedulingPage,
+  LazyHealthTracker,
+  LazyCompliancePage,
+  LazyAuditLogsPage,
+  LazySharedRecordsPage,
+  LazySmartFormsPage,
+  LazySettingsPage,
+  LazyDetailedHealthRecords,
+  LazyPatientRecords,
+  LazyMedicalNotes,
+  LazyProviderAccess
+} from '@/routes/LazyRoutes';
+
+// Direct imports for frequently accessed pages
 import Index from '@/pages/Index';
 import AuthPage from '@/pages/AuthPage';
-import SmartFormsPage from '@/pages/SmartFormsPage';
-import PatientDashboardPage from '@/pages/PatientDashboardPage';
-import WalletPage from '@/pages/WalletPage';
-import SharedRecordsPage from '@/pages/SharedRecordsPage';
-import SchedulingPage from '@/pages/SchedulingPage';
-import HealthTrackerPage from '@/pages/HealthTrackerPage';
-import SettingsPage from '@/pages/SettingsPage';
-import ProviderPortalPage from '@/pages/ProviderPortalPage';
-import PatientRecordsPage from '@/pages/PatientRecordsPage';
-import ProviderAccess from '@/pages/ProviderAccess';
-import MedicalNotesPage from '@/pages/MedicalNotesPage';
-import AdminPortalPage from '@/pages/AdminPortalPage';
-import CompliancePage from '@/pages/CompliancePage';
-import AuditLogsPage from '@/pages/AuditLogsPage';
-import DetailedHealthRecordsPage from '@/pages/DetailedHealthRecordsPage';
 import NotFound from '@/pages/NotFound';
 import Unauthorized from '@/pages/Unauthorized';
+import ProductionDeploymentPage from '@/pages/ProductionDeploymentPage';
 
-const AppRoutes = () => {
+const AppRoutes: React.FC = () => {
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
-
-      {/* Protected routes with layout */}
-      <Route element={
-        <ProtectedRoute>
-          <MainLayout />
-        </ProtectedRoute>
-      }>
-        {/* General routes */}
-        <Route path="/" element={<Index />} />
-        <Route path="/patient-dashboard" element={<PatientDashboardPage />} />
-        <Route path="/smart-forms" element={<SmartFormsPage />} />
-        <Route path="/health-records" element={<DetailedHealthRecordsPage />} />
-        <Route path="/wallet" element={<WalletPage />} />
-        <Route path="/shared-records" element={<SharedRecordsPage />} />
-        <Route path="/scheduling" element={<SchedulingPage />} />
-        <Route path="/health-tracker" element={<HealthTrackerPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-
-        {/* Provider routes */}
-        <Route path="/provider-portal" element={
-          <ProtectedRoute requiredRoles={['provider']}>
-            <ProviderPortalPage />
+    <>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
+        
+        {/* Protected routes */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <MainLayout />
           </ProtectedRoute>
-        } />
-        <Route path="/patient-records" element={
-          <ProtectedRoute requiredRoles={['provider']}>
-            <PatientRecordsPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/provider-access" element={<ProviderAccess />} />
-        <Route path="/medical-notes" element={<MedicalNotesPage />} />
-
-        {/* Admin routes */}
-        <Route path="/admin-portal" element={
-          <ProtectedRoute requiredRoles={['admin']}>
-            <AdminPortalPage />
-          </ProtectedRoute>
-        } />
-        <Route path="/compliance" element={
-          <ProtectedRoute requiredRoles={['admin']}>
-            <CompliancePage />
-          </ProtectedRoute>
-        } />
-        <Route path="/audit-logs" element={
-          <ProtectedRoute requiredRoles={['admin']}>
-            <AuditLogsPage />
-          </ProtectedRoute>
-        } />
-      </Route>
-
-      {/* 404 catch-all */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        }>
+          <Route index element={<Index />} />
+          
+          {/* Dashboard routes */}
+          <Route path="dashboard" element={
+            <LazyRoute>
+              <LazyPatientDashboard />
+            </LazyRoute>
+          } />
+          
+          {/* Provider routes */}
+          <Route path="provider" element={
+            <LazyRoute>
+              <LazyProviderPortal />
+            </LazyRoute>
+          } />
+          <Route path="provider-access" element={
+            <LazyRoute>
+              <LazyProviderAccess />
+            </LazyRoute>
+          } />
+          
+          {/* Admin routes */}
+          <Route path="admin" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <LazyRoute>
+                <LazyAdminPortal />
+              </LazyRoute>
+            </ProtectedRoute>
+          } />
+          
+          {/* Health records and medical routes */}
+          <Route path="health-records" element={
+            <LazyRoute>
+              <LazyDetailedHealthRecords />
+            </LazyRoute>
+          } />
+          <Route path="patient-records" element={
+            <LazyRoute>
+              <LazyPatientRecords />
+            </LazyRoute>
+          } />
+          <Route path="medical-notes" element={
+            <LazyRoute>
+              <LazyMedicalNotes />
+            </LazyRoute>
+          } />
+          <Route path="health-tracker" element={
+            <LazyRoute>
+              <LazyHealthTracker />
+            </LazyRoute>
+          } />
+          
+          {/* Wallet and financial routes */}
+          <Route path="wallet" element={
+            <LazyRoute>
+              <LazyWalletPage />
+            </LazyRoute>
+          } />
+          
+          {/* Scheduling and appointments */}
+          <Route path="scheduling" element={
+            <LazyRoute>
+              <LazySchedulingPage />
+            </LazyRoute>
+          } />
+          
+          {/* Compliance and audit */}
+          <Route path="compliance" element={
+            <LazyRoute>
+              <LazyCompliancePage />
+            </LazyRoute>
+          } />
+          <Route path="audit-logs" element={
+            <LazyRoute>
+              <LazyAuditLogsPage />
+            </LazyRoute>
+          } />
+          
+          {/* Shared records and forms */}
+          <Route path="shared-records" element={
+            <LazyRoute>
+              <LazySharedRecordsPage />
+            </LazyRoute>
+          } />
+          <Route path="smart-forms" element={
+            <LazyRoute>
+              <LazySmartFormsPage />
+            </LazyRoute>
+          } />
+          
+          {/* Settings */}
+          <Route path="settings" element={
+            <LazyRoute>
+              <LazySettingsPage />
+            </LazyRoute>
+          } />
+          
+          {/* Production deployment */}
+          <Route path="production-deployment" element={<ProductionDeploymentPage />} />
+        </Route>
+        
+        {/* Fallback routes */}
+        <Route path="/404" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Routes>
+      
+      <Toaster />
+    </>
   );
 };
 

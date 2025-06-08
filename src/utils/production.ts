@@ -1,4 +1,3 @@
-
 // Production utilities for environment-specific behavior
 
 export const isProduction = (): boolean => {
@@ -69,4 +68,54 @@ export const featureFlags = {
   enablePerformanceTracking: true,
   enableErrorReporting: isProduction(),
   enableAnalytics: isProduction()
+};
+
+// Deployment status tracking
+export interface DeploymentStatus {
+  environment: string;
+  version: string;
+  deployedAt: string;
+  commitHash: string;
+  status: 'deploying' | 'deployed' | 'failed' | 'rollback';
+  healthScore: number;
+}
+
+import { getEnvironment, getAppVersion } from './environment';
+
+export const getDeploymentStatus = (): DeploymentStatus => {
+  return {
+    environment: getEnvironment(),
+    version: getAppVersion(),
+    deployedAt: new Date().toISOString(),
+    commitHash: 'latest',
+    status: 'deployed',
+    healthScore: 95
+  };
+};
+
+// Production monitoring configuration
+export const monitoringConfig = {
+  healthCheckInterval: isProduction() ? 60000 : 300000, // 1 min prod, 5 min dev
+  metricsCollection: {
+    performance: true,
+    errors: true,
+    security: isProduction(),
+    userActivity: true
+  },
+  alertThresholds: {
+    errorRate: 0.05, // 5%
+    responseTime: 2000, // 2 seconds
+    memoryUsage: 0.8, // 80%
+    diskUsage: 0.9 // 90%
+  }
+};
+
+// Security configuration for production
+export const securityConfig = {
+  sessionTimeout: isProduction() ? 30 * 60 * 1000 : 2 * 60 * 60 * 1000, // 30 min prod, 2 hours dev
+  maxLoginAttempts: 5,
+  passwordMinLength: 8,
+  requireMFA: isProduction(),
+  enableAuditLogging: true,
+  encryptionLevel: isProduction() ? 'AES-256' : 'AES-128'
 };

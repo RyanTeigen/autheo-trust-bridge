@@ -1,115 +1,152 @@
-
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import { useSidebar } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import {
-  User,
-  Settings,
-  Building2,
-  Shield,
-  Stethoscope,
+  Home,
+  FileText,
+  Activity,
+  Wallet,
+  Calendar,
   Users,
-  Brain,
-  LineChart,
+  Share2,
+  FileCheck,
+  Shield,
+  FileSearch,
+  Settings,
+  Rocket
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import AutheoLogo from '@/components/ui/AutheoLogo';
 
-const AppSidebar = () => {
-  const { profile } = useAuth();
-
-  const getNavigationItems = () => {
-    const baseItems = [
-      {
-        title: "Patient Access", 
-        url: "/",
-        icon: User,
-      },
-      {
-        title: "Smart Forms",
-        url: "/smart-forms",
-        icon: Brain,
-      },
-      {
-        title: "Compliance",
-        url: "/compliance",
-        icon: Shield,
-      },
-      {
-        title: "Settings",
-        url: "/settings",
-        icon: Settings,
-      },
-    ];
-
-    const providerItems = [
-      {
-        title: "Provider Portal",
-        url: "/provider-portal",
-        icon: Building2,
-      },
-    ];
-
-    const adminItems = [
-      {
-        title: "Admin Portal",
-        url: "/admin-portal",
-        icon: Shield,
-      },
-      {
-        title: "Audit Logs",
-        url: "/audit-logs",
-        icon: LineChart,
-      },
-    ];
-
-    if (profile?.roles?.includes('provider')) {
-      baseItems.push(...providerItems);
-    }
-
-    if (profile?.roles?.includes('admin')) {
-      baseItems.push(...adminItems);
-    }
-
-    return baseItems;
-  };
-
-  const navigationItems = getNavigationItems();
-  const location = useLocation();
+const AppSidebar: React.FC = () => {
+  const { isOpen, toggleSidebar } = useSidebar();
 
   return (
-    <Sidebar className="bg-slate-900 border-r border-slate-800 text-slate-400 w-64">
-      <SidebarContent>
-        <SidebarGroup className="space-y-4">
-          <SidebarGroupLabel>Autheo</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <AutheoLogo className="h-8 w-auto" />
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarMenu>
-          {navigationItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild isActive={location.pathname === item.url}>
-                <Link to={item.url} className="flex items-center">
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.title}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarContent>
-    </Sidebar>
+    <aside
+      className={cn(
+        "fixed left-0 top-0 z-50 flex h-full w-64 flex-col overflow-y-auto border-r border-r-slate-800 bg-slate-900 px-3 py-4 transition-transform duration-200 ease-in-out dark:bg-slate-900",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+      )}
+    >
+      <nav className="flex flex-col flex-1 gap-2">
+        {navigation.map((item) => (
+          <NavItem
+            key={item.title}
+            title={item.title}
+            icon={item.icon}
+            url={item.url}
+            description={item.description}
+            onClick={() => toggleSidebar()}
+          />
+        ))}
+      </nav>
+    </aside>
   );
 };
+
+interface NavItemProps {
+  title: string;
+  icon: React.ReactNode;
+  url: string;
+  description: string;
+  onClick?: () => void;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ title, icon, url, description, onClick }) => {
+  return (
+    <NavLink
+      to={url}
+      className={({ isActive }) =>
+        cn(
+          "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+          isActive
+            ? "bg-slate-800 text-slate-100"
+            : "text-slate-400"
+        )
+      }
+      onClick={onClick}
+    >
+      {icon}
+      <div className="flex flex-col">
+        <span>{title}</span>
+        <span className="text-xs text-slate-500 group-hover:text-slate-400">{description}</span>
+      </div>
+    </NavLink>
+  );
+};
+
+const navigation = [
+  {
+    title: "Dashboard",
+    icon: <Home className="h-4 w-4" />,
+    url: "/dashboard",
+    description: "Overview and quick actions"
+  },
+  {
+    title: "Health Records",
+    icon: <FileText className="h-4 w-4" />,
+    url: "/health-records",
+    description: "Detailed health data"
+  },
+  {
+    title: "Health Tracker", 
+    icon: <Activity className="h-4 w-4" />,
+    url: "/health-tracker",
+    description: "Track vital signs and metrics"
+  },
+  {
+    title: "Smart Wallet",
+    icon: <Wallet className="h-4 w-4" />,
+    url: "/wallet",
+    description: "Digital health wallet"
+  },
+  {
+    title: "Scheduling",
+    icon: <Calendar className="h-4 w-4" />,
+    url: "/scheduling", 
+    description: "Appointments and calendar"
+  },
+  {
+    title: "Provider Portal",
+    icon: <Users className="h-4 w-4" />,
+    url: "/provider",
+    description: "Healthcare provider interface"
+  },
+  {
+    title: "Shared Records",
+    icon: <Share2 className="h-4 w-4" />,
+    url: "/shared-records",
+    description: "Manage record sharing"
+  },
+  {
+    title: "Smart Forms",
+    icon: <FileCheck className="h-4 w-4" />,
+    url: "/smart-forms",
+    description: "Intelligent form builder"
+  },
+  {
+    title: "Compliance",
+    icon: <Shield className="h-4 w-4" />,
+    url: "/compliance",
+    description: "Regulatory compliance"
+  },
+  {
+    title: "Audit Logs",
+    icon: <FileSearch className="h-4 w-4" />,
+    url: "/audit-logs",
+    description: "Security and access logs"
+  },
+  {
+    title: "Production Deploy",
+    icon: <Rocket className="h-4 w-4" />,
+    url: "/production-deployment",
+    description: "Production deployment management"
+  },
+  {
+    title: "Settings",
+    icon: <Settings className="h-4 w-4" />,
+    url: "/settings",
+    description: "Application preferences"
+  }
+];
 
 export default AppSidebar;
