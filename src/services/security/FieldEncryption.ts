@@ -80,8 +80,8 @@ export class FieldEncryption {
         throw new ValidationError('Encryption key not available');
       }
 
-      // Validate input data
-      if (!validateDataIntegrity(data)) {
+      // Validate input data - fix the function call to include required parameters
+      if (!validateDataIntegrity(data, 'string')) {
         throw new ValidationError('Invalid data format for encryption');
       }
 
