@@ -18,24 +18,24 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings | 
   if (!data) return null;
 
   // Convert from JSON to our TypeScript types
-  const themeData = data.theme as Record<string, unknown>;
-  const notificationsData = data.notifications as Record<string, unknown>;
-  const privacyData = data.privacy as Record<string, unknown>;
+  const themeData = data.theme as any;
+  const notificationsData = data.notifications as any;
+  const privacyData = data.privacy as any;
   
   return {
     theme: {
-      mode: (themeData.mode as 'light' | 'dark' | 'system') || defaultSettings.theme.mode,
-      accentColor: (themeData.accentColor as string) || defaultSettings.theme.accentColor,
+      mode: themeData?.mode || defaultSettings.theme.mode,
+      accentColor: themeData?.accentColor || defaultSettings.theme.accentColor,
     },
     notifications: {
-      email: (notificationsData.email as boolean) ?? defaultSettings.notifications.email,
-      push: (notificationsData.push as boolean) ?? defaultSettings.notifications.push,
-      sms: (notificationsData.sms as boolean) ?? defaultSettings.notifications.sms,
+      email: notificationsData?.email ?? defaultSettings.notifications.email,
+      push: notificationsData?.push ?? defaultSettings.notifications.push,
+      sms: notificationsData?.sms ?? defaultSettings.notifications.sms,
     },
     privacy: {
-      shareHealthData: (privacyData.shareHealthData as boolean) ?? defaultSettings.privacy.shareHealthData,
-      shareContactInfo: (privacyData.shareContactInfo as boolean) ?? defaultSettings.privacy.shareContactInfo,
-      twoFactorAuth: (privacyData.twoFactorAuth as boolean) ?? defaultSettings.privacy.twoFactorAuth,
+      shareHealthData: privacyData?.shareHealthData ?? defaultSettings.privacy.shareHealthData,
+      shareContactInfo: privacyData?.shareContactInfo ?? defaultSettings.privacy.shareContactInfo,
+      twoFactorAuth: privacyData?.twoFactorAuth ?? defaultSettings.privacy.twoFactorAuth,
     },
   };
 }

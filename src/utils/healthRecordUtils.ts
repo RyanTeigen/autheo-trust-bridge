@@ -14,7 +14,9 @@ export interface HealthRecord {
 export interface FilterOptions {
   searchQuery?: string;
   category?: string;
-  sharedFilter?: 'shared' | 'private';
+  sharedFilter?: 'shared' | 'private' | 'all';
+  dateRange?: { start: string | null; end: string | null };
+  provider?: string;
 }
 
 export function filterHealthRecords(
@@ -40,9 +42,24 @@ export function filterHealthRecords(
   }
 
   // Apply shared filter
-  if (options.sharedFilter) {
+  if (options.sharedFilter && options.sharedFilter !== 'all') {
     const isShared = options.sharedFilter === 'shared';
     filtered = filtered.filter(record => record.isShared === isShared);
+  }
+
+  // Apply date range filter
+  if (options.dateRange?.start && options.dateRange?.end) {
+    const startDate = new Date(options.dateRange.start);
+    const endDate = new Date(options.dateRange.end);
+    filtered = filtered.filter(record => {
+      const recordDate = new Date(record.date);
+      return recordDate >= startDate && recordDate <= endDate;
+    });
+  }
+
+  // Apply provider filter
+  if (options.provider && options.provider !== 'all') {
+    filtered = filtered.filter(record => record.provider === options.provider);
   }
 
   // Sort by date (most recent first)

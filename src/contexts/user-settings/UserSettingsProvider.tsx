@@ -1,17 +1,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { UserSettings, ThemeSettings, NotificationSettings, PrivacySettings } from './types';
+import { UserSettings, ThemeSettings, NotificationSettings, PrivacySettings, UserSettingsContextType } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface UserSettingsContextType {
-  settings: UserSettings;
-  loading: boolean;
-  updateThemeSettings: (theme: Partial<ThemeSettings>) => Promise<void>;
-  updateNotificationSettings: (notifications: Partial<NotificationSettings>) => Promise<void>;
-  updatePrivacySettings: (privacy: Partial<PrivacySettings>) => Promise<void>;
-  resetToDefaults: () => Promise<void>;
-}
 
 const UserSettingsContext = createContext<UserSettingsContextType | undefined>(undefined);
 
@@ -68,10 +59,26 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
 
       if (data) {
+        // Properly cast the JSON data to our types
+        const themeData = data.theme as any;
+        const notificationsData = data.notifications as any;
+        const privacyData = data.privacy as any;
+
         setSettings({
-          theme: data.theme || defaultSettings.theme,
-          notifications: data.notifications || defaultSettings.notifications,
-          privacy: data.privacy || defaultSettings.privacy
+          theme: {
+            mode: themeData?.mode || defaultSettings.theme.mode,
+            accentColor: themeData?.accentColor || defaultSettings.theme.accentColor
+          },
+          notifications: {
+            email: notificationsData?.email ?? defaultSettings.notifications.email,
+            push: notificationsData?.push ?? defaultSettings.notifications.push,
+            sms: notificationsData?.sms ?? defaultSettings.notifications.sms
+          },
+          privacy: {
+            shareHealthData: privacyData?.shareHealthData ?? defaultSettings.privacy.shareHealthData,
+            shareContactInfo: privacyData?.shareContactInfo ?? defaultSettings.privacy.shareContactInfo,
+            twoFactorAuth: privacyData?.twoFactorAuth ?? defaultSettings.privacy.twoFactorAuth
+          }
         });
       } else {
         // Create default settings for new user
@@ -91,12 +98,12 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const { error } = await supabase
         .from('user_settings')
-        .insert([{
+        .insert({
           user_id: user.id,
-          theme: defaultSettings.theme,
-          notifications: defaultSettings.notifications,
-          privacy: defaultSettings.privacy
-        }]);
+          theme: defaultSettings.theme as any,
+          notifications: defaultSettings.notifications as any,
+          privacy: defaultSettings.privacy as any
+        });
 
       if (error) {
         console.error('Error creating default settings:', error);
@@ -114,12 +121,12 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const { error } = await supabase
         .from('user_settings')
-        .upsert([{
+        .upsert({
           user_id: user.id,
-          theme: newSettings.theme,
-          notifications: newSettings.notifications,
-          privacy: newSettings.privacy
-        }]);
+          theme: newSettings.theme as any,
+          notifications: newSettings.notifications as any,
+          privacy: newSettings.privacy as any
+        });
 
       if (error) {
         console.error('Error updating settings:', error);
@@ -161,13 +168,49 @@ export const UserSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     await updateSettings(defaultSettings);
   };
 
-  const value = {
+  const saveProfileInfo = async (profileData: { firstName?: string; lastName?: string; email?: string }) => {
+    if (!user?.id) return;
+
+    try {
+      // Only update fields that were provided
+      const updateData: Record<string, string> = {};
+      if (profileData.firstName !== undefined) updateData.first_name = profileData.firstName;
+      if (profileData.lastName !== undefined) updateData.last_name = profileData.lastName;
+      
+      if (Object.keys(updateData).length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', user.id);
+          
+        if (error) throw error;
+      }
+      
+      // Handle email update separately if provided (requires auth update)
+      if (profileData.email !== undefined) {
+        const { error: emailError } = await supabase.auth.updateUser({
+          email: profileData.email,
+        });
+        
+        if (emailError) throw emailError;
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  };
+
+  const value: UserSettingsContextType = {
     settings,
     loading,
+    isLoading: loading,
     updateThemeSettings,
+    updateTheme: updateThemeSettings,
     updateNotificationSettings,
+    updateNotificationPreferences: updateNotificationSettings,
     updatePrivacySettings,
-    resetToDefaults
+    resetToDefaults,
+    saveProfileInfo
   };
 
   return (

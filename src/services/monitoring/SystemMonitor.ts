@@ -299,4 +299,4 @@ export class SystemMonitor {
 }
 
 export default SystemMonitor;
-export { SystemMetric, Alert, UXEvent, HealthcareEvent };
+export type { SystemMetric, Alert, UXEvent, HealthcareEvent } from './MonitoringTypes';
