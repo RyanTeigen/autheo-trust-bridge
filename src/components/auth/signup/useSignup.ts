@@ -3,108 +3,147 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FormValues } from './schema';
+import { 
+  validateDataIntegrity, 
+  emailSchema, 
+  passwordSchema, 
+  nameSchema,
+  sanitizeEmail,
+  sanitizeString 
+} from '@/utils/validation';
+import { 
+  asyncHandler, 
+  handleSupabaseError, 
+  ValidationError, 
+  DuplicateError,
+  logError 
+} from '@/utils/errorHandling';
+import { validateRateLimit } from '@/utils/security';
 
 export const useSignup = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = async (values: FormValues) => {
-    if (values.roles.length === 0) {
-      toast({
-        title: "Role selection required",
-        description: "Please select at least one role",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSignup = asyncHandler(async (values: FormValues) => {
     setIsLoading(true);
+    
     try {
-      // Check if email already exists before attempting to sign up
+      // Step 1: Validate and sanitize input data
+      const sanitizedValues = {
+        firstName: sanitizeString(values.firstName),
+        lastName: sanitizeString(values.lastName),
+        email: sanitizeEmail(values.email),
+        password: values.password, // Don't sanitize password as it may contain special chars
+        roles: values.roles
+      };
+      
+      // Step 2: Additional validation
+      validateDataIntegrity(sanitizedValues.firstName, nameSchema, 'First Name');
+      validateDataIntegrity(sanitizedValues.lastName, nameSchema, 'Last Name');
+      validateDataIntegrity(sanitizedValues.email, emailSchema, 'Email');
+      validateDataIntegrity(sanitizedValues.password, passwordSchema, 'Password');
+      
+      if (sanitizedValues.roles.length === 0) {
+        throw new ValidationError('Please select at least one role');
+      }
+      
+      if (sanitizedValues.roles.length === 3) {
+        throw new ValidationError('Cannot select all three roles');
+      }
+      
+      // Step 3: Rate limiting check (by IP would be better, but using email as fallback)
+      if (!validateRateLimit(sanitizedValues.email, 'signup_attempt', 3, 300000)) {
+        throw new ValidationError('Too many signup attempts. Please wait 5 minutes before trying again.');
+      }
+      
+      // Step 4: Check if email already exists
       const { data: existingUsers, error: existingError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', values.email)
+        .eq('email', sanitizedValues.email)
         .limit(1);
         
       if (existingError) {
-        console.error("Error checking existing user:", existingError);
+        throw handleSupabaseError(existingError);
       }
       
       if (existingUsers && existingUsers.length > 0) {
-        toast({
-          title: "Email already in use",
-          description: "This email address is already registered. Please use another email or try to log in.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
+        throw new DuplicateError('Email address');
       }
 
-      // Sign up with email and password
+      // Step 5: Sign up with email and password
       const { data, error: signUpError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
+        email: sanitizedValues.email,
+        password: sanitizedValues.password,
         options: {
           data: {
-            first_name: values.firstName,
-            last_name: values.lastName,
-            roles: values.roles,
+            first_name: sanitizedValues.firstName,
+            last_name: sanitizedValues.lastName,
+            roles: sanitizedValues.roles,
           },
-          // Explicitly specify the redirectTo URL to prevent default localhost redirection
           emailRedirectTo: window.location.origin + '/auth',
         },
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        throw handleSupabaseError(signUpError);
+      }
+
+      if (!data?.user) {
+        throw new ValidationError('Signup failed - no user data returned');
+      }
 
       toast({
         title: "Registration successful",
-        description: data?.user 
-          ? "Welcome to Autheo Health. Please check your email for verification. Note: Don't click the link in the email, as it may redirect to localhost. Instead, check your email for the verification code and enter it directly in the app."
-          : "Account created successfully. Please check your email for verification instructions.",
+        description: "Welcome to Autheo Health. Please check your email for verification. Note: Don't click the link in the email, as it may redirect to localhost. Instead, check your email for the verification code and enter it directly in the app.",
       });
-    } catch (error: any) {
-      console.error("Registration error:", error);
       
-      // Provide more specific error messages based on error type
-      if (error.message?.includes('email')) {
+      return true;
+      
+    } catch (error) {
+      if (error instanceof ValidationError || error instanceof DuplicateError) {
         toast({
           title: "Registration failed",
-          description: "Invalid email address or email already in use.",
-          variant: "destructive",
-        });
-      } else if (error.message?.includes('password')) {
-        toast({
-          title: "Registration failed",
-          description: "Password doesn't meet requirements.",
+          description: error.message,
           variant: "destructive",
         });
       } else {
+        logError(error as any, { context: 'user_signup' });
         toast({
           title: "Registration failed",
-          description: error.message || "There was an error during registration. Please try again.",
+          description: "There was an error during registration. Please try again.",
           variant: "destructive",
         });
       }
+      return false;
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
-  const handleWalletSignup = async (walletAddress: string, roles: string[]) => {
-    if (!walletAddress) {
-      toast({
-        title: "Wallet address required",
-        description: "Please connect your wallet first",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleWalletSignup = asyncHandler(async (walletAddress: string, roles: string[]) => {
     setIsLoading(true);
+    
     try {
-      // Check if wallet already exists
+      // Step 1: Validate inputs
+      if (!walletAddress || typeof walletAddress !== 'string') {
+        throw new ValidationError('Please connect your wallet first');
+      }
+      
+      if (!walletAddress.match(/^0x[a-fA-F0-9]{40}$/)) {
+        throw new ValidationError('Invalid wallet address format');
+      }
+      
+      if (!Array.isArray(roles) || roles.length === 0) {
+        throw new ValidationError('Please select at least one role');
+      }
+      
+      // Step 2: Rate limiting
+      if (!validateRateLimit(walletAddress, 'wallet_signup', 3, 300000)) {
+        throw new ValidationError('Too many wallet signup attempts. Please wait 5 minutes.');
+      }
+      
+      // Step 3: Check if wallet already exists
       const { data: existingWallets, error: existingError } = await supabase
         .from('profiles')
         .select('id')
@@ -112,7 +151,7 @@ export const useSignup = () => {
         .limit(1);
         
       if (existingError) {
-        console.error("Error checking existing wallet:", existingError);
+        throw handleSupabaseError(existingError);
       }
       
       if (existingWallets && existingWallets.length > 0) {
@@ -124,20 +163,22 @@ export const useSignup = () => {
           password: walletAddress.substring(2, 22)
         });
 
-        if (error) throw error;
+        if (error) {
+          throw handleSupabaseError(error);
+        }
 
         toast({
           title: "Wallet already registered",
           description: "Signing in with your wallet...",
         });
-        return;
+        return true;
       }
 
-      // Generate a deterministic email and password for wallet signup
+      // Step 4: Generate deterministic credentials for wallet signup
       const randomEmail = `${walletAddress.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
       const randomPassword = walletAddress.substring(2, 22);
 
-      // Sign up with wallet
+      // Step 5: Sign up with wallet
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: randomEmail,
         password: randomPassword,
@@ -145,43 +186,58 @@ export const useSignup = () => {
           data: {
             roles: roles,
             auth_method: 'wallet',
-            wallet_address: walletAddress, // Store wallet address in metadata to ensure it's available
+            wallet_address: walletAddress,
           },
         },
       });
 
-      if (signUpError) throw signUpError;
+      if (signUpError) {
+        throw handleSupabaseError(signUpError);
+      }
 
-      // Call the RPC function to update wallet address in profile
-      if (data?.user) {
-        const { error: rpcError } = await supabase
-          .rpc('update_wallet_address', {
-            user_id: data.user.id,
-            wallet: walletAddress
-          });
+      if (!data?.user) {
+        throw new ValidationError('Wallet signup failed - no user data returned');
+      }
 
-        if (rpcError) {
-          console.error("Error updating profile with wallet:", rpcError);
-          // Don't throw here - we want the signup to succeed even if the wallet update fails
-        }
+      // Step 6: Update wallet address in profile
+      const { error: rpcError } = await supabase
+        .rpc('update_wallet_address', {
+          user_id: data.user.id,
+          wallet: walletAddress
+        });
+
+      if (rpcError) {
+        console.error("Error updating profile with wallet:", rpcError);
+        // Don't fail the signup for this error
       }
 
       toast({
         title: "Wallet registration successful",
         description: "Your wallet has been connected to Autheo Health",
       });
+      
+      return true;
 
-    } catch (error: any) {
-      console.error("Wallet registration error:", error);
-      toast({
-        title: "Wallet registration failed",
-        description: error.message || "There was an error connecting your wallet. Please try again.",
-        variant: "destructive",
-      });
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        toast({
+          title: "Wallet registration failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        logError(error as any, { context: 'wallet_signup', walletAddress });
+        toast({
+          title: "Wallet registration failed",
+          description: "There was an error connecting your wallet. Please try again.",
+          variant: "destructive",
+        });
+      }
+      return false;
     } finally {
       setIsLoading(false);
     }
-  };
+  });
 
   return {
     isLoading,
