@@ -79,7 +79,7 @@ const navigation = [
   {
     title: "Dashboard",
     icon: <Home className="h-4 w-4" />,
-    url: "/dashboard",
+    url: "/",
     description: "Overview and quick actions"
   },
   {
@@ -109,7 +109,7 @@ const navigation = [
   {
     title: "Provider Portal",
     icon: <Users className="h-4 w-4" />,
-    url: "/provider",
+    url: "/provider-portal",
     description: "Healthcare provider interface"
   },
   {
