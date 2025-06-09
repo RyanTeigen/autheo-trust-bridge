@@ -31,7 +31,7 @@ const MainLayout: React.FC = () => {
 
   return (
     <ErrorBoundary fallback={<div className="flex items-center justify-center min-h-screen bg-slate-900 text-slate-100">Application error occurred</div>}>
-      <div className="dark min-h-screen bg-slate-900 text-slate-100">
+      <div className="min-h-screen bg-slate-900 text-slate-100 overflow-hidden">
         <SidebarProvider>
           <div className="min-h-screen flex flex-col bg-slate-900 text-slate-100 w-full">
             <AppHeader>
@@ -44,7 +44,7 @@ const MainLayout: React.FC = () => {
             <div className="flex flex-1 overflow-hidden w-full">
               <AppSidebar />
               <main className="flex-1 overflow-auto bg-slate-900 text-slate-100">
-                <div className="min-h-full bg-slate-900 text-slate-100">
+                <div className="min-h-full bg-slate-900 text-slate-100 w-full">
                   <Outlet />
                 </div>
               </main>

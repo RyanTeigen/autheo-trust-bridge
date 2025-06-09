@@ -1,3 +1,4 @@
+
 import React from 'react';
 import PageHeader from '@/components/dashboard/PageHeader';
 import KeyMetrics from '@/components/dashboard/KeyMetrics';
@@ -65,51 +66,63 @@ const Index = () => {
   const complianceScore = 98;
   
   return (
-    <div className="container px-4 py-6 space-y-6">
-      <PageHeader
-        title="Decentralized Health Dashboard"
-        description="Secure, patient-owned medical records with blockchain-enabled privacy"
-      />
-
-      {/* First Row: Key Metrics */}
-      <div>
-        <KeyMetrics 
-          healthRecords={healthRecords} 
-          complianceScore={complianceScore}
+    <div className="min-h-screen bg-slate-900 text-slate-100">
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
+        <PageHeader
+          title="Decentralized Health Dashboard"
+          description="Secure, patient-owned medical records with blockchain-enabled privacy"
         />
-      </div>
 
-      {/* Second Row: Quick Actions */}
-      <div>
-        <QuickActions />
-      </div>
-      
-      {/* Third Row: Access and Records with equal sizing */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="h-full">
-          <ApprovedAccess providers={approvedProviders} />
+        {/* First Row: Key Metrics */}
+        <div className="w-full">
+          <KeyMetrics 
+            healthRecords={healthRecords} 
+            complianceScore={complianceScore}
+          />
         </div>
-        <div className="h-full">
-          <HealthRecordsSummary records={recordItems} />
+
+        {/* Second Row: Quick Actions */}
+        <div className="w-full">
+          <QuickActions />
         </div>
-      </div>
-      
-      {/* Decentralized Features Section - Better balanced grid */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-bold tracking-tight border-l-4 border-autheo-primary pl-3">
-          Decentralized Features
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <SelfSovereignIdentity />
-          <ZeroKnowledgeVerification />
-          <DistributedStorage />
+        
+        {/* Third Row: Access and Records with equal sizing */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+          <div className="min-h-0">
+            <ApprovedAccess providers={approvedProviders} />
+          </div>
+          <div className="min-h-0">
+            <HealthRecordsSummary records={recordItems} />
+          </div>
         </div>
-      </div>
-      
-      {/* Last Row: Equal width columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SmartContracts />
-        <InteroperabilityStandards />
+        
+        {/* Decentralized Features Section */}
+        <div className="space-y-4 w-full">
+          <h2 className="text-xl font-bold tracking-tight border-l-4 border-autheo-primary pl-3">
+            Decentralized Features
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="min-h-0">
+              <SelfSovereignIdentity />
+            </div>
+            <div className="min-h-0">
+              <ZeroKnowledgeVerification />
+            </div>
+            <div className="min-h-0">
+              <DistributedStorage />
+            </div>
+          </div>
+        </div>
+        
+        {/* Last Row: Equal width columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+          <div className="min-h-0">
+            <SmartContracts />
+          </div>
+          <div className="min-h-0">
+            <InteroperabilityStandards />
+          </div>
+        </div>
       </div>
     </div>
   );
