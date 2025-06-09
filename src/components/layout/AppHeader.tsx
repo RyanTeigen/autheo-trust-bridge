@@ -25,7 +25,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ children }) => {
       isMinimized ? "h-8" : "h-16"
     )}>
       <div className="flex items-center">
-        <SidebarTrigger className="mr-4" />
         {!isMinimized && (
           <div onClick={() => navigate('/')} className="cursor-pointer">
             <AutheoLogo className="h-7 w-auto" />
@@ -41,6 +40,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ children }) => {
             <Settings className="h-4 w-4" />
           </Button>
         )}
+        
+        <SidebarTrigger className="mr-0" />
         
         <Button 
           variant="ghost" 
