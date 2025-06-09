@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import AutheoLogo from '@/components/ui/AutheoLogo';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -14,9 +14,14 @@ interface AppHeaderProps {
 export const AppHeader: React.FC<AppHeaderProps> = ({ children }) => {
   const navigate = useNavigate();
   const [isMinimized, setIsMinimized] = useState(false);
+  const { toggleSidebar } = useSidebar();
 
   const toggleMinimize = () => {
     setIsMinimized(!isMinimized);
+  };
+
+  const handleLogoClick = () => {
+    toggleSidebar();
   };
 
   return (
@@ -26,7 +31,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ children }) => {
     )}>
       <div className="flex items-center">
         {!isMinimized && (
-          <div onClick={() => navigate('/')} className="cursor-pointer">
+          <div onClick={handleLogoClick} className="cursor-pointer">
             <AutheoLogo className="h-7 w-auto" />
           </div>
         )}
@@ -40,8 +45,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ children }) => {
             <Settings className="h-4 w-4" />
           </Button>
         )}
-        
-        <SidebarTrigger className="mr-0" />
         
         <Button 
           variant="ghost" 
