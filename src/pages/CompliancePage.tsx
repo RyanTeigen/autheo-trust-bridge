@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Calendar, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,174 +69,219 @@ const CompliancePage = () => {
   };
   
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2">HIPAA Compliance</h1>
-          <p className="text-muted-foreground">
-            Real-time compliance monitoring and audit controls
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowMobileView(!showMobileView)}>
-            {showMobileView ? "Desktop View" : "Mobile View"}
-          </Button>
-          <Button onClick={runAudit}>
-            Run Audit
-          </Button>
-        </div>
-      </div>
-
-      {!hasComplianceRole && (
-        <Alert variant="warning" className="mb-4">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertDescription>
-            You are accessing this page with creator privileges. Normally, this page is restricted to users with compliance or admin roles.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Quantum Security Dashboard - New primary security component */}
-      <QuantumSecurityDashboard className="mb-6" />
-      
-      {/* Real-Time Compliance Monitor - Primary component for live monitoring */}
-      <RealTimeComplianceMonitor className="mb-6" />
-      
-      {/* AI Risk Assessment Engine - For risk analysis */}
-      <RiskAssessmentEngine className="mb-6" />
-      
-      {/* Blockchain Audit Trail - For immutable audit records */}
-      <BlockchainAuditTrail className="mb-6" />
-
-      {!showMobileView ? (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <ComplianceTrendChart data={trendData} />
-            <ComplianceRadarChart data={radarData} />
+    <div className="min-h-screen bg-slate-900 text-slate-100">
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
+        <div className="flex justify-between items-start flex-wrap gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-2 text-slate-100">HIPAA Compliance</h1>
+            <p className="text-slate-300">
+              Real-time compliance monitoring and audit controls
+            </p>
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <ComplianceScoreCalculator 
-              className="lg:col-span-1"
-              onScoreCalculated={handleScoreCalculated}
-            />
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowMobileView(!showMobileView)}
+              className="bg-slate-800 border-slate-700 text-slate-100 hover:bg-slate-700"
+            >
+              {showMobileView ? "Desktop View" : "Mobile View"}
+            </Button>
+            <Button 
+              onClick={runAudit}
+              className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+            >
+              Run Audit
+            </Button>
+          </div>
+        </div>
+
+        {!hasComplianceRole && (
+          <Alert variant="warning" className="mb-4 bg-amber-900/20 border-amber-500/30 text-amber-200">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertDescription>
+              You are accessing this page with creator privileges. Normally, this page is restricted to users with compliance or admin roles.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Quantum Security Dashboard - New primary security component */}
+        <QuantumSecurityDashboard className="mb-6" />
+        
+        {/* Real-Time Compliance Monitor - Primary component for live monitoring */}
+        <RealTimeComplianceMonitor className="mb-6" />
+        
+        {/* AI Risk Assessment Engine - For risk analysis */}
+        <RiskAssessmentEngine className="mb-6" />
+        
+        {/* Blockchain Audit Trail - For immutable audit records */}
+        <BlockchainAuditTrail className="mb-6" />
+
+        {!showMobileView ? (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <ComplianceTrendChart data={trendData} />
+              <ComplianceRadarChart data={radarData} />
+            </div>
             
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <ComplianceScoreCalculator 
+                className="lg:col-span-1"
+                onScoreCalculated={handleScoreCalculated}
+              />
+              
+              <Card className="lg:col-span-2 bg-slate-800 border-slate-700 text-slate-100">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-autheo-primary">Compliance Actions</CardTitle>
+                    <Badge 
+                      variant="outline" 
+                      className={`${complianceScore >= 90 ? 'bg-green-600/20 text-green-400 border-green-500/30' : 'bg-amber-600/20 text-amber-400 border-amber-500/30'}`}
+                    >
+                      {complianceScore}% Compliant
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-start">
+                        <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-slate-100">Update risk assessment</p>
+                          <p className="text-sm text-slate-400">Annual security risk assessment needs update</p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm"
+                        className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+                      >
+                        Start
+                      </Button>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-start">
+                        <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-slate-100">Security awareness training</p>
+                          <p className="text-sm text-slate-400">12 staff members need to complete training</p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="bg-slate-800 border-slate-600 text-slate-100 hover:bg-slate-700"
+                      >
+                        Send Reminder
+                      </Button>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-start">
+                        <Calendar className="h-5 w-5 text-autheo-secondary mr-2 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-slate-100">Quarterly Technical Audit</p>
+                          <p className="text-sm text-slate-400">Scheduled for June 15, 2025</p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="bg-slate-800 border-slate-600 text-slate-100 hover:bg-slate-700"
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-start">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-medium text-slate-100">BAA agreements</p>
+                          <p className="text-sm text-slate-400">All business associate agreements are current</p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="text-slate-400 hover:text-slate-100 hover:bg-slate-700"
+                      >
+                        Review
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+              <div className="lg:col-span-2">
+                <ComplianceRecommendations />
+              </div>
+              <div className="lg:col-span-1">
+                <ZeroKnowledgeVerification />
+              </div>
+            </div>
+          </>
+        ) : (
+          // Mobile-optimized view with dark theme
+          <div className="space-y-4">
+            <Card className="bg-slate-800 border-slate-700 text-slate-100">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle>Compliance Actions</CardTitle>
-                  <Badge variant="outline" className={`${complianceScore >= 90 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
-                    {complianceScore}% Compliant
+                  <CardTitle className="text-lg text-autheo-primary">Compliance Score</CardTitle>
+                  <Badge 
+                    variant="outline" 
+                    className={`${complianceScore >= 90 ? 'bg-green-600/20 text-green-400 border-green-500/30' : 'bg-amber-600/20 text-amber-400 border-amber-500/30'}`}
+                  >
+                    {complianceScore}%
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-start">
-                      <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium">Update risk assessment</p>
-                        <p className="text-sm text-muted-foreground">Annual security risk assessment needs update</p>
-                      </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center">
+                      <div className="h-3 w-3 bg-green-500 rounded-full mr-1"></div>
+                      <span className="text-slate-300">Privacy: 100%</span>
                     </div>
-                    <Button size="sm">Start</Button>
+                    <div className="flex items-center">
+                      <div className="h-3 w-3 bg-amber-500 rounded-full mr-1"></div>
+                      <span className="text-slate-300">Admin: 83%</span>
+                    </div>
                   </div>
                   
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-start">
-                      <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium">Security awareness training</p>
-                        <p className="text-sm text-muted-foreground">12 staff members need to complete training</p>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline">Send Reminder</Button>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-start">
-                      <Calendar className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium">Quarterly Technical Audit</p>
-                        <p className="text-sm text-muted-foreground">Scheduled for June 15, 2025</p>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline">View Details</Button>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-start">
-                      <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium">BAA agreements</p>
-                        <p className="text-sm text-muted-foreground">All business associate agreements are current</p>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="ghost">Review</Button>
-                  </div>
+                  <Alert className="py-2 text-sm bg-amber-900/20 border-amber-500/30">
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    <AlertDescription className="text-amber-200">2 items need attention</AlertDescription>
+                  </Alert>
                 </div>
               </CardContent>
             </Card>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="lg:col-span-2">
-              <ComplianceRecommendations />
-            </div>
-            <div className="lg:col-span-1">
-              <ZeroKnowledgeVerification />
-            </div>
-          </div>
-        </>
-      ) : (
-        // Mobile-optimized view
-        <div className="space-y-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Compliance Score</CardTitle>
-                <Badge variant="outline" className={`${complianceScore >= 90 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}`}>
-                  {complianceScore}%
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center">
-                    <div className="h-3 w-3 bg-green-500 rounded-full mr-1"></div>
-                    <span>Privacy: 100%</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="h-3 w-3 bg-amber-500 rounded-full mr-1"></div>
-                    <span>Admin: 83%</span>
-                  </div>
-                </div>
-                
-                <Alert className="py-2 text-sm">
-                  <AlertTriangle className="h-4 w-4 mr-1" />
-                  <AlertDescription>2 items need attention</AlertDescription>
-                </Alert>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <ComplianceAlerts />
-          
-          <div className="space-y-2">
-            <Button className="w-full" size="sm">
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule Compliance Review
-            </Button>
             
-            <Button variant="outline" className="w-full" size="sm">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Generate Compliance Report
-            </Button>
+            <ComplianceAlerts />
+            
+            <div className="space-y-2">
+              <Button 
+                className="w-full bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900" 
+                size="sm"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule Compliance Review
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full bg-slate-800 border-slate-600 text-slate-100 hover:bg-slate-700" 
+                size="sm"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate Compliance Report
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
