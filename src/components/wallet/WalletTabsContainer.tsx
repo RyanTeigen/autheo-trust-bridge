@@ -1,84 +1,102 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import HealthRecordsList from './HealthRecordsList';
+import { 
+  Wallet, 
+  Shield, 
+  CreditCard, 
+  Coins, 
+  Network,
+  FileCode 
+} from 'lucide-react';
+import WalletOverviewTab from './tabs/WalletOverviewTab';
+import SecurityTab from './tabs/SecurityTab';
+import InsuranceTab from './tabs/InsuranceTab';
+import AutheoTab from './tabs/AutheoTab';
+import CrossChainTab from './tabs/CrossChainTab';
+import BlockchainTab from './tabs/BlockchainTab';
 
 interface WalletTabsContainerProps {
-  handleToggleShare: (id: string, shared: boolean) => void;
-  searchQuery?: string;
-  selectedCategory?: string;
+  onSectionChange?: (section: string) => void;
 }
 
-const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({ 
-  handleToggleShare, 
-  searchQuery,
-  selectedCategory
-}) => {
-  const [activeTab, setActiveTab] = useState('all');
+const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({ onSectionChange }) => {
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    onSectionChange?.(value);
+  };
 
   return (
-    <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid grid-cols-4 mb-4 bg-slate-800 border border-slate-700">
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      <TabsList className="bg-slate-800 dark:bg-slate-800 mb-6 flex w-full justify-start overflow-x-auto">
         <TabsTrigger 
-          value="all" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+          value="overview"
+          className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary flex items-center gap-2 whitespace-nowrap"
         >
-          All Records
+          <Wallet className="h-4 w-4" />
+          Overview
         </TabsTrigger>
         <TabsTrigger 
-          value="shared" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+          value="cross-chain"
+          className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary flex items-center gap-2 whitespace-nowrap"
         >
-          Shared
+          <Network className="h-4 w-4" />
+          Cross-Chain
         </TabsTrigger>
         <TabsTrigger 
-          value="private" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+          value="blockchain"
+          className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary flex items-center gap-2 whitespace-nowrap"
         >
-          Private
+          <FileCode className="h-4 w-4" />
+          Smart Contracts
         </TabsTrigger>
         <TabsTrigger 
-          value="recent" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+          value="autheo"
+          className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary flex items-center gap-2 whitespace-nowrap"
         >
-          Recent
+          <Coins className="h-4 w-4" />
+          THEO Tokens
+        </TabsTrigger>
+        <TabsTrigger 
+          value="insurance"
+          className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary flex items-center gap-2 whitespace-nowrap"
+        >
+          <CreditCard className="h-4 w-4" />
+          Insurance
+        </TabsTrigger>
+        <TabsTrigger 
+          value="security"
+          className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary flex items-center gap-2 whitespace-nowrap"
+        >
+          <Shield className="h-4 w-4" />
+          Security
         </TabsTrigger>
       </TabsList>
       
-      <TabsContent value="all" className="mt-0">
-        <HealthRecordsList 
-          filter="all" 
-          onToggleShare={handleToggleShare} 
-          searchQuery={searchQuery}
-          selectedCategory={selectedCategory}
-        />
+      <TabsContent value="overview">
+        <WalletOverviewTab />
       </TabsContent>
       
-      <TabsContent value="shared" className="mt-0">
-        <HealthRecordsList 
-          filter="shared" 
-          onToggleShare={handleToggleShare}
-          searchQuery={searchQuery}
-          selectedCategory={selectedCategory}
-        />
+      <TabsContent value="cross-chain">
+        <CrossChainTab />
       </TabsContent>
       
-      <TabsContent value="private" className="mt-0">
-        <HealthRecordsList 
-          filter="private" 
-          onToggleShare={handleToggleShare}
-          searchQuery={searchQuery}
-          selectedCategory={selectedCategory}
-        />
+      <TabsContent value="blockchain">
+        <BlockchainTab />
       </TabsContent>
       
-      <TabsContent value="recent" className="mt-0">
-        <HealthRecordsList 
-          filter="recent" 
-          onToggleShare={handleToggleShare}
-          searchQuery={searchQuery}
-          selectedCategory={selectedCategory}
-        />
+      <TabsContent value="autheo">
+        <AutheoTab />
+      </TabsContent>
+      
+      <TabsContent value="insurance">
+        <InsuranceTab />
+      </TabsContent>
+      
+      <TabsContent value="security">
+        <SecurityTab />
       </TabsContent>
     </Tabs>
   );
