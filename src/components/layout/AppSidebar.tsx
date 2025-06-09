@@ -4,14 +4,8 @@ import { NavLink } from 'react-router-dom';
 import { useSidebar } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import {
-  Home,
-  FileText,
-  Activity,
-  Wallet,
-  Calendar,
+  Heart,
   Users,
-  Share2,
-  FileCheck,
   Shield,
   FileSearch,
   Settings,
@@ -77,52 +71,16 @@ const NavItem: React.FC<NavItemProps> = ({ title, icon, url, description, onClic
 
 const navigation = [
   {
-    title: "Dashboard",
-    icon: <Home className="h-4 w-4" />,
+    title: "My Health",
+    icon: <Heart className="h-4 w-4" />,
     url: "/",
-    description: "Overview and quick actions"
-  },
-  {
-    title: "Health Records",
-    icon: <FileText className="h-4 w-4" />,
-    url: "/health-records",
-    description: "Detailed health data"
-  },
-  {
-    title: "Health Tracker", 
-    icon: <Activity className="h-4 w-4" />,
-    url: "/health-tracker",
-    description: "Track vital signs and metrics"
-  },
-  {
-    title: "Smart Wallet",
-    icon: <Wallet className="h-4 w-4" />,
-    url: "/wallet",
-    description: "Digital health wallet"
-  },
-  {
-    title: "Scheduling",
-    icon: <Calendar className="h-4 w-4" />,
-    url: "/scheduling", 
-    description: "Appointments and calendar"
+    description: "Personal health dashboard"
   },
   {
     title: "Provider Portal",
     icon: <Users className="h-4 w-4" />,
     url: "/provider-portal",
     description: "Healthcare provider interface"
-  },
-  {
-    title: "Shared Records",
-    icon: <Share2 className="h-4 w-4" />,
-    url: "/shared-records",
-    description: "Manage record sharing"
-  },
-  {
-    title: "Smart Forms",
-    icon: <FileCheck className="h-4 w-4" />,
-    url: "/smart-forms",
-    description: "Intelligent form builder"
   },
   {
     title: "Compliance",
