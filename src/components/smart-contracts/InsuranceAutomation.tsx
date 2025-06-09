@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { FileContract, DollarSign, CheckCircle, Clock, AlertTriangle, Zap } from 'lucide-react';
+import { FileText, DollarSign, CheckCircle, Clock, AlertTriangle, Zap } from 'lucide-react';
 import SmartContractsService, { InsuranceContract } from '@/services/blockchain/SmartContractsService';
 
 const InsuranceAutomation: React.FC = () => {
@@ -166,7 +165,7 @@ const InsuranceAutomation: React.FC = () => {
   const getContractTypeIcon = (type: InsuranceContract['contractType']) => {
     switch (type) {
       case 'claim_processing':
-        return <FileContract className="h-4 w-4 text-blue-500" />;
+        return <FileText className="h-4 w-4 text-blue-500" />;
       case 'payment_automation':
         return <DollarSign className="h-4 w-4 text-green-500" />;
       case 'authorization':
@@ -174,7 +173,7 @@ const InsuranceAutomation: React.FC = () => {
       case 'coverage_verification':
         return <AlertTriangle className="h-4 w-4 text-amber-500" />;
       default:
-        return <FileContract className="h-4 w-4 text-gray-500" />;
+        return <FileText className="h-4 w-4 text-gray-500" />;
     }
   };
 
@@ -249,7 +248,7 @@ const InsuranceAutomation: React.FC = () => {
           
           {contracts.length === 0 ? (
             <div className="text-center py-8 text-slate-400">
-              <FileContract className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No insurance contracts found</p>
               <p className="text-sm">Create your first smart contract to automate insurance processing</p>
             </div>
