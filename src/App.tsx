@@ -54,24 +54,24 @@ const App = () => {
                       
                       {/* Provider routes */}
                       <Route path="/provider-portal" element={
-                        <ProtectedRoute requiredRoles={['provider']}>
+                        <ProtectedRoute allowedRoles={['provider']}>
                           <ProviderPortalPage />
                         </ProtectedRoute>
                       } />
                       <Route path="/patient-records" element={
-                        <ProtectedRoute requiredRoles={['provider']}>
+                        <ProtectedRoute allowedRoles={['provider']}>
                           <PatientRecordsPage />
                         </ProtectedRoute>
                       } />
                       <Route path="/medical-notes" element={
-                        <ProtectedRoute requiredRoles={['provider']}>
+                        <ProtectedRoute allowedRoles={['provider']}>
                           <MedicalNotesPage />
                         </ProtectedRoute>
                       } />
 
                       {/* Admin routes */}
                       <Route path="/admin-portal" element={
-                        <ProtectedRoute requiredRoles={['admin', 'supervisor']}>
+                        <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
                           <AdminPortalPage />
                         </ProtectedRoute>
                       } />
