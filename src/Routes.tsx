@@ -30,7 +30,6 @@ import Index from '@/pages/Index';
 import AuthPage from '@/pages/AuthPage';
 import NotFound from '@/pages/NotFound';
 import Unauthorized from '@/pages/Unauthorized';
-import ProductionDeploymentPage from '@/pages/ProductionDeploymentPage';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -142,9 +141,6 @@ const AppRoutes: React.FC = () => {
               <LazySettingsPage />
             </LazyRoute>
           } />
-          
-          {/* Production deployment */}
-          <Route path="production-deployment" element={<ProductionDeploymentPage />} />
         </Route>
         
         {/* Fallback routes */}

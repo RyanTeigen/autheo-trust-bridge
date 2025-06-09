@@ -8,8 +8,7 @@ import {
   Users,
   Shield,
   FileSearch,
-  Settings,
-  Rocket
+  Settings
 } from 'lucide-react';
 
 const AppSidebar: React.FC = () => {
@@ -93,12 +92,6 @@ const navigation = [
     icon: <FileSearch className="h-4 w-4" />,
     url: "/audit-logs",
     description: "Security and access logs"
-  },
-  {
-    title: "Production Deploy",
-    icon: <Rocket className="h-4 w-4" />,
-    url: "/production-deployment",
-    description: "Production deployment management"
   },
   {
     title: "Settings",
