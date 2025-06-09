@@ -141,6 +141,9 @@ const AppRoutes: React.FC = () => {
               <LazySettingsPage />
             </LazyRoute>
           } />
+          
+          {/* Redirect old production-deployment route to main dashboard */}
+          <Route path="production-deployment" element={<Navigate to="/" replace />} />
         </Route>
         
         {/* Fallback routes */}
