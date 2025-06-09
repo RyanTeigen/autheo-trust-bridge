@@ -48,6 +48,7 @@ export interface BridgeQuote {
 class CrossChainService {
   private static instance: CrossChainService;
   private supportedNetworks: BlockchainNetwork[] = [];
+  private mockTransactions: CrossChainTransaction[] = [];
 
   public static getInstance(): CrossChainService {
     if (!CrossChainService.instance) {
@@ -58,6 +59,7 @@ class CrossChainService {
 
   constructor() {
     this.initializeSupportedNetworks();
+    this.initializeMockTransactions();
   }
 
   private initializeSupportedNetworks(): void {
@@ -125,6 +127,38 @@ class CrossChainService {
         bridgeContractAddress: '0x4567890123456789012345678901234567890123',
         isMainnet: false,
         blockTime: 3
+      }
+    ];
+  }
+
+  private initializeMockTransactions(): void {
+    this.mockTransactions = [
+      {
+        id: crypto.randomUUID(),
+        fromNetwork: 'ethereum',
+        toNetwork: 'autheo-mainnet',
+        fromAddress: '0x1234...5678',
+        toAddress: '0x8765...4321',
+        amount: '1.5',
+        theoAmount: '150.0',
+        status: 'completed',
+        txHash: '0x' + Math.random().toString(16).slice(2, 66),
+        bridgeTxHash: '0x' + Math.random().toString(16).slice(2, 66),
+        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        estimatedTime: 15
+      },
+      {
+        id: crypto.randomUUID(),
+        fromNetwork: 'autheo-mainnet',
+        toNetwork: 'polygon',
+        fromAddress: '0x8765...4321',
+        toAddress: '0x1234...5678',
+        amount: '0.5',
+        theoAmount: '50.0',
+        status: 'bridging',
+        txHash: '0x' + Math.random().toString(16).slice(2, 66),
+        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        estimatedTime: 8
       }
     ];
   }
@@ -229,24 +263,9 @@ class CrossChainService {
         estimatedTime: quote.estimatedTime
       };
 
-      // Store transaction in Supabase
-      const { error } = await supabase
-        .from('cross_chain_transactions')
-        .insert({
-          id: transaction.id,
-          from_network: transaction.fromNetwork,
-          to_network: transaction.toNetwork,
-          from_address: transaction.fromAddress,
-          to_address: transaction.toAddress,
-          amount: transaction.amount,
-          theo_amount: transaction.theoAmount,
-          status: transaction.status,
-          estimated_time: transaction.estimatedTime
-        });
-
-      if (error) {
-        console.error('Error storing cross-chain transaction:', error);
-      }
+      // Store in memory for now (until database migration is applied)
+      this.mockTransactions.unshift(transaction);
+      console.log('Bridge transaction created (stored in memory):', transaction);
 
       // Simulate bridge process
       this.processBridge(transaction);
@@ -266,14 +285,14 @@ class CrossChainService {
         transaction.status = 'bridging';
         transaction.txHash = `0x${Math.random().toString(16).slice(2, 66)}`;
         
-        await this.updateTransactionStatus(transaction);
+        console.log('Transaction status updated to bridging:', transaction.id);
         
         // Simulate bridge completion
         setTimeout(async () => {
           transaction.status = 'completed';
           transaction.bridgeTxHash = `0x${Math.random().toString(16).slice(2, 66)}`;
           
-          await this.updateTransactionStatus(transaction);
+          console.log('Transaction completed:', transaction.id);
         }, transaction.estimatedTime * 60 * 1000); // Convert minutes to milliseconds
         
       }, 30000); // 30 seconds initial delay
@@ -281,57 +300,17 @@ class CrossChainService {
     } catch (error) {
       console.error('Error processing bridge:', error);
       transaction.status = 'failed';
-      await this.updateTransactionStatus(transaction);
-    }
-  }
-
-  private async updateTransactionStatus(transaction: CrossChainTransaction): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('cross_chain_transactions')
-        .update({
-          status: transaction.status,
-          tx_hash: transaction.txHash,
-          bridge_tx_hash: transaction.bridgeTxHash,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', transaction.id);
-
-      if (error) {
-        console.error('Error updating transaction status:', error);
-      }
-    } catch (error) {
-      console.error('Error updating transaction:', error);
     }
   }
 
   async getTransactionHistory(userAddress: string): Promise<CrossChainTransaction[]> {
     try {
-      const { data, error } = await supabase
-        .from('cross_chain_transactions')
-        .select('*')
-        .or(`from_address.eq.${userAddress},to_address.eq.${userAddress}`)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching transaction history:', error);
-        return [];
-      }
-
-      return data.map(tx => ({
-        id: tx.id,
-        fromNetwork: tx.from_network,
-        toNetwork: tx.to_network,
-        fromAddress: tx.from_address,
-        toAddress: tx.to_address,
-        amount: tx.amount,
-        theoAmount: tx.theo_amount,
-        status: tx.status,
-        txHash: tx.tx_hash,
-        bridgeTxHash: tx.bridge_tx_hash,
-        timestamp: tx.created_at,
-        estimatedTime: tx.estimated_time
-      }));
+      // Return mock transactions for now (until database migration is applied)
+      console.log('Returning mock transaction history for address:', userAddress);
+      return this.mockTransactions.filter(tx => 
+        tx.fromAddress.toLowerCase().includes(userAddress.toLowerCase()) ||
+        tx.toAddress.toLowerCase().includes(userAddress.toLowerCase())
+      );
     } catch (error) {
       console.error('Error getting transaction history:', error);
       return [];

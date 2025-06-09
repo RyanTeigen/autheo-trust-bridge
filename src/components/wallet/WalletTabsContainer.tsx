@@ -18,9 +18,17 @@ import BlockchainTab from './tabs/BlockchainTab';
 
 interface WalletTabsContainerProps {
   onSectionChange?: (section: string) => void;
+  handleToggleShare?: (id: string, shared: boolean) => void;
+  searchQuery?: string;
+  selectedCategory?: string;
 }
 
-const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({ onSectionChange }) => {
+const WalletTabsContainer: React.FC<WalletTabsContainerProps> = ({ 
+  onSectionChange,
+  handleToggleShare,
+  searchQuery,
+  selectedCategory 
+}) => {
   const [activeTab, setActiveTab] = useState('overview');
 
   const handleTabChange = (value: string) => {
