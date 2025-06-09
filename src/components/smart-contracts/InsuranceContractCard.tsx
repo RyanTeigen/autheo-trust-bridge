@@ -23,7 +23,7 @@ const InsuranceContractCard: React.FC<InsuranceContractCardProps> = ({
           <div className="flex items-center gap-3">
             {getContractTypeIcon(contract.contractType)}
             <div>
-              <h4 className="font-medium">{contract.insuranceProvider}</h4>
+              <h4 className="font-medium text-slate-100">{contract.insuranceProvider}</h4>
               <p className="text-sm text-slate-400 capitalize">
                 {contract.contractType.replace('_', ' ')}
               </p>
@@ -40,19 +40,19 @@ const InsuranceContractCard: React.FC<InsuranceContractCardProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div>
             <p className="text-xs text-slate-400">Coverage</p>
-            <p className="font-medium">${contract.terms.coverageAmount.toLocaleString()}</p>
+            <p className="font-medium text-slate-200">${contract.terms.coverageAmount.toLocaleString()}</p>
           </div>
           <div>
             <p className="text-xs text-slate-400">Deductible</p>
-            <p className="font-medium">${contract.terms.deductible}</p>
+            <p className="font-medium text-slate-200">${contract.terms.deductible}</p>
           </div>
           <div>
             <p className="text-xs text-slate-400">Copay</p>
-            <p className="font-medium">${contract.terms.copayAmount}</p>
+            <p className="font-medium text-slate-200">${contract.terms.copayAmount}</p>
           </div>
           <div>
             <p className="text-xs text-slate-400">Auto Approval Limit</p>
-            <p className="font-medium">${contract.terms.autoApprovalLimit}</p>
+            <p className="font-medium text-slate-200">${contract.terms.autoApprovalLimit}</p>
           </div>
         </div>
 

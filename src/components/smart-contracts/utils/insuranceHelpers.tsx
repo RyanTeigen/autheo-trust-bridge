@@ -7,11 +7,11 @@ import { InsuranceContract } from '@/services/blockchain/SmartContractsService';
 export const getStatusBadge = (status: InsuranceContract['status']) => {
   switch (status) {
     case 'active':
-      return <Badge className="bg-green-600"><CheckCircle className="h-3 w-3 mr-1" /> Active</Badge>;
+      return <Badge className="bg-green-600 hover:bg-green-600"><CheckCircle className="h-3 w-3 mr-1" /> Active</Badge>;
     case 'draft':
       return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" /> Draft</Badge>;
     case 'executed':
-      return <Badge className="bg-blue-600">Executed</Badge>;
+      return <Badge className="bg-blue-600 hover:bg-blue-600">Executed</Badge>;
     case 'expired':
       return <Badge variant="secondary">Expired</Badge>;
     case 'terminated':

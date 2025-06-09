@@ -117,7 +117,7 @@ export const useInsuranceContracts = () => {
         expiresAt: new Date(Date.now() + 31536000000).toISOString()
       });
 
-      setContracts([...contracts, newContract]);
+      setContracts(prev => [...prev, newContract]);
       
       toast({
         title: "Contract Created",

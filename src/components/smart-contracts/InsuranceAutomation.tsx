@@ -52,7 +52,7 @@ const InsuranceAutomation: React.FC = () => {
         />
 
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Active Contracts</h3>
+          <h3 className="text-lg font-semibold text-slate-100">Active Contracts</h3>
           <InsuranceContractsList
             contracts={contracts}
             onProcessClaim={handleProcessClaim}
