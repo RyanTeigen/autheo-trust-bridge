@@ -19,6 +19,7 @@ interface MedicalRecordFormProps {
   loading: boolean;
   isEditing?: boolean;
   onCancel: () => void;
+  onDelete?: () => Promise<void>;
 }
 
 const MedicalRecordForm: React.FC<MedicalRecordFormProps> = ({
@@ -27,7 +28,8 @@ const MedicalRecordForm: React.FC<MedicalRecordFormProps> = ({
   onSubmit,
   loading,
   isEditing = false,
-  onCancel
+  onCancel,
+  onDelete
 }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -93,6 +95,16 @@ const MedicalRecordForm: React.FC<MedicalRecordFormProps> = ({
         >
           Cancel
         </Button>
+        {isEditing && onDelete && (
+          <Button 
+            type="button" 
+            variant="destructive" 
+            onClick={onDelete}
+            disabled={loading}
+          >
+            Delete
+          </Button>
+        )}
       </div>
     </form>
   );
