@@ -4,7 +4,19 @@ import { recordSharingService } from './patient/RecordSharingService';
 
 // Re-export services for backwards compatibility
 export class EnhancedPatientRecordsService {
-  static createOrUpdatePatient = patientProfileService.createOrUpdatePatient.bind(patientProfileService);
+  static createOrUpdatePatient = async (data: any) => {
+    // Check if patient exists first
+    const currentPatientResult = await patientProfileService.getCurrentPatient();
+    
+    if (currentPatientResult.success && currentPatientResult.data) {
+      // Update existing patient
+      return await patientProfileService.updatePatient(currentPatientResult.data.id, data);
+    } else {
+      // Create new patient
+      return await patientProfileService.createPatient(data);
+    }
+  };
+  
   static getCurrentPatient = patientProfileService.getCurrentPatient.bind(patientProfileService);
   static getPatient = patientProfileService.getPatient.bind(patientProfileService);
   static shareRecordWithProvider = recordSharingService.shareRecordWithProvider.bind(recordSharingService);

@@ -7,6 +7,8 @@ import { sanitizeErrorForUser } from '@/utils/errorHandling';
 
 export function useEnhancedMedicalRecords() {
   const [records, setRecords] = useState<DecryptedMedicalRecord[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [pagination, setPagination] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -34,7 +36,9 @@ export function useEnhancedMedicalRecords() {
       const response = await enhancedMedicalRecordsService.getRecords();
       
       if (response.success && response.data) {
-        setRecords(response.data);
+        setRecords(response.data.records);
+        setTotalCount(response.data.totalCount);
+        setPagination(response.data.pagination);
       } else {
         const errorMessage = sanitizeErrorForUser(response as any);
         setError(errorMessage);
@@ -141,6 +145,8 @@ export function useEnhancedMedicalRecords() {
 
   return {
     records,
+    totalCount,
+    pagination,
     loading,
     error,
     fetchRecords,
