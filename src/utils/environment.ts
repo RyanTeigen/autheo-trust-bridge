@@ -27,18 +27,18 @@ export const isStaging = (): boolean => getEnvironment() === Environment.STAGING
 export const isDevelopment = (): boolean => getEnvironment() === Environment.DEVELOPMENT;
 
 // Backend API configuration using Supabase Edge Functions
-export const API_BASE_URL = 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1/api';
+export const API_BASE_URL = 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1';
 
 export const getAPIEndpoint = (): string => {
   const env = getEnvironment();
   
   switch (env) {
     case Environment.PRODUCTION:
-      return 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1/api';
+      return 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1';
     case Environment.STAGING:
-      return 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1/api';
+      return 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1';
     default:
-      return 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1/api';
+      return 'https://ilhzzroafedbyttdfypf.supabase.co/functions/v1';
   }
 };
 

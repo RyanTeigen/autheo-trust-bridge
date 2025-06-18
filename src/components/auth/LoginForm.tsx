@@ -36,10 +36,10 @@ const LoginForm: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
-    console.log('Attempting login with:', { email: values.email, apiUrl: `${API_BASE_URL}/api/auth/login` });
+    console.log('Attempting login with:', { email: values.email, apiUrl: `${API_BASE_URL}/auth/login` });
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

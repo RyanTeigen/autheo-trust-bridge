@@ -37,10 +37,10 @@ const SignupForm: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
-    console.log('Attempting signup with:', { email: values.email, apiUrl: `${API_BASE_URL}/api/auth/register` });
+    console.log('Attempting signup with:', { email: values.email, apiUrl: `${API_BASE_URL}/auth/register` });
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
