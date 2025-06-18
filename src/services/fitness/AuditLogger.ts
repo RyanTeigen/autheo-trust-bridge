@@ -82,3 +82,63 @@ export class FitnessAuditLogger {
     }
   }
 }
+interface MedicalRecord {
+  id: string;
+  patientId: string;
+  encryptedData: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const records: MedicalRecord[] = [];
+
+// Create record
+app.post('/records', authenticate('patient'), (req: any, res) => {
+  const patientId = req.user.userId;
+  const { data } = req.body; // plain JSON data to encrypt
+  if (!data) return res.status(400).send('Missing data');
+
+  const encryptedData = encrypt(JSON.stringify(data));
+  const record: MedicalRecord = {
+    id: Date.now().toString(),
+    patientId,
+    encryptedData,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  records.push(record);
+  res.status(201).json({ id: record.id });
+});
+
+// Read all patient records
+app.get('/records', authenticate('patient'), (req: any, res) => {
+  const patientId = req.user.userId;
+  const patientRecords = records
+    .filter(r => r.patientId === patientId)
+    .map(r => ({ id: r.id, data: JSON.parse(decrypt(r.encryptedData)), createdAt: r.createdAt, updatedAt: r.updatedAt }));
+  res.json(patientRecords);
+});
+
+// Update a record
+app.put('/records/:id', authenticate('patient'), (req: any, res) => {
+  const patientId = req.user.userId;
+  const record = records.find(r => r.id === req.params.id && r.patientId === patientId);
+  if (!record) return res.status(404).send('Record not found');
+
+  const { data } = req.body;
+  if (!data) return res.status(400).send('Missing data');
+
+  record.encryptedData = encrypt(JSON.stringify(data));
+  record.updatedAt = new Date();
+  res.send('Record updated');
+});
+
+// Delete a record
+app.delete('/records/:id', authenticate('patient'), (req: any, res) => {
+  const patientId = req.user.userId;
+  const index = records.findIndex(r => r.id === req.params.id && r.patientId === patientId);
+  if (index === -1) return res.status(404).send('Record not found');
+
+  records.splice(index, 1);
+  res.send('Record deleted');
+});
