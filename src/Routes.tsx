@@ -20,8 +20,16 @@ const ProductionDeploymentPage = React.lazy(() => import('@/pages/ProductionDepl
 export const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<AuthPage />} />
-      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/" element={
+        <LazyRoute>
+          <AuthPage />
+        </LazyRoute>
+      } />
+      <Route path="/auth" element={
+        <LazyRoute>
+          <AuthPage />
+        </LazyRoute>
+      } />
       
       <Route path="/dashboard" element={
         <ProtectedRoute>
