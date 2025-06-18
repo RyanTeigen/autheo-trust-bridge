@@ -1,0 +1,223 @@
+
+{
+  "info": {
+    "name": "Autheo Medical Records API",
+    "description": "Collection for testing the Autheo medical records backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Get All Patients",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/patients?limit=10&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients"],
+              "query": [
+                {"key": "limit", "value": "10"},
+                {"key": "offset", "value": "0"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current Patient",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/patients/current",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "current"]
+            }
+          }
+        },
+        {
+          "name": "Create Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+1234567890\",\n  \"date_of_birth\": \"1990-01-01\",\n  \"address\": \"123 Main St, City, State 12345\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients"]
+            }
+          }
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1987654321\",\n  \"address\": \"456 Oak Ave, New City, State 67890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/patients/{{patient_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "patients", "{{patient_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Medical Records",
+      "item": [
+        {
+          "name": "Get Medical Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/medical-records?limit=10&recordType=general",
+              "host": ["{{base_url}}"],
+              "path": ["api", "medical-records"],
+              "query": [
+                {"key": "limit", "value": "10"},
+                {"key": "recordType", "value": "general"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Medical Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Annual Physical\",\n  \"description\": \"Routine annual physical examination\",\n  \"category\": \"checkup\",\n  \"recordType\": \"general\",\n  \"notes\": \"Patient is in good health\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/medical-records",
+              "host": ["{{base_url}}"],
+              "path": ["api", "medical-records"]
+            }
+          }
+        },
+        {
+          "name": "Get Medical Record by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/medical-records/{{record_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "medical-records", "{{record_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sharing Permissions",
+      "item": [
+        {
+          "name": "Get Sharing Permissions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sharing-permissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sharing-permissions"]
+            }
+          }
+        },
+        {
+          "name": "Create Sharing Permission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicalRecordId\": \"{{medical_record_id}}\",\n  \"granteeId\": \"{{provider_user_id}}\",\n  \"permissionType\": \"read\",\n  \"expiresAt\": \"2024-12-31T23:59:59Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/sharing-permissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sharing-permissions"]
+            }
+          }
+        },
+        {
+          "name": "Revoke Sharing Permission",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/sharing-permissions/{{permission_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "sharing-permissions", "{{permission_id}}"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
