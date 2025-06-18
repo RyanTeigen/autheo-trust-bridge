@@ -439,6 +439,7 @@ export type Database = {
           created_at: string | null
           encrypted_data: string
           id: string
+          patient_id: string | null
           record_type: string | null
           updated_at: string | null
           user_id: string | null
@@ -447,6 +448,7 @@ export type Database = {
           created_at?: string | null
           encrypted_data: string
           id?: string
+          patient_id?: string | null
           record_type?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -455,11 +457,20 @@ export type Database = {
           created_at?: string | null
           encrypted_data?: string
           id?: string
+          patient_id?: string | null
           record_type?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       note_access_controls: {
         Row: {
@@ -500,36 +511,45 @@ export type Database = {
           allergies: string[] | null
           created_at: string | null
           date_of_birth: string | null
+          email: string | null
           emergency_contact: string | null
+          full_name: string | null
           id: string
           insurance_info: Json | null
           mrn: string | null
           phone: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           address?: string | null
           allergies?: string[] | null
           created_at?: string | null
           date_of_birth?: string | null
+          email?: string | null
           emergency_contact?: string | null
+          full_name?: string | null
           id: string
           insurance_info?: Json | null
           mrn?: string | null
           phone?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           address?: string | null
           allergies?: string[] | null
           created_at?: string | null
           date_of_birth?: string | null
+          email?: string | null
           emergency_contact?: string | null
+          full_name?: string | null
           id?: string
           insurance_info?: Json | null
           mrn?: string | null
           phone?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -605,6 +625,51 @@ export type Database = {
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sharing_permissions: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          grantee_id: string
+          id: string
+          medical_record_id: string | null
+          patient_id: string | null
+          permission_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          grantee_id: string
+          id?: string
+          medical_record_id?: string | null
+          patient_id?: string | null
+          permission_type: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          grantee_id?: string
+          id?: string
+          medical_record_id?: string | null
+          patient_id?: string | null
+          permission_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sharing_permissions_medical_record_id_fkey"
+            columns: ["medical_record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_permissions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
