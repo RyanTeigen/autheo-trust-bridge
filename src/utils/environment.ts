@@ -29,11 +29,8 @@ export const isDevelopment = (): boolean => getEnvironment() === Environment.DEV
 // Backend API configuration
 const ENV = import.meta.env.MODE || 'development';
 
-export const API_BASE_URL = {
-  production: 'https://your-prod-backend.com',
-  staging: 'https://your-staging-backend.com', 
-  development: 'http://localhost:4000',
-}[ENV] || 'http://localhost:4000';
+// Use the Supabase URL as the backend since that's what you have configured
+export const API_BASE_URL = 'https://ilhzzroafedbyttdfypf.supabase.co';
 
 export const getAPIEndpoint = (): string => {
   const env = getEnvironment();

@@ -37,6 +37,8 @@ const SignupForm: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
+    console.log('Attempting signup with:', { email: values.email, apiUrl: `${API_BASE_URL}/api/auth/register` });
+    
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
@@ -53,11 +55,25 @@ const SignupForm: React.FC = () => {
         }),
       });
 
-      const data = await response.json();
+      console.log('Signup response status:', response.status);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        const errorText = await response.text();
+        console.error('Signup error response:', errorText);
+        
+        let errorMessage = 'Registration failed';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${response.status})`;
+        }
+        
+        throw new Error(errorMessage);
       }
+
+      const data = await response.json();
+      console.log('Signup successful, received token');
 
       // Use the login function from FrontendAuthContext to store the token
       login(data.token);
@@ -68,9 +84,18 @@ const SignupForm: React.FC = () => {
       });
     } catch (error: any) {
       console.error("Registration error:", error);
+      
+      let errorMessage = "Please try again";
+      
+      if (error.message === 'Failed to fetch') {
+        errorMessage = "Unable to connect to the server. Please check your internet connection and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Registration failed",
-        description: error.message || "Please try again",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

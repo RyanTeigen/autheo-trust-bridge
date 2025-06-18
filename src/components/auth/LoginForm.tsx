@@ -36,6 +36,8 @@ const LoginForm: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
+    console.log('Attempting login with:', { email: values.email, apiUrl: `${API_BASE_URL}/api/auth/login` });
+    
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
@@ -48,11 +50,25 @@ const LoginForm: React.FC = () => {
         }),
       });
 
-      const data = await response.json();
+      console.log('Login response status:', response.status);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        const errorText = await response.text();
+        console.error('Login error response:', errorText);
+        
+        let errorMessage = 'Login failed';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = `Server error (${response.status})`;
+        }
+        
+        throw new Error(errorMessage);
       }
+
+      const data = await response.json();
+      console.log('Login successful, received token');
 
       // Use the login function from FrontendAuthContext
       login(data.token);
@@ -63,9 +79,18 @@ const LoginForm: React.FC = () => {
       });
     } catch (error: any) {
       console.error("Login error:", error);
+      
+      let errorMessage = "Please check your credentials and try again";
+      
+      if (error.message === 'Failed to fetch') {
+        errorMessage = "Unable to connect to the server. Please check your internet connection and try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Login failed",
-        description: error.message || "Please check your credentials and try again",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -104,7 +129,7 @@ const LoginForm: React.FC = () => {
       <Alert variant="warning" className="mb-4">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription className="text-xs">
-          Using JWT-based authentication with your backend API.
+          Using JWT-based authentication. Make sure your backend API is running at {API_BASE_URL}
         </AlertDescription>
       </Alert>
 
