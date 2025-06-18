@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PatientRecordsService } from './PatientRecordsService';
 
@@ -63,15 +62,15 @@ export class MedicalRecordsService {
       }
 
       let patientId: string;
-      if (!patientResult.patient) {
+      if (!patientResult.data) {
         // Create patient record if it doesn't exist
         const createResult = await PatientRecordsService.createOrUpdatePatient({});
-        if (!createResult.success || !createResult.patient) {
+        if (!createResult.success || !createResult.data) {
           return { success: false, error: 'Failed to create patient record' };
         }
-        patientId = createResult.patient.id;
+        patientId = createResult.data.id;
       } else {
-        patientId = patientResult.patient.id;
+        patientId = patientResult.data.id;
       }
 
       // Encrypt the data before storing

@@ -1,3 +1,4 @@
+
 import { BaseService, ServiceResponse } from './BaseService';
 import { PatientRecordsService } from './PatientRecordsService';
 import { DecryptedMedicalRecord } from '@/types/medical';
@@ -102,7 +103,7 @@ export class EnhancedMedicalRecordsService extends BaseService {
       }
 
       const patientResult = await PatientRecordsService.getCurrentPatient();
-      if (!patientResult.success || !patientResult.patient) {
+      if (!patientResult.success || !patientResult.data) {
         return this.createErrorResponse('Patient record not found', 404);
       }
 
@@ -111,12 +112,12 @@ export class EnhancedMedicalRecordsService extends BaseService {
 
       const [records, totalCount] = await Promise.all([
         MedicalRecordsRepository.findByPatientId(
-          patientResult.patient.id,
+          patientResult.data.id,
           { limit, offset },
           { recordType: filters.recordType }
         ),
         MedicalRecordsRepository.countByPatientId(
-          patientResult.patient.id,
+          patientResult.data.id,
           { recordType: filters.recordType }
         )
       ]);
@@ -255,15 +256,15 @@ export class EnhancedMedicalRecordsService extends BaseService {
       throw new Error('Failed to get patient record');
     }
 
-    if (!patientResult.patient) {
+    if (!patientResult.data) {
       const createResult = await PatientRecordsService.createOrUpdatePatient({});
-      if (!createResult.success || !createResult.patient) {
+      if (!createResult.success || !createResult.data) {
         throw new Error('Failed to create patient record');
       }
-      return createResult.patient.id;
+      return createResult.data.id;
     }
 
-    return patientResult.patient.id;
+    return patientResult.data.id;
   }
 
   private decryptRecords(records: any[]): DecryptedMedicalRecord[] {
