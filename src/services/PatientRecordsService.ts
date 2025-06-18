@@ -131,7 +131,13 @@ export class PatientRecordsService {
         return { success: false, error: error.message };
       }
 
-      return { success: true, permission };
+      // Type assert the permission_type to match our strict type
+      const typedPermission: SharingPermission = {
+        ...permission,
+        permission_type: permission.permission_type as 'read' | 'write'
+      };
+
+      return { success: true, permission: typedPermission };
     } catch (error) {
       console.error('Error in shareRecordWithProvider:', error);
       return { success: false, error: 'Failed to share record' };
@@ -162,7 +168,13 @@ export class PatientRecordsService {
         return { success: false, error: error.message };
       }
 
-      return { success: true, permissions: permissions || [] };
+      // Type assert the permission_type for each permission to match our strict type
+      const typedPermissions: SharingPermission[] = (permissions || []).map(permission => ({
+        ...permission,
+        permission_type: permission.permission_type as 'read' | 'write'
+      }));
+
+      return { success: true, permissions: typedPermissions };
     } catch (error) {
       console.error('Error in getSharingPermissions:', error);
       return { success: false, error: 'Failed to fetch sharing permissions' };

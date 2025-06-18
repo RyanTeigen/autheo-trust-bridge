@@ -103,7 +103,7 @@ export class MedicalRecordsService {
     try {
       const result = await PatientRecordsService.getPatientMedicalRecords();
       if (!result.success || !result.records) {
-        return result;
+        return { success: result.success, error: result.error };
       }
 
       // Decrypt the records
@@ -114,7 +114,7 @@ export class MedicalRecordsService {
             id: record.id,
             patient_id: record.patient_id,
             data: JSON.parse(decryptedData),
-            record_type: record.record_type,
+            record_type: record.record_type || 'general',
             created_at: record.created_at,
             updated_at: record.updated_at
           };
@@ -124,7 +124,7 @@ export class MedicalRecordsService {
             id: record.id,
             patient_id: record.patient_id,
             data: { error: 'Failed to decrypt record' },
-            record_type: record.record_type,
+            record_type: record.record_type || 'general',
             created_at: record.created_at,
             updated_at: record.updated_at
           };
