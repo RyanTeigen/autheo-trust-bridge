@@ -43,49 +43,84 @@ const App = () => {
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     
                     {/* Protected routes - require authentication */}
-                    <Route element={
+                    <Route path="/" element={
                       <ProtectedRoute>
-                        <MainLayout />
+                        <MainLayout>
+                          <PatientDashboardPage />
+                        </MainLayout>
                       </ProtectedRoute>
-                    }>
-                      {/* Dashboard - accessible to all authenticated users */}
-                      <Route path="/" element={<PatientDashboardPage />} />
-                      <Route path="/smart-forms" element={<SmartFormsPage />} />
-                      
-                      {/* Provider routes */}
-                      <Route path="/provider-portal" element={
-                        <ProtectedRoute allowedRoles={['provider']}>
+                    } />
+                    
+                    <Route path="/smart-forms" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <SmartFormsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    {/* Provider routes */}
+                    <Route path="/provider-portal" element={
+                      <ProtectedRoute allowedRoles={['provider']}>
+                        <MainLayout>
                           <ProviderPortalPage />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/patient-records" element={
-                        <ProtectedRoute allowedRoles={['provider']}>
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/patient-records" element={
+                      <ProtectedRoute allowedRoles={['provider']}>
+                        <MainLayout>
                           <PatientRecordsPage />
-                        </ProtectedRoute>
-                      } />
-                      <Route path="/medical-notes" element={
-                        <ProtectedRoute allowedRoles={['provider']}>
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/medical-notes" element={
+                      <ProtectedRoute allowedRoles={['provider']}>
+                        <MainLayout>
                           <MedicalNotesPage />
-                        </ProtectedRoute>
-                      } />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
 
-                      {/* Admin routes */}
-                      <Route path="/admin-portal" element={
-                        <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
+                    {/* Admin routes */}
+                    <Route path="/admin-portal" element={
+                      <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
+                        <MainLayout>
                           <AdminPortalPage />
-                        </ProtectedRoute>
-                      } />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
 
-                      {/* Compliance routes - now accessible to all authenticated users */}
-                      <Route path="/compliance" element={<CompliancePage />} />
-                      <Route path="/audit-logs" element={<AuditLogsPage />} />
-                      
-                      {/* Common routes */}
-                      <Route path="/settings" element={<SettingsPage />} />
-                      
-                      {/* Legacy redirects */}
-                      <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
-                    </Route>
+                    {/* Compliance routes - now accessible to all authenticated users */}
+                    <Route path="/compliance" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <CompliancePage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/audit-logs" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <AuditLogsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    {/* Common routes */}
+                    <Route path="/settings" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <SettingsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    {/* Legacy redirects */}
+                    <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
                     
                     {/* 404 route */}
                     <Route path="*" element={<NotFound />} />
