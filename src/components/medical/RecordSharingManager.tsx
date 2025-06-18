@@ -3,10 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useSharingPermissionsAPI } from '@/hooks/useSharingPermissionsAPI';
 import { useMedicalRecordsAPI } from '@/hooks/useMedicalRecordsAPI';
-import { Shield } from 'lucide-react';
-import ShareRecordDialog from './sharing/ShareRecordDialog';
+import { Shield, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import ShareRecordForm from './sharing/ShareRecordForm';
 import SharingPermissionCard from './sharing/SharingPermissionCard';
 import EmptySharingState from './sharing/EmptySharingState';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface DecryptedMedicalRecord {
   id: string;
@@ -27,20 +31,15 @@ interface SharingPermission {
   expires_at?: string;
 }
 
-interface ShareForm {
-  granteeId: string;
-  permissionType: 'read' | 'write';
-  expiresAt: string;
-}
-
 const RecordSharingManager: React.FC = () => {
   const [records, setRecords] = useState<DecryptedMedicalRecord[]>([]);
   const [permissions, setPermissions] = useState<SharingPermission[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRecordId, setSelectedRecordId] = useState<string>('');
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { toast } = useToast();
   
-  const { getSharingPermissions, createSharingPermission, revokeSharingPermission } = useSharingPermissionsAPI();
+  const { getSharingPermissions, revokeSharingPermission } = useSharingPermissionsAPI();
   const { getRecords } = useMedicalRecordsAPI();
 
   useEffect(() => {
@@ -82,47 +81,6 @@ const RecordSharingManager: React.FC = () => {
     }
   };
 
-  const handleShareRecord = async (recordId: string, shareForm: ShareForm) => {
-    if (!recordId || !shareForm.granteeId) {
-      toast({
-        title: "Error",
-        description: "Please select a record and enter a provider ID",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const result = await createSharingPermission({
-        medicalRecordId: recordId,
-        granteeId: shareForm.granteeId,
-        permissionType: shareForm.permissionType,
-        expiresAt: shareForm.expiresAt || undefined
-      });
-
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: "Record shared successfully",
-        });
-        setIsShareDialogOpen(false);
-        fetchData();
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to share record",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to share record",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleRevokePermission = async (permissionId: string) => {
     try {
       const result = await revokeSharingPermission(permissionId);
@@ -149,6 +107,14 @@ const RecordSharingManager: React.FC = () => {
     }
   };
 
+  const handleShareSuccess = () => {
+    setIsShareDialogOpen(false);
+    setSelectedRecordId('');
+    fetchData();
+  };
+
+  const selectedRecord = records.find(r => r.id === selectedRecordId);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
@@ -168,12 +134,65 @@ const RecordSharingManager: React.FC = () => {
           </p>
         </div>
         
-        <ShareRecordDialog
-          records={records}
-          onShare={handleShareRecord}
-          isOpen={isShareDialogOpen}
-          onOpenChange={setIsShareDialogOpen}
-        />
+        <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Share Record
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Share Medical Record</DialogTitle>
+            </DialogHeader>
+            
+            {!selectedRecordId ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="record-select">Select a record to share:</Label>
+                  <Select value={selectedRecordId} onValueChange={setSelectedRecordId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a record" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {records.map((record) => (
+                        <SelectItem key={record.id} value={record.id}>
+                          {record.data.title || `${record.record_type} - ${new Date(record.created_at).toLocaleDateString()}`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => selectedRecordId && setSelectedRecordId(selectedRecordId)}
+                    disabled={!selectedRecordId}
+                    className="flex-1"
+                  >
+                    Continue
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsShareDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <ShareRecordForm
+                recordId={selectedRecordId}
+                recordTitle={selectedRecord?.data.title || `${selectedRecord?.record_type} record`}
+                onSuccess={handleShareSuccess}
+                onCancel={() => {
+                  setSelectedRecordId('');
+                  setIsShareDialogOpen(false);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       {permissions.length === 0 ? (

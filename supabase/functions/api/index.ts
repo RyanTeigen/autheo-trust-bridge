@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -28,7 +27,7 @@ serve(async (req) => {
     }
 
     // Remove 'api' from path segments to get the actual endpoint
-    const endpoint = pathSegments[1] // 'patients', 'auth', etc.
+    const endpoint = pathSegments[1] // 'patients', 'auth', 'sharing-permissions', 'medical-records', etc.
     const subEndpoint = pathSegments[2] // 'login', 'register', etc.
     
     console.log('API Gateway - Endpoint:', endpoint)
@@ -80,6 +79,68 @@ serve(async (req) => {
       
       console.log('API Gateway - Patients response status:', response.status)
       console.log('API Gateway - Patients response data:', data)
+      
+      return new Response(data, {
+        status: response.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    
+    // Route to sharing permissions endpoints
+    if (endpoint === 'sharing-permissions') {
+      console.log('API Gateway - Routing to sharing-permissions function')
+      
+      // Build the path for the sharing permissions function
+      // Remove the first two segments (/api/sharing-permissions) and keep the rest
+      const remainingPath = pathSegments.slice(2).join('/')
+      const sharingUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/sharing-permissions${remainingPath ? '/' + remainingPath : ''}`
+      
+      console.log('API Gateway - Forwarding to:', sharingUrl + url.search)
+      
+      const response = await fetch(sharingUrl + url.search, {
+        method: req.method,
+        headers: {
+          'Authorization': req.headers.get('Authorization') || '',
+          'Content-Type': 'application/json',
+        },
+        body: req.method !== 'GET' ? await req.text() : undefined,
+      })
+      
+      const data = await response.text()
+      
+      console.log('API Gateway - Sharing permissions response status:', response.status)
+      console.log('API Gateway - Sharing permissions response data:', data)
+      
+      return new Response(data, {
+        status: response.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    
+    // Route to medical records endpoints
+    if (endpoint === 'medical-records') {
+      console.log('API Gateway - Routing to medical-records function')
+      
+      // Build the path for the medical records function
+      // Remove the first two segments (/api/medical-records) and keep the rest
+      const remainingPath = pathSegments.slice(2).join('/')
+      const recordsUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/medical-records${remainingPath ? '/' + remainingPath : ''}`
+      
+      console.log('API Gateway - Forwarding to:', recordsUrl + url.search)
+      
+      const response = await fetch(recordsUrl + url.search, {
+        method: req.method,
+        headers: {
+          'Authorization': req.headers.get('Authorization') || '',
+          'Content-Type': 'application/json',
+        },
+        body: req.method !== 'GET' ? await req.text() : undefined,
+      })
+      
+      const data = await response.text()
+      
+      console.log('API Gateway - Medical records response status:', response.status)
+      console.log('API Gateway - Medical records response data:', data)
       
       return new Response(data, {
         status: response.status,
