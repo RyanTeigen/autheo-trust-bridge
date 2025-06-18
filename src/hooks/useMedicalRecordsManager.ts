@@ -62,7 +62,7 @@ export const useMedicalRecordsManager = () => {
     try {
       const response = await createRecord({
         ...data,
-        recordType: data.recordType || 'general'
+        recordType: data.category || 'general' // Map category to recordType
       });
       
       if (response.success) {
@@ -93,7 +93,10 @@ export const useMedicalRecordsManager = () => {
 
   const handleUpdateRecord = async (id: string, data: any) => {
     try {
-      const response = await updateRecord(id, data);
+      const response = await updateRecord(id, {
+        ...data,
+        recordType: data.category || 'general' // Map category to recordType
+      });
       
       if (response.success) {
         toast({

@@ -1,18 +1,20 @@
 
 import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DecryptedMedicalRecord } from '@/types/medical';
-import { Share2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Share2, Plus } from 'lucide-react';
+
+interface DecryptedMedicalRecord {
+  id: string;
+  patient_id: string;
+  data: any;
+  record_type: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface ShareForm {
   granteeId: string;
@@ -33,40 +35,51 @@ const ShareRecordDialog: React.FC<ShareRecordDialogProps> = ({
   isOpen,
   onOpenChange
 }) => {
-  const [selectedRecordId, setSelectedRecordId] = useState<string>('');
+  const [selectedRecordId, setSelectedRecordId] = useState('');
   const [shareForm, setShareForm] = useState<ShareForm>({
     granteeId: '',
     permissionType: 'read',
     expiresAt: ''
   });
+  const [isSharing, setIsSharing] = useState(false);
 
-  const handleShare = async () => {
-    if (selectedRecordId && shareForm.granteeId) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRecordId || !shareForm.granteeId) return;
+
+    setIsSharing(true);
+    try {
       await onShare(selectedRecordId, shareForm);
+      // Reset form
       setSelectedRecordId('');
-      setShareForm({ granteeId: '', permissionType: 'read', expiresAt: '' });
+      setShareForm({
+        granteeId: '',
+        permissionType: 'read',
+        expiresAt: ''
+      });
+    } finally {
+      setIsSharing(false);
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Share2 className="h-4 w-4" />
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
           Share Record
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Share Medical Record</DialogTitle>
-          <DialogDescription>
-            Grant access to one of your medical records to a healthcare provider.
-          </DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <Share2 className="h-5 w-5" />
+            Share Medical Record
+          </DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Select Record</label>
+            <Label htmlFor="record">Select Record</Label>
             <Select value={selectedRecordId} onValueChange={setSelectedRecordId}>
               <SelectTrigger>
                 <SelectValue placeholder="Choose a record to share" />
@@ -74,27 +87,31 @@ const ShareRecordDialog: React.FC<ShareRecordDialogProps> = ({
               <SelectContent>
                 {records.map((record) => (
                   <SelectItem key={record.id} value={record.id}>
-                    {record.data?.title || 'Untitled Record'} ({record.record_type})
+                    {record.data.title || `${record.record_type} - ${new Date(record.created_at).toLocaleDateString()}`}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          
+
           <div>
-            <label className="text-sm font-medium">Provider ID</label>
+            <Label htmlFor="granteeId">Provider/User ID</Label>
             <Input
+              id="granteeId"
               value={shareForm.granteeId}
-              onChange={(e) => setShareForm(prev => ({ ...prev, granteeId: e.target.value }))}
-              placeholder="Enter provider user ID"
+              onChange={(e) => setShareForm({ ...shareForm, granteeId: e.target.value })}
+              placeholder="Enter provider or user ID"
+              required
             />
           </div>
-          
+
           <div>
-            <label className="text-sm font-medium">Permission Type</label>
+            <Label htmlFor="permissionType">Permission Type</Label>
             <Select 
               value={shareForm.permissionType} 
-              onValueChange={(value: 'read' | 'write') => setShareForm(prev => ({ ...prev, permissionType: value }))}
+              onValueChange={(value: 'read' | 'write') => 
+                setShareForm({ ...shareForm, permissionType: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -105,25 +122,26 @@ const ShareRecordDialog: React.FC<ShareRecordDialogProps> = ({
               </SelectContent>
             </Select>
           </div>
-          
+
           <div>
-            <label className="text-sm font-medium">Expires At (Optional)</label>
+            <Label htmlFor="expiresAt">Expiry Date (Optional)</Label>
             <Input
+              id="expiresAt"
               type="datetime-local"
               value={shareForm.expiresAt}
-              onChange={(e) => setShareForm(prev => ({ ...prev, expiresAt: e.target.value }))}
+              onChange={(e) => setShareForm({ ...shareForm, expiresAt: e.target.value })}
             />
           </div>
-          
+
           <div className="flex gap-2 pt-4">
-            <Button onClick={handleShare} className="flex-1">
-              Share Record
+            <Button type="submit" disabled={isSharing || !selectedRecordId || !shareForm.granteeId}>
+              {isSharing ? 'Sharing...' : 'Share Record'}
             </Button>
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

@@ -3,14 +3,31 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SharingPermission } from '@/types/medical';
-import { DecryptedMedicalRecord } from '@/types/medical';
-import { User, Clock, Trash2 } from 'lucide-react';
+import { Shield, UserCheck, Clock, Trash2 } from 'lucide-react';
+
+interface SharingPermission {
+  id: string;
+  patient_id: string;
+  grantee_id: string;
+  medical_record_id: string;
+  permission_type: 'read' | 'write';
+  created_at: string;
+  expires_at?: string;
+}
+
+interface DecryptedMedicalRecord {
+  id: string;
+  patient_id: string;
+  data: any;
+  record_type: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface SharingPermissionCardProps {
   permission: SharingPermission;
   record?: DecryptedMedicalRecord;
-  onRevoke: (permissionId: string) => void;
+  onRevoke: (permissionId: string) => Promise<void>;
 }
 
 const SharingPermissionCard: React.FC<SharingPermissionCardProps> = ({
@@ -18,62 +35,69 @@ const SharingPermissionCard: React.FC<SharingPermissionCardProps> = ({
   record,
   onRevoke
 }) => {
-  const getPermissionTypeColor = (type: string) => {
-    return type === 'write' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+  const isExpired = permission.expires_at && new Date(permission.expires_at) < new Date();
+  
+  const handleRevoke = () => {
+    onRevoke(permission.id);
   };
-
-  const isPermissionExpired = (expiresAt?: string) => {
-    if (!expiresAt) return false;
-    return new Date(expiresAt) < new Date();
-  };
-
-  const isExpired = isPermissionExpired(permission.expires_at);
 
   return (
-    <Card className={isExpired ? 'opacity-60' : ''}>
-      <CardHeader>
+    <Card className={`${isExpired ? 'opacity-60 border-gray-300' : 'border-green-200'}`}>
+      <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <User className="h-5 w-5" />
-              {record?.data?.title || 'Untitled Record'}
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-lg">
+              {record?.data.title || `${record?.record_type || 'Medical Record'}`}
             </CardTitle>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge className={getPermissionTypeColor(permission.permission_type)}>
-                {permission.permission_type}
-              </Badge>
-              <Badge variant="outline">
-                {record?.record_type || 'unknown'}
-              </Badge>
-              {isExpired && (
-                <Badge variant="destructive">Expired</Badge>
-              )}
-            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onRevoke(permission.id)}
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-2">
+            <Badge variant={permission.permission_type === 'write' ? 'default' : 'secondary'}>
+              {permission.permission_type}
+            </Badge>
+            <Badge variant={isExpired ? 'destructive' : 'outline'}>
+              {isExpired ? 'Expired' : 'Active'}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2 text-sm">
-          <div>
-            <strong>Shared with:</strong> {permission.grantee_id}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <UserCheck className="h-4 w-4" />
+            <span>Shared with: {permission.grantee_id}</span>
           </div>
-          <div>
-            <strong>Shared on:</strong> {new Date(permission.created_at).toLocaleDateString()}
+          
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <Clock className="h-4 w-4" />
+            <span>
+              Granted: {new Date(permission.created_at).toLocaleDateString()}
+              {permission.expires_at && (
+                <span> | Expires: {new Date(permission.expires_at).toLocaleDateString()}</span>
+              )}
+            </span>
           </div>
-          {permission.expires_at && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <strong>Expires:</strong> {new Date(permission.expires_at).toLocaleDateString()}
+
+          {record && (
+            <div className="text-sm text-gray-500">
+              <span className="capitalize">{record.record_type}</span> record
+              {record.data.description && (
+                <p className="mt-1 line-clamp-2">{record.data.description}</p>
+              )}
             </div>
           )}
+
+          <div className="flex justify-end pt-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleRevoke}
+              disabled={isExpired}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Revoke Access
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -73,13 +73,14 @@ const MedicalRecordsManager = () => {
     setFormData({
       title: record.data.title || '',
       description: record.data.description || '',
-      category: record.record_type || 'general',
+      category: record.record_type || 'general', // Map record_type to category
       notes: record.data.notes || ''
     });
   };
 
   const handleCreateClick = () => {
     setShowCreateForm(true);
+    setSelectedRecord(null);
     setFormData({ title: '', description: '', category: 'general', notes: '' });
   };
 

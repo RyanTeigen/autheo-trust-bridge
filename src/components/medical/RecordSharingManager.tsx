@@ -1,13 +1,31 @@
 
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { PatientRecordsService } from '@/services/PatientRecordsService';
-import { MedicalRecordsService, DecryptedMedicalRecord } from '@/services/MedicalRecordsService';
-import { SharingPermission } from '@/types/medical';
+import { useSharingPermissionsAPI } from '@/hooks/useSharingPermissionsAPI';
+import { useMedicalRecordsAPI } from '@/hooks/useMedicalRecordsAPI';
 import { Shield } from 'lucide-react';
 import ShareRecordDialog from './sharing/ShareRecordDialog';
 import SharingPermissionCard from './sharing/SharingPermissionCard';
 import EmptySharingState from './sharing/EmptySharingState';
+
+interface DecryptedMedicalRecord {
+  id: string;
+  patient_id: string;
+  data: any;
+  record_type: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface SharingPermission {
+  id: string;
+  patient_id: string;
+  grantee_id: string;
+  medical_record_id: string;
+  permission_type: 'read' | 'write';
+  created_at: string;
+  expires_at?: string;
+}
 
 interface ShareForm {
   granteeId: string;
@@ -21,6 +39,9 @@ const RecordSharingManager: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const { toast } = useToast();
+  
+  const { getSharingPermissions, createSharingPermission, revokeSharingPermission } = useSharingPermissionsAPI();
+  const { getRecords } = useMedicalRecordsAPI();
 
   useEffect(() => {
     fetchData();
@@ -30,16 +51,24 @@ const RecordSharingManager: React.FC = () => {
     setLoading(true);
     try {
       const [recordsResult, permissionsResult] = await Promise.all([
-        MedicalRecordsService.getRecords(),
-        PatientRecordsService.getSharingPermissions()
+        getRecords({ limit: 50, offset: 0 }),
+        getSharingPermissions({ limit: 50, offset: 0 })
       ]);
 
-      if (recordsResult.success && recordsResult.records) {
-        setRecords(recordsResult.records);
+      if (recordsResult.success && recordsResult.data?.records) {
+        const decryptedRecords = recordsResult.data.records.map((record: any) => ({
+          id: record.id,
+          patient_id: record.patient_id,
+          data: JSON.parse(record.encrypted_data),
+          record_type: record.record_type,
+          created_at: record.created_at,
+          updated_at: record.updated_at
+        }));
+        setRecords(decryptedRecords);
       }
 
-      if (permissionsResult.success && permissionsResult.permissions) {
-        setPermissions(permissionsResult.permissions);
+      if (permissionsResult.success && permissionsResult.data?.permissions) {
+        setPermissions(permissionsResult.data.permissions);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -64,12 +93,12 @@ const RecordSharingManager: React.FC = () => {
     }
 
     try {
-      const result = await PatientRecordsService.shareRecordWithProvider(
-        recordId,
-        shareForm.granteeId,
-        shareForm.permissionType,
-        shareForm.expiresAt || undefined
-      );
+      const result = await createSharingPermission({
+        medicalRecordId: recordId,
+        granteeId: shareForm.granteeId,
+        permissionType: shareForm.permissionType,
+        expiresAt: shareForm.expiresAt || undefined
+      });
 
       if (result.success) {
         toast({
@@ -96,9 +125,9 @@ const RecordSharingManager: React.FC = () => {
 
   const handleRevokePermission = async (permissionId: string) => {
     try {
-      const result = await PatientRecordsService.revokeSharingPermission(permissionId);
+      const result = await revokeSharingPermission(permissionId);
 
-      if (result.success) {
+      if (result) {
         toast({
           title: "Success",
           description: "Sharing permission revoked",
@@ -107,7 +136,7 @@ const RecordSharingManager: React.FC = () => {
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to revoke permission",
+          description: "Failed to revoke permission",
           variant: "destructive",
         });
       }
