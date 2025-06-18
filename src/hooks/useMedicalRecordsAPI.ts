@@ -5,18 +5,22 @@ import { useAuthenticatedFetch } from './use-authenticated-fetch';
 interface MedicalRecord {
   id: string;
   patient_id: string;
-  data: any;
+  encrypted_data: string;
   record_type: string;
   created_at: string;
   updated_at: string;
+  user_id?: string;
 }
 
 interface MedicalRecordCreateInput {
   title: string;
   description?: string;
-  category?: string;
+  diagnosis?: string;
+  treatment?: string;
   notes?: string;
   recordType?: string;
+  patient_id?: string;
+  user_id?: string;
   [key: string]: any;
 }
 

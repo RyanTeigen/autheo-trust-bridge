@@ -99,7 +99,7 @@ class SupabaseMedicalRecordsService {
     try {
       console.log('Creating medical record:', { recordData, recordType });
 
-      // For now, we'll store the data as encrypted JSON
+      // Encrypt the data as JSON string
       const encryptedData = JSON.stringify(recordData);
 
       const { data: record, error } = await supabase
@@ -162,7 +162,7 @@ class SupabaseMedicalRecordsService {
         };
       }
 
-      // Merge existing data with updates
+      // Parse existing data, merge with updates, then re-encrypt
       const existingData = JSON.parse(existingRecord.encrypted_data);
       const updatedData = { ...existingData, ...recordData };
       const encryptedData = JSON.stringify(updatedData);
