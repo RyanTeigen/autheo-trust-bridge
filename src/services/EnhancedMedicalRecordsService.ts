@@ -1,23 +1,77 @@
-
-import { BaseService, ServiceResponse, SecurityContext } from './BaseService';
+import { BaseService, ServiceResponse } from './BaseService';
 import { PatientRecordsService } from './PatientRecordsService';
 import { DecryptedMedicalRecord } from '@/types/medical';
-import { AuthorizationError, NotFoundError } from '@/utils/errorHandling';
+import { ValidationError, AuthorizationError, NotFoundError } from '@/utils/errorHandling';
 import { encrypt, decrypt } from './encryption/MedicalRecordsEncryption';
 import { MedicalRecordsValidator } from './validators/MedicalRecordsValidator';
 import { MedicalRecordsRepository } from './repositories/MedicalRecordsRepository';
 
+interface PaginationOptions {
+  limit?: number;
+  offset?: number;
+}
+
+interface RecordFilters {
+  recordType?: string;
+}
+
+interface MedicalRecordCreateInput {
+  title: string;
+  description?: string;
+  category?: string;
+  notes?: string;
+  [key: string]: any;
+}
+
+interface MedicalRecordUpdateInput {
+  title?: string;
+  description?: string;
+  category?: string;
+  notes?: string;
+  [key: string]: any;
+}
+
 export class EnhancedMedicalRecordsService extends BaseService {
-  async createRecord(data: any, recordType: string = 'general'): Promise<ServiceResponse<{ id: string }>> {
+  private validateRecordInput(data: MedicalRecordCreateInput | MedicalRecordUpdateInput, isCreate: boolean = false): void {
+    if (isCreate) {
+      const createData = data as MedicalRecordCreateInput;
+      if (!createData.title || typeof createData.title !== 'string' || createData.title.trim().length === 0) {
+        throw new ValidationError('Title is required and must be a non-empty string');
+      }
+    }
+
+    if (data.title && (typeof data.title !== 'string' || data.title.trim().length === 0)) {
+      throw new ValidationError('Title must be a non-empty string');
+    }
+
+    if (data.description && typeof data.description !== 'string') {
+      throw new ValidationError('Description must be a string');
+    }
+
+    if (data.category && typeof data.category !== 'string') {
+      throw new ValidationError('Category must be a string');
+    }
+
+    if (data.notes && typeof data.notes !== 'string') {
+      throw new ValidationError('Notes must be a string');
+    }
+  }
+
+  async createRecord(
+    data: MedicalRecordCreateInput, 
+    recordType: string = 'general'
+  ): Promise<ServiceResponse<{ id: string }>> {
     try {
       const context = await this.validateAuthentication();
-      
-      const { sanitizedData, sanitizedRecordType } = MedicalRecordsValidator.validateCreateInput(data, recordType);
       
       if (!await this.validatePermission('create:own_data', context)) {
         throw new AuthorizationError('Insufficient permissions to create medical records');
       }
 
+      this.validateRecordInput(data, true);
+
+      const { sanitizedData, sanitizedRecordType } = MedicalRecordsValidator.validateCreateInput(data, recordType);
+      
       const patientId = await this.ensurePatientExists(context);
       
       if (!await this.validateOwnership(patientId, context)) {
@@ -36,7 +90,10 @@ export class EnhancedMedicalRecordsService extends BaseService {
     }
   }
 
-  async getRecords(): Promise<ServiceResponse<DecryptedMedicalRecord[]>> {
+  async getRecords(
+    options: PaginationOptions = {},
+    filters: RecordFilters = {}
+  ): Promise<ServiceResponse<{ records: DecryptedMedicalRecord[]; totalCount: number; pagination: any }>> {
     try {
       const context = await this.validateAuthentication();
       
@@ -44,14 +101,37 @@ export class EnhancedMedicalRecordsService extends BaseService {
         throw new AuthorizationError('Insufficient permissions to read medical records');
       }
 
-      const result = await PatientRecordsService.getPatientMedicalRecords();
-      if (!result.success || !result.records) {
-        return this.createErrorResponse(result.error || 'Failed to fetch records', 404);
+      const patientResult = await PatientRecordsService.getCurrentPatient();
+      if (!patientResult.success || !patientResult.patient) {
+        return this.createErrorResponse('Patient record not found', 404);
       }
 
-      const decryptedRecords = this.decryptRecords(result.records);
+      const limit = Math.min(Math.max(options.limit || 10, 1), 100);
+      const offset = Math.max(options.offset || 0, 0);
 
-      return this.createSuccessResponse(decryptedRecords, {
+      const [records, totalCount] = await Promise.all([
+        MedicalRecordsRepository.findByPatientId(
+          patientResult.patient.id,
+          { limit, offset },
+          { recordType: filters.recordType }
+        ),
+        MedicalRecordsRepository.countByPatientId(
+          patientResult.patient.id,
+          { recordType: filters.recordType }
+        )
+      ]);
+
+      const decryptedRecords = this.decryptRecords(records);
+
+      return this.createSuccessResponse({
+        records: decryptedRecords,
+        totalCount,
+        pagination: {
+          limit,
+          offset,
+          hasMore: offset + limit < totalCount
+        }
+      }, {
         operation: 'getRecords',
         count: decryptedRecords.length
       });
@@ -90,10 +170,25 @@ export class EnhancedMedicalRecordsService extends BaseService {
     }
   }
 
-  async updateRecord(id: string, data: any): Promise<ServiceResponse<void>> {
+  async updateRecord(id: string, data: MedicalRecordUpdateInput): Promise<ServiceResponse<DecryptedMedicalRecord>> {
     try {
       const context = await this.validateAuthentication();
-      const { sanitizedId, sanitizedData } = MedicalRecordsValidator.validateUpdateInput(id, data);
+      const sanitizedId = MedicalRecordsValidator.validateId(id);
+
+      this.validateRecordInput(data, false);
+
+      // Build dynamic update object
+      const updateFields: any = {};
+      Object.keys(data).forEach(key => {
+        const value = data[key as keyof MedicalRecordUpdateInput];
+        if (value !== undefined) {
+          updateFields[key] = value;
+        }
+      });
+
+      if (Object.keys(updateFields).length === 0) {
+        throw new ValidationError('No fields to update');
+      }
 
       const record = await MedicalRecordsRepository.findById(sanitizedId);
       
@@ -105,10 +200,18 @@ export class EnhancedMedicalRecordsService extends BaseService {
         throw new AuthorizationError('Insufficient permissions to update this record');
       }
 
-      const encryptedData = encrypt(JSON.stringify(sanitizedData));
+      // Decrypt current data, merge with updates, then re-encrypt
+      const currentData = JSON.parse(decrypt(record.encrypted_data));
+      const updatedData = { ...currentData, ...updateFields };
+      const encryptedData = encrypt(JSON.stringify(updatedData));
+      
       await MedicalRecordsRepository.update(sanitizedId, encryptedData);
 
-      return this.createSuccessResponse(undefined, {
+      // Return updated record
+      const updatedRecord = await MedicalRecordsRepository.findById(sanitizedId);
+      const decryptedRecord = this.decryptSingleRecord(updatedRecord);
+
+      return this.createSuccessResponse(decryptedRecord, {
         operation: 'updateRecord',
         hasOwnership,
         hasWritePermission
@@ -146,7 +249,7 @@ export class EnhancedMedicalRecordsService extends BaseService {
     }
   }
 
-  private async ensurePatientExists(context: SecurityContext): Promise<string> {
+  private async ensurePatientExists(context: any): Promise<string> {
     const patientResult = await PatientRecordsService.getCurrentPatient();
     if (!patientResult.success) {
       throw new Error('Failed to get patient record');
