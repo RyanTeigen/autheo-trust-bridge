@@ -21,6 +21,7 @@ import SettingsPage from "./pages/SettingsPage";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
 import AdminPortalPage from "./pages/AdminPortalPage";
 import SmartFormsPage from "./pages/SmartFormsPage";
+import SharedRecordsPage from "./pages/SharedRecordsPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
 const queryClient = new QueryClient();
@@ -66,6 +67,14 @@ const App = () => {
                         <ProtectedRoute>
                           <MainLayout>
                             <SmartFormsPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      } />
+                      
+                      <Route path="/shared-records" element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <SharedRecordsPage />
                           </MainLayout>
                         </ProtectedRoute>
                       } />
