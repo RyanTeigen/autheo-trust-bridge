@@ -53,6 +53,15 @@ const App = () => {
                         </ProtectedRoute>
                       } />
                       
+                      {/* Dashboard route - same as root */}
+                      <Route path="/dashboard" element={
+                        <ProtectedRoute>
+                          <MainLayout>
+                            <PatientDashboardPage />
+                          </MainLayout>
+                        </ProtectedRoute>
+                      } />
+                      
                       <Route path="/smart-forms" element={
                         <ProtectedRoute>
                           <MainLayout>
