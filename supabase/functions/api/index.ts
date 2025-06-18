@@ -36,6 +36,28 @@ serve(async (req) => {
       })
     }
     
+    // Route to patients endpoints
+    if (pathSegments[0] === 'patients') {
+      // Forward to patients function
+      const patientsUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/patients`
+      
+      const response = await fetch(patientsUrl + url.search, {
+        method: req.method,
+        headers: {
+          'Authorization': req.headers.get('Authorization') || '',
+          'Content-Type': 'application/json',
+        },
+        body: req.method !== 'GET' ? await req.text() : undefined,
+      })
+      
+      const data = await response.text()
+      
+      return new Response(data, {
+        status: response.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    
     return new Response(
       JSON.stringify({ error: 'Not found' }),
       { 
