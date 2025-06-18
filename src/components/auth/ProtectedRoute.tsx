@@ -22,6 +22,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/auth" replace />;
   }
 
+  // Creator Access mode - bypass role restrictions in development
+  if (import.meta.env.DEV) {
+    return <>{children}</>;
+  }
+
   // If specific roles are required, check if user has them
   if (allowedRoles.length > 0) {
     const hasRequiredRole = allowedRoles.includes(user.role);
