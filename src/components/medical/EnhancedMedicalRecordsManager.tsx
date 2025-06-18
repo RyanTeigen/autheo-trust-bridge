@@ -1,15 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEnhancedMedicalRecords } from '@/hooks/useEnhancedMedicalRecords';
 import { DecryptedMedicalRecord } from '@/types/medical';
-import { Plus, Edit, Trash2, FileText, AlertCircle, Shield, CheckCircle } from 'lucide-react';
+import { Plus, Shield, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import MedicalRecordForm from './MedicalRecordForm';
+import MedicalRecordCard from './MedicalRecordCard';
+import EmptyRecordsState from './EmptyRecordsState';
 
 const EnhancedMedicalRecordsManager: React.FC = () => {
   const {
@@ -86,22 +84,14 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
     });
   };
 
-  const getStatusBadge = (record: DecryptedMedicalRecord) => {
-    if (record.data?.error) {
-      return <Badge variant="destructive" className="gap-1"><AlertCircle className="h-3 w-3" />Error</Badge>;
-    }
-    return <Badge variant="secondary" className="gap-1"><CheckCircle className="h-3 w-3" />Encrypted</Badge>;
+  const handleCreateDialogClose = () => {
+    setIsCreateDialogOpen(false);
+    resetForm();
   };
 
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      general: 'bg-blue-100 text-blue-800',
-      lab: 'bg-purple-100 text-purple-800',
-      medication: 'bg-green-100 text-green-800',
-      visit: 'bg-orange-100 text-orange-800',
-      imaging: 'bg-red-100 text-red-800'
-    };
-    return colors[category] || colors.general;
+  const handleEditDialogClose = () => {
+    setEditingRecord(null);
+    resetForm();
   };
 
   if (loading && records.length === 0) {
@@ -138,73 +128,13 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Title</label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Record title"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Category</label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="lab">Lab Results</SelectItem>
-                    <SelectItem value="medication">Medication</SelectItem>
-                    <SelectItem value="visit">Visit Notes</SelectItem>
-                    <SelectItem value="imaging">Imaging</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Record description"
-                  rows={3}
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Notes</label>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Additional notes"
-                  rows={2}
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1" disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Record'}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setIsCreateDialogOpen(false);
-                    resetForm();
-                  }}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
+            <MedicalRecordForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleSubmit}
+              loading={loading}
+              onCancel={handleCreateDialogClose}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -217,80 +147,16 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
       )}
 
       {records.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileText className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No medical records</h3>
-            <p className="text-gray-600 text-center mb-4">
-              You haven't created any medical records yet. Add your first record to get started.
-            </p>
-            <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Your First Record
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyRecordsState onCreateRecord={() => setIsCreateDialogOpen(true)} />
       ) : (
         <div className="grid gap-4">
           {records.map((record) => (
-            <Card key={record.id}>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      {record.data?.title || 'Untitled Record'}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge className={getCategoryColor(record.record_type)}>
-                        {record.record_type}
-                      </Badge>
-                      {getStatusBadge(record)}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(record)}
-                      disabled={!!record.data?.error}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(record.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  {record.data?.description && (
-                    <div>
-                      <strong>Description:</strong> {record.data.description}
-                    </div>
-                  )}
-                  {record.data?.notes && (
-                    <div>
-                      <strong>Notes:</strong> {record.data.notes}
-                    </div>
-                  )}
-                  <div>
-                    <strong>Created:</strong> {new Date(record.created_at).toLocaleDateString()}
-                  </div>
-                  {record.data?.error && (
-                    <div className="text-red-600">
-                      <strong>Error:</strong> {record.data.error}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <MedicalRecordCard
+              key={record.id}
+              record={record}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}
@@ -306,73 +172,14 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Title</label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Record title"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Category</label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="general">General</SelectItem>
-                    <SelectItem value="lab">Lab Results</SelectItem>
-                    <SelectItem value="medication">Medication</SelectItem>
-                    <SelectItem value="visit">Visit Notes</SelectItem>
-                    <SelectItem value="imaging">Imaging</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Record description"
-                  rows={3}
-                />
-              </div>
-              
-              <div>
-                <label className="text-sm font-medium">Notes</label>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Additional notes"
-                  rows={2}
-                />
-              </div>
-              
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" className="flex-1" disabled={loading}>
-                  {loading ? 'Updating...' : 'Update Record'}
-                </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => {
-                    setEditingRecord(null);
-                    resetForm();
-                  }}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
+            <MedicalRecordForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleSubmit}
+              loading={loading}
+              isEditing={true}
+              onCancel={handleEditDialogClose}
+            />
           </DialogContent>
         </Dialog>
       )}
