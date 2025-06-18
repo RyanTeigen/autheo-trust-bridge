@@ -7,14 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formSchema, FormValues } from './signup/schema';
-import { useSignup } from './signup/useSignup';
 import RoleSelector from './signup/RoleSelector';
 import SignupFormFields from './signup/SignupFormFields';
 import { useWallet } from '@/hooks/use-wallet';
+import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
 
 const SignupForm: React.FC = () => {
   const { toast } = useToast();
-  const { isLoading, handleSignup, handleWalletSignup } = useSignup();
+  const { login } = useFrontendAuth();
+  const [isLoading, setIsLoading] = React.useState(false);
   const { wallet, isConnecting, connectMetaMask } = useWallet();
 
   const form = useForm<FormValues>({
@@ -26,40 +27,67 @@ const SignupForm: React.FC = () => {
       password: "",
       roles: [],
     },
-    mode: "onChange", // Enable validation as the user types
+    mode: "onChange",
   });
 
   const selectedRoles = form.watch('roles') || [];
   const formState = form.formState;
   const isFormValid = formState.isValid && selectedRoles.length > 0;
 
-  const onSubmit = (values: FormValues) => {
-    handleSignup(values);
+  const onSubmit = async (values: FormValues) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+          username: values.email, // Using email as username
+          role: selectedRoles[0], // Using the first selected role
+          firstName: values.firstName,
+          lastName: values.lastName,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      // Use the login function from FrontendAuthContext to store the token
+      login(data.token);
+
+      toast({
+        title: "Account created successfully",
+        description: "Welcome to Autheo Health",
+      });
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Registration failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleWalletConnect = async () => {
     if (wallet) {
-      // If already connected, continue with signup
-      await handleWalletSignup(wallet.address, selectedRoles.length > 0 ? selectedRoles : ['patient']);
+      // Handle wallet registration here - adjust based on your backend
+      toast({
+        title: "Wallet Registration",
+        description: "Wallet registration will be implemented based on your backend setup",
+      });
     } else {
-      // Connect wallet first
       await connectMetaMask();
     }
   };
-
-  // If wallet is connected after button click, trigger signup
-  React.useEffect(() => {
-    if (wallet && !isLoading && !isConnecting) {
-      const attemptWalletSignup = async () => {
-        // Use default role 'patient' if no roles selected
-        await handleWalletSignup(wallet.address, selectedRoles.length > 0 ? selectedRoles : ['patient']);
-      };
-
-      // Small delay to ensure UI updates first
-      const timer = setTimeout(attemptWalletSignup, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [wallet, isLoading, isConnecting]);
 
   return (
     <div className="space-y-6">

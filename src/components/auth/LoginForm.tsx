@@ -7,10 +7,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { Wallet, Key, AlertCircle } from 'lucide-react';
 import { useWallet } from '@/hooks/use-wallet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -21,6 +21,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const LoginForm: React.FC = () => {
   const { toast } = useToast();
+  const { login } = useFrontendAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { wallet, isConnecting, connectMetaMask } = useWallet();
 
@@ -35,14 +36,25 @@ const LoginForm: React.FC = () => {
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
 
-      if (error) {
-        throw error;
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
       }
+
+      // Use the login function from FrontendAuthContext
+      login(data.token);
 
       toast({
         title: "Login successful",
@@ -68,45 +80,12 @@ const LoginForm: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // Check if wallet address exists in the profiles table
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('wallet_address', wallet.address)
-        .limit(1);
-
-      if (profileError) {
-        throw profileError;
-      }
-
-      if (!profiles || profiles.length === 0) {
-        toast({
-          title: "Wallet not registered",
-          description: "Please register your wallet first",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      // Generate deterministic email based on wallet address
-      const walletEmail = `${wallet.address.substring(2, 10).toLowerCase()}@wallet.autheo.health`;
-      
-      // Use the wallet address part as password, matching signup format
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: walletEmail,
-        password: wallet.address.substring(2, 22) // Use wallet address part as password, matching signup format
-      });
-
-      if (error) {
-        throw error;
-      }
-
+      // For wallet login, you might have a different endpoint
+      // This is a placeholder - adjust based on your backend implementation
       toast({
-        title: "Wallet login successful",
-        description: "Welcome back to Autheo Health",
+        title: "Wallet login",
+        description: "Wallet login will be implemented based on your backend setup",
       });
-
     } catch (error: any) {
       console.error("Wallet login error:", error);
       toast({
@@ -124,7 +103,7 @@ const LoginForm: React.FC = () => {
       <Alert variant="warning" className="mb-4">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription className="text-xs">
-          Email verification links may not work properly. If you receive a verification email, try logging in directly with your credentials.
+          Using JWT-based authentication with your backend API.
         </AlertDescription>
       </Alert>
 

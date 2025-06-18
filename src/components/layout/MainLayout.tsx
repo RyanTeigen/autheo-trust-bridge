@@ -7,7 +7,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import NotificationCenter from '../notifications/NotificationCenter';
 import GlobalSearch from '../search/GlobalSearch';
 import SessionStatusIndicator from '../security/SessionStatusIndicator';
-import { useAuth } from '@/contexts/AuthContext';
+import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import ErrorBoundary from '../ux/ErrorBoundary';
 import LoadingStates from '../ux/LoadingStates';
@@ -17,7 +17,7 @@ interface MainLayoutProps {
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useFrontendAuth();
   
   // Show loading state while checking authentication
   if (isLoading) {

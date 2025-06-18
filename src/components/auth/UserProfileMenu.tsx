@@ -12,43 +12,37 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/contexts/AuthContext';
+import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
 import { LogOut, Settings, User, Shield, Stethoscope, Wallet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const UserProfileMenu: React.FC = () => {
-  const { profile, signOut, hasRole } = useAuth();
+  const { user, logout } = useFrontendAuth();
   const navigate = useNavigate();
   
   const getInitials = () => {
-    if (profile?.firstName && profile?.lastName) {
-      return `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase();
+    if (user?.username) {
+      return user.username.charAt(0).toUpperCase();
     }
-    return profile?.email?.charAt(0).toUpperCase() || 'U';
+    return 'U';
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    logout();
     navigate('/auth');
   };
 
-  // Determine user roles to display
-  const userRoles = profile?.roles || [];
+  // Determine available portals based on user role
   const availablePortals = [
     { role: 'patient', label: 'Patient Portal', icon: User, path: '/' },
     { role: 'provider', label: 'Provider Portal', icon: Stethoscope, path: '/provider-portal' },
     { role: 'admin', label: 'Admin Portal', icon: Shield, path: '/admin-portal' },
     { role: 'supervisor', label: 'Admin Portal', icon: Shield, path: '/admin-portal' },
-    { role: 'compliance', label: 'Compliance Portal', icon: Shield, path: '/compliance' },
   ];
 
-  // Filter to show only applicable portals based on user roles or all in creator mode
-  // Remove duplicates for admin portal (admin and supervisor both go to same portal)
-  const visiblePortals = availablePortals
-    .filter(portal => hasRole(portal.role))
-    .filter((portal, index, self) => 
-      index === self.findIndex(p => p.path === portal.path)
-    );
+  const visiblePortals = availablePortals.filter(portal => 
+    portal.role === user?.role || portal.role === 'patient' // Always show patient portal
+  );
 
   return (
     <DropdownMenu>
@@ -65,23 +59,20 @@ const UserProfileMenu: React.FC = () => {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {profile?.firstName} {profile?.lastName}
+              {user?.username}
             </p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {profile?.email}
-            </p>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-[0.65rem] h-4 px-1 py-0">
+                {user?.role}
+              </Badge>
+            </div>
           </div>
         </DropdownMenuLabel>
         
         <DropdownMenuSeparator />
         
         <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center gap-2">
-            Portals
-            <Badge variant="outline" className="text-[0.65rem] h-4 px-1 py-0 bg-slate-700 hover:bg-slate-700">
-              Creator Mode
-            </Badge>
-          </DropdownMenuLabel>
+          <DropdownMenuLabel>Portals</DropdownMenuLabel>
           {visiblePortals.map((portal) => (
             <DropdownMenuItem key={portal.path} onClick={() => navigate(portal.path)}>
               <portal.icon className="mr-2 h-4 w-4" />
