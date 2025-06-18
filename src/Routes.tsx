@@ -1,29 +1,27 @@
+
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import LazyRoute from '@/components/common/LazyRoute';
 
-// Lazy imports for better performance
+// Lazy imports for pages that exist
 const PatientDashboardPage = React.lazy(() => import('@/pages/PatientDashboardPage'));
 const ProviderPortalPage = React.lazy(() => import('@/pages/ProviderPortalPage'));
-const AdminDashboardPage = React.lazy(() => import('@/pages/AdminDashboardPage'));
-const ComplianceDashboardPage = React.lazy(() => import('@/pages/ComplianceDashboardPage'));
+const AuditLogsPage = React.lazy(() => import('@/pages/AuditLogsPage'));
 const SharedRecordsPage = React.lazy(() => import('@/pages/SharedRecordsPage'));
-const MyHealthRecordsPage = React.lazy(() => import('@/pages/MyHealthRecordsPage'));
-const AuditLogPage = React.lazy(() => import('@/pages/AuditLogPage'));
-const MessagingPage = React.lazy(() => import('@/pages/MessagingPage'));
 const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'));
-const LoginPage = React.lazy(() => import('@/pages/LoginPage'));
-const FitnessPrivacyPage = React.lazy(() => import('@/pages/FitnessPrivacyPage'));
-const ProductionDashboardPage = React.lazy(() => import('@/pages/ProductionDashboardPage'));
+const AuthPage = React.lazy(() => import('@/pages/AuthPage'));
 const MedicalRecordsPage = React.lazy(() => import('@/pages/MedicalRecordsPage'));
+const CompliancePage = React.lazy(() => import('@/pages/CompliancePage'));
+const AdminPortalPage = React.lazy(() => import('@/pages/AdminPortalPage'));
+const ProductionDeploymentPage = React.lazy(() => import('@/pages/ProductionDeploymentPage'));
 
 export const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<AuthPage />} />
+      <Route path="/auth" element={<AuthPage />} />
       
       <Route path="/dashboard" element={
         <ProtectedRoute>
@@ -36,7 +34,7 @@ export const AppRoutes = () => {
       } />
       
       <Route path="/provider-portal" element={
-        <ProtectedRoute roles={['admin', 'provider']}>
+        <ProtectedRoute allowedRoles={['admin', 'provider']}>
           <LazyRoute>
             <MainLayout>
               <ProviderPortalPage />
@@ -45,21 +43,21 @@ export const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/admin-dashboard" element={
-        <ProtectedRoute roles={['admin']}>
+      <Route path="/admin-portal" element={
+        <ProtectedRoute allowedRoles={['admin']}>
           <LazyRoute>
             <MainLayout>
-              <AdminDashboardPage />
+              <AdminPortalPage />
             </MainLayout>
           </LazyRoute>
         </ProtectedRoute>
       } />
       
-      <Route path="/compliance-dashboard" element={
-        <ProtectedRoute roles={['admin', 'compliance']}>
+      <Route path="/compliance" element={
+        <ProtectedRoute allowedRoles={['admin', 'compliance']}>
           <LazyRoute>
             <MainLayout>
-              <ComplianceDashboardPage />
+              <CompliancePage />
             </MainLayout>
           </LazyRoute>
         </ProtectedRoute>
@@ -75,31 +73,11 @@ export const AppRoutes = () => {
         </ProtectedRoute>
       } />
       
-      <Route path="/my-health-records" element={
-        <ProtectedRoute>
-          <LazyRoute>
-            <MainLayout>
-              <MyHealthRecordsPage />
-            </MainLayout>
-          </LazyRoute>
-        </ProtectedRoute>
-      } />
-      
       <Route path="/audit-logs" element={
-        <ProtectedRoute roles={['admin', 'compliance']}>
+        <ProtectedRoute allowedRoles={['admin', 'compliance']}>
           <LazyRoute>
             <MainLayout>
-              <AuditLogPage />
-            </MainLayout>
-          </LazyRoute>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/messaging" element={
-        <ProtectedRoute>
-          <LazyRoute>
-            <MainLayout>
-              <MessagingPage />
+              <AuditLogsPage />
             </MainLayout>
           </LazyRoute>
         </ProtectedRoute>
@@ -115,21 +93,11 @@ export const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
-      <Route path="/fitness-privacy" element={
-        <ProtectedRoute>
+      <Route path="/production-deployment" element={
+        <ProtectedRoute allowedRoles={['admin']}>
           <LazyRoute>
             <MainLayout>
-              <FitnessPrivacyPage />
-            </MainLayout>
-          </LazyRoute>
-        </ProtectedRoute>
-      } />
-
-      <Route path="/production-dashboard" element={
-        <ProtectedRoute roles={['admin']}>
-          <LazyRoute>
-            <MainLayout>
-              <ProductionDashboardPage />
+              <ProductionDeploymentPage />
             </MainLayout>
           </LazyRoute>
         </ProtectedRoute>
