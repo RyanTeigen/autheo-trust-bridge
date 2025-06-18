@@ -22,8 +22,7 @@ const ProviderPortalContent: React.FC = () => {
     dismissNotification,
     metrics,
     appointments,
-    recentPatients,
-    patientRecords
+    recentPatients
   } = useProviderPortal();
 
   console.log('ProviderPortal data:', { 
@@ -31,8 +30,7 @@ const ProviderPortalContent: React.FC = () => {
     notificationsCount: notifications.length,
     metricsLoaded: !!metrics,
     appointmentsCount: appointments.length,
-    recentPatientsCount: recentPatients.length,
-    patientRecordsCount: patientRecords.length
+    recentPatientsCount: recentPatients.length
   });
 
   const handleDismissNotification = (id: string) => {
@@ -71,7 +69,7 @@ const ProviderPortalContent: React.FC = () => {
           </TabsContent>
           
           <TabsContent value="patients" className="mt-6">
-            <PatientsTab patientRecords={patientRecords} />
+            <PatientsTab />
           </TabsContent>
           
           <TabsContent value="messaging" className="mt-6">
