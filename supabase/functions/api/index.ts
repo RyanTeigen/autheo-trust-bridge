@@ -12,6 +12,9 @@ serve(async (req) => {
     const url = new URL(req.url)
     const pathSegments = url.pathname.split('/').filter(Boolean)
     
+    console.log('API Gateway - Request path:', url.pathname)
+    console.log('API Gateway - Path segments:', pathSegments)
+    
     // Route to auth endpoints
     if (pathSegments[0] === 'auth') {
       const authEndpoint = pathSegments[1] // 'login' or 'register'
@@ -38,8 +41,12 @@ serve(async (req) => {
     
     // Route to patients endpoints
     if (pathSegments[0] === 'patients') {
+      console.log('API Gateway - Routing to patients function')
+      
       // Forward to patients function
       const patientsUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/patients`
+      
+      console.log('API Gateway - Forwarding to:', patientsUrl + url.search)
       
       const response = await fetch(patientsUrl + url.search, {
         method: req.method,
@@ -52,14 +59,17 @@ serve(async (req) => {
       
       const data = await response.text()
       
+      console.log('API Gateway - Patients response status:', response.status)
+      
       return new Response(data, {
         status: response.status,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
     
+    console.log('API Gateway - No matching route found')
     return new Response(
-      JSON.stringify({ error: 'Not found' }),
+      JSON.stringify({ error: 'Not found', path: url.pathname }),
       { 
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -68,7 +78,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('API gateway error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', details: error.message }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

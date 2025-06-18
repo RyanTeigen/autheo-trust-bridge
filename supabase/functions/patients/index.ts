@@ -7,6 +7,8 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 serve(async (req) => {
+  console.log('Patients function - Request received:', req.method)
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -18,6 +20,8 @@ serve(async (req) => {
 
     // Get the authorization header
     const authHeader = req.headers.get('Authorization')
+    console.log('Patients function - Auth header present:', !!authHeader)
+    
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
@@ -32,9 +36,12 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     
+    console.log('Patients function - User authenticated:', !!user)
+    console.log('Patients function - Auth error:', authError)
+    
     if (authError || !user) {
       return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
+        JSON.stringify({ error: 'Invalid token', details: authError?.message }),
         { 
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -46,10 +53,14 @@ serve(async (req) => {
     const limit = parseInt(url.searchParams.get('limit') || '50')
     const offset = parseInt(url.searchParams.get('offset') || '0')
 
+    console.log('Patients function - Query params:', { limit, offset })
+
     if (req.method === 'GET') {
       // For providers, return all patients they have access to
       // For patients, return only their own record
       const userRoles = user.user_metadata?.roles || ['patient']
+      
+      console.log('Patients function - User roles:', userRoles)
       
       let query = supabase
         .from('patients')
@@ -62,6 +73,11 @@ serve(async (req) => {
       }
 
       const { data: patients, error } = await query
+
+      console.log('Patients function - Query result:', { 
+        patientsCount: patients?.length || 0, 
+        error: error?.message 
+      })
 
       if (error) {
         console.error('Database error:', error)
@@ -81,10 +97,8 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           success: true, 
-          data: { 
-            patients: patients || [],
-            count: patients?.length || 0 
-          }
+          data: patients || [],
+          count: patients?.length || 0 
         }),
         { 
           status: 200,
@@ -95,6 +109,8 @@ serve(async (req) => {
 
     if (req.method === 'POST') {
       const body = await req.json()
+      
+      console.log('Patients function - Creating patient with data:', body)
       
       // Create new patient record
       const { data: patient, error } = await supabase
