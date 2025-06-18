@@ -20,104 +20,96 @@ const ProductionDeploymentPage = React.lazy(() => import('@/pages/ProductionDepl
 export const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={
-        <LazyRoute>
-          <AuthPage />
-        </LazyRoute>
-      } />
-      <Route path="/auth" element={
-        <LazyRoute>
-          <AuthPage />
-        </LazyRoute>
-      } />
+      <Route path="/" element={<LazyRoute component={AuthPage} />} />
+      <Route path="/auth" element={<LazyRoute component={AuthPage} />} />
       
       <Route path="/dashboard" element={
         <ProtectedRoute>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <PatientDashboardPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
       
       <Route path="/provider-portal" element={
         <ProtectedRoute allowedRoles={['admin', 'provider']}>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <ProviderPortalPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
       
       <Route path="/admin-portal" element={
         <ProtectedRoute allowedRoles={['admin']}>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <AdminPortalPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
       
       <Route path="/compliance" element={
         <ProtectedRoute allowedRoles={['admin', 'compliance']}>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <CompliancePage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
       
       <Route path="/shared-records" element={
         <ProtectedRoute>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <SharedRecordsPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
       
       <Route path="/audit-logs" element={
         <ProtectedRoute allowedRoles={['admin', 'compliance']}>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <AuditLogsPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
       
       <Route path="/settings" element={
         <ProtectedRoute>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <SettingsPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
 
       <Route path="/production-deployment" element={
         <ProtectedRoute allowedRoles={['admin']}>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <ProductionDeploymentPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
       
       <Route path="/medical-records" element={
         <ProtectedRoute>
-          <LazyRoute>
+          <LazyRoute component={() => (
             <MainLayout>
               <MedicalRecordsPage />
             </MainLayout>
-          </LazyRoute>
+          )} />
         </ProtectedRoute>
       } />
     </Routes>
