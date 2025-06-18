@@ -15,9 +15,28 @@ serve(async (req) => {
     console.log('API Gateway - Request path:', url.pathname)
     console.log('API Gateway - Path segments:', pathSegments)
     
+    // Check if this is an API request (starts with /api/)
+    if (pathSegments[0] !== 'api') {
+      console.log('API Gateway - Not an API request')
+      return new Response(
+        JSON.stringify({ error: 'Not found', path: url.pathname }),
+        { 
+          status: 404,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
+    // Remove 'api' from path segments to get the actual endpoint
+    const endpoint = pathSegments[1] // 'patients', 'auth', etc.
+    const subEndpoint = pathSegments[2] // 'login', 'register', etc.
+    
+    console.log('API Gateway - Endpoint:', endpoint)
+    console.log('API Gateway - Sub-endpoint:', subEndpoint)
+    
     // Route to auth endpoints
-    if (pathSegments[0] === 'auth') {
-      const authEndpoint = pathSegments[1] // 'login' or 'register'
+    if (endpoint === 'auth') {
+      const authEndpoint = subEndpoint // 'login' or 'register'
       
       // Forward to auth function
       const authUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/auth/${authEndpoint}`
@@ -40,10 +59,10 @@ serve(async (req) => {
     }
     
     // Route to patients endpoints
-    if (pathSegments[0] === 'patients') {
+    if (endpoint === 'patients') {
       console.log('API Gateway - Routing to patients function')
       
-      // Forward to patients function
+      // Forward to patients function, preserving query parameters
       const patientsUrl = `${Deno.env.get('SUPABASE_URL')}/functions/v1/patients`
       
       console.log('API Gateway - Forwarding to:', patientsUrl + url.search)
@@ -60,6 +79,7 @@ serve(async (req) => {
       const data = await response.text()
       
       console.log('API Gateway - Patients response status:', response.status)
+      console.log('API Gateway - Patients response data:', data)
       
       return new Response(data, {
         status: response.status,
@@ -67,9 +87,9 @@ serve(async (req) => {
       })
     }
     
-    console.log('API Gateway - No matching route found')
+    console.log('API Gateway - No matching endpoint found for:', endpoint)
     return new Response(
-      JSON.stringify({ error: 'Not found', path: url.pathname }),
+      JSON.stringify({ error: 'Endpoint not found', endpoint, path: url.pathname }),
       { 
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
