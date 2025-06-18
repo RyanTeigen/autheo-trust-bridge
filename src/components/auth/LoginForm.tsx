@@ -11,6 +11,7 @@ import { Wallet, Key, AlertCircle } from 'lucide-react';
 import { useWallet } from '@/hooks/use-wallet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
+import { API_BASE_URL } from '@/utils/environment';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -36,7 +37,7 @@ const LoginForm: React.FC = () => {
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

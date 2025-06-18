@@ -26,6 +26,15 @@ export const isProduction = (): boolean => getEnvironment() === Environment.PROD
 export const isStaging = (): boolean => getEnvironment() === Environment.STAGING;
 export const isDevelopment = (): boolean => getEnvironment() === Environment.DEVELOPMENT;
 
+// Backend API configuration
+const ENV = import.meta.env.MODE || 'development';
+
+export const API_BASE_URL = {
+  production: 'https://your-prod-backend.com',
+  staging: 'https://your-staging-backend.com', 
+  development: 'http://localhost:4000',
+}[ENV] || 'http://localhost:4000';
+
 export const getAPIEndpoint = (): string => {
   const env = getEnvironment();
   

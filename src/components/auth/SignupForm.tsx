@@ -11,6 +11,7 @@ import RoleSelector from './signup/RoleSelector';
 import SignupFormFields from './signup/SignupFormFields';
 import { useWallet } from '@/hooks/use-wallet';
 import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
+import { API_BASE_URL } from '@/utils/environment';
 
 const SignupForm: React.FC = () => {
   const { toast } = useToast();
@@ -37,7 +38,7 @@ const SignupForm: React.FC = () => {
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
