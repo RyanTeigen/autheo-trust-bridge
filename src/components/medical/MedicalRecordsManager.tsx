@@ -19,6 +19,12 @@ interface DecryptedRecord {
 const MedicalRecordsManager = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<DecryptedRecord | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'general',
+    notes: ''
+  });
   
   const {
     records,
@@ -32,18 +38,22 @@ const MedicalRecordsManager = () => {
     handleDeleteRecord
   } = useMedicalRecordsManager();
 
-  const onCreateRecord = async (data: any) => {
-    const success = await handleCreateRecord(data);
+  const onCreateRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const success = await handleCreateRecord(formData);
     if (success) {
       setShowCreateForm(false);
+      setFormData({ title: '', description: '', category: 'general', notes: '' });
     }
   };
 
-  const onUpdateRecord = async (data: any) => {
+  const onUpdateRecord = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (selectedRecord) {
-      const success = await handleUpdateRecord(selectedRecord.id, data);
+      const success = await handleUpdateRecord(selectedRecord.id, formData);
       if (success) {
         setSelectedRecord(null);
+        setFormData({ title: '', description: '', category: 'general', notes: '' });
       }
     }
   };
@@ -53,15 +63,40 @@ const MedicalRecordsManager = () => {
       const success = await handleDeleteRecord(selectedRecord.id);
       if (success) {
         setSelectedRecord(null);
+        setFormData({ title: '', description: '', category: 'general', notes: '' });
       }
     }
+  };
+
+  const handleRecordSelect = (record: DecryptedRecord) => {
+    setSelectedRecord(record);
+    setFormData({
+      title: record.data.title || '',
+      description: record.data.description || '',
+      category: record.record_type || 'general',
+      notes: record.data.notes || ''
+    });
+  };
+
+  const handleCreateClick = () => {
+    setShowCreateForm(true);
+    setFormData({ title: '', description: '', category: 'general', notes: '' });
+  };
+
+  const handleCancel = () => {
+    setShowCreateForm(false);
+    setSelectedRecord(null);
+    setFormData({ title: '', description: '', category: 'general', notes: '' });
   };
 
   if (showCreateForm) {
     return (
       <MedicalRecordForm
+        formData={formData}
+        setFormData={setFormData}
         onSubmit={onCreateRecord}
-        onCancel={() => setShowCreateForm(false)}
+        onCancel={handleCancel}
+        loading={loading}
       />
     );
   }
@@ -69,10 +104,13 @@ const MedicalRecordsManager = () => {
   if (selectedRecord) {
     return (
       <MedicalRecordForm
-        record={selectedRecord}
+        formData={formData}
+        setFormData={setFormData}
         onSubmit={onUpdateRecord}
-        onCancel={() => setSelectedRecord(null)}
+        onCancel={handleCancel}
         onDelete={onDeleteRecord}
+        loading={loading}
+        isEditing={true}
       />
     );
   }
@@ -84,17 +122,17 @@ const MedicalRecordsManager = () => {
         onSearchChange={setSearchTerm}
         filterType={filterType}
         onFilterChange={setFilterType}
-        onCreateRecord={() => setShowCreateForm(true)}
+        onCreateRecord={handleCreateClick}
       />
 
       {loading ? (
         <MedicalRecordsLoadingSkeleton />
       ) : records.length === 0 ? (
-        <EmptyRecordsState onCreateRecord={() => setShowCreateForm(true)} />
+        <EmptyRecordsState onCreateRecord={handleCreateClick} />
       ) : (
         <MedicalRecordsGrid
           records={records}
-          onRecordSelect={setSelectedRecord}
+          onRecordSelect={handleRecordSelect}
         />
       )}
     </div>
