@@ -1,4 +1,5 @@
 
+import { supabase } from '@/integrations/supabase/client';
 import { BaseService, ServiceResponse } from './BaseService';
 import { PatientRecordsService } from './PatientRecordsService';
 import { MedicalRecord, DecryptedMedicalRecord } from '@/types/medical';
