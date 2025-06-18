@@ -1,11 +1,12 @@
 
 const express = require('express');
 const router = express.Router();
-const { enhancedMedicalRecordsService } = require('../../services/EnhancedMedicalRecordsService');
+const { supabaseMedicalRecordsService } = require('../../services/SupabaseMedicalRecordsService');
 
 // GET /api/medical-records - Get medical records with pagination and filters
 router.get('/', async (req, res) => {
   try {
+    console.log('GET /api/medical-records - Request received with query:', req.query);
     const { limit, offset, recordType } = req.query;
     const options = { 
       limit: limit ? parseInt(limit) : undefined, 
@@ -13,7 +14,9 @@ router.get('/', async (req, res) => {
     };
     const filters = { recordType };
     
-    const result = await enhancedMedicalRecordsService.getRecords(options, filters);
+    const result = await supabaseMedicalRecordsService.getRecords(options, filters);
+    
+    console.log('Medical records result:', result);
     
     if (result.success) {
       res.json(result);
@@ -29,6 +32,7 @@ router.get('/', async (req, res) => {
 // GET /api/medical-records/:id - Get specific medical record by ID
 router.get('/:id', async (req, res) => {
   try {
+    console.log('GET /api/medical-records/:id - Request received for ID:', req.params.id);
     const { id } = req.params;
     
     // Validate UUID format
@@ -40,7 +44,9 @@ router.get('/:id', async (req, res) => {
       });
     }
     
-    const result = await enhancedMedicalRecordsService.getRecord(id);
+    const result = await supabaseMedicalRecordsService.getRecord(id);
+    
+    console.log('Medical record result:', result);
     
     if (result.success) {
       res.json(result);
@@ -56,7 +62,8 @@ router.get('/:id', async (req, res) => {
 // POST /api/medical-records - Create new medical record
 router.post('/', async (req, res) => {
   try {
-    const { recordType, title, description, diagnosis, treatment, notes, ...data } = req.body;
+    console.log('POST /api/medical-records - Request received with body:', req.body);
+    const { recordType, title, description, diagnosis, treatment, notes, patient_id, user_id, ...data } = req.body;
     
     // Validate required fields
     if (!title) {
@@ -72,11 +79,15 @@ router.post('/', async (req, res) => {
       diagnosis,
       treatment,
       notes,
+      patient_id,
+      user_id,
       timestamp: new Date().toISOString(),
       ...data
     };
     
-    const result = await enhancedMedicalRecordsService.createRecord(recordData, recordType || 'general');
+    const result = await supabaseMedicalRecordsService.createRecord(recordData, recordType || 'general');
+    
+    console.log('Create medical record result:', result);
     
     if (result.success) {
       res.status(201).json(result);
@@ -92,6 +103,7 @@ router.post('/', async (req, res) => {
 // PUT /api/medical-records/:id - Update medical record
 router.put('/:id', async (req, res) => {
   try {
+    console.log('PUT /api/medical-records/:id - Request received for ID:', req.params.id, 'Body:', req.body);
     const { id } = req.params;
     
     // Validate UUID format
@@ -130,7 +142,9 @@ router.put('/:id', async (req, res) => {
     // Add last updated timestamp
     recordData.lastUpdated = new Date().toISOString();
     
-    const result = await enhancedMedicalRecordsService.updateRecord(id, recordData);
+    const result = await supabaseMedicalRecordsService.updateRecord(id, recordData);
+    
+    console.log('Update medical record result:', result);
     
     if (result.success) {
       res.json(result);
@@ -146,6 +160,7 @@ router.put('/:id', async (req, res) => {
 // DELETE /api/medical-records/:id - Delete medical record
 router.delete('/:id', async (req, res) => {
   try {
+    console.log('DELETE /api/medical-records/:id - Request received for ID:', req.params.id);
     const { id } = req.params;
     
     // Validate UUID format
@@ -157,7 +172,9 @@ router.delete('/:id', async (req, res) => {
       });
     }
     
-    const result = await enhancedMedicalRecordsService.deleteRecord(id);
+    const result = await supabaseMedicalRecordsService.deleteRecord(id);
+    
+    console.log('Delete medical record result:', result);
     
     if (result.success) {
       res.status(204).send();

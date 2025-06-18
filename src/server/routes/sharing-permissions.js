@@ -1,11 +1,11 @@
-
 const express = require('express');
 const router = express.Router();
-const { recordSharingService } = require('../../services/patient/RecordSharingService');
+const { supabaseSharingService } = require('../../services/SupabaseSharingService');
 
 // GET /api/sharing-permissions - Get sharing permissions with pagination and filters
 router.get('/', async (req, res) => {
   try {
+    console.log('GET /api/sharing-permissions - Request received with query:', req.query);
     const { limit, offset, granteeId, permissionType, status } = req.query;
     const options = { 
       limit: limit ? parseInt(limit) : undefined, 
@@ -13,7 +13,9 @@ router.get('/', async (req, res) => {
     };
     const filters = { granteeId, permissionType, status };
     
-    const result = await recordSharingService.getSharingPermissions(options, filters);
+    const result = await supabaseSharingService.getSharingPermissions(options, filters);
+    
+    console.log('Sharing permissions result:', result);
     
     if (result.success) {
       res.json(result);
@@ -29,6 +31,7 @@ router.get('/', async (req, res) => {
 // GET /api/sharing-permissions/:id - Get specific sharing permission by ID
 router.get('/:id', async (req, res) => {
   try {
+    console.log('GET /api/sharing-permissions/:id - Request received for ID:', req.params.id);
     const { id } = req.params;
     
     // Validate UUID format
@@ -40,7 +43,9 @@ router.get('/:id', async (req, res) => {
       });
     }
     
-    const result = await recordSharingService.getSharingPermission(id);
+    const result = await supabaseSharingService.getSharingPermission(id);
+    
+    console.log('Sharing permission result:', result);
     
     if (result.success) {
       res.json(result);
@@ -56,7 +61,8 @@ router.get('/:id', async (req, res) => {
 // POST /api/sharing-permissions - Create new sharing permission
 router.post('/', async (req, res) => {
   try {
-    const { medicalRecordId, granteeId, permissionType, expiresAt } = req.body;
+    console.log('POST /api/sharing-permissions - Request received with body:', req.body);
+    const { medicalRecordId, granteeId, permissionType, expiresAt, patient_id } = req.body;
     
     // Validate required fields
     if (!medicalRecordId) {
@@ -108,10 +114,13 @@ router.post('/', async (req, res) => {
       medicalRecordId,
       granteeId,
       permissionType,
-      expiresAt
+      expiresAt,
+      patient_id
     };
     
-    const result = await recordSharingService.shareRecordWithProvider(shareData);
+    const result = await supabaseSharingService.shareRecordWithProvider(shareData);
+    
+    console.log('Create sharing permission result:', result);
     
     if (result.success) {
       res.status(201).json(result);
@@ -160,7 +169,7 @@ router.put('/:id', async (req, res) => {
       });
     }
     
-    const result = await recordSharingService.updateSharingPermission(id, updateData);
+    const result = await supabaseSharingService.updateSharingPermission(id, updateData);
     
     if (result.success) {
       res.json(result);
@@ -187,7 +196,7 @@ router.delete('/:id', async (req, res) => {
       });
     }
     
-    const result = await recordSharingService.revokeSharingPermission(id);
+    const result = await supabaseSharingService.revokeSharingPermission(id);
     
     if (result.success) {
       res.status(204).send();
@@ -221,7 +230,7 @@ router.get('/record/:recordId', async (req, res) => {
     };
     const filters = { recordId };
     
-    const result = await recordSharingService.getSharingPermissions(options, filters);
+    const result = await supabaseSharingService.getSharingPermissions(options, filters);
     
     if (result.success) {
       res.json(result);
