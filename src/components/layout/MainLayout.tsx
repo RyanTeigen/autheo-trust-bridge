@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
 import AppSidebar from './AppSidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -12,7 +12,11 @@ import UserProfileMenu from '../auth/UserProfileMenu';
 import ErrorBoundary from '../ux/ErrorBoundary';
 import LoadingStates from '../ux/LoadingStates';
 
-const MainLayout: React.FC = () => {
+interface MainLayoutProps {
+  children: React.ReactNode;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   
   // Show loading state while checking authentication
@@ -45,7 +49,7 @@ const MainLayout: React.FC = () => {
               <AppSidebar />
               <main className="flex-1 overflow-auto bg-slate-900 text-slate-100">
                 <div className="min-h-full bg-slate-900 text-slate-100 w-full">
-                  <Outlet />
+                  {children}
                 </div>
               </main>
             </div>
