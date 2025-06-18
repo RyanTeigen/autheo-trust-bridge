@@ -6,63 +6,42 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
+import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
 
 const AuthPage = () => {
   const [activeTab, setActiveTab] = useState('login');
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated, isLoading } = useFrontendAuth();
 
   // Get the page they were trying to visit from location state
   const from = location.state?.from || '/';
 
-  // Check if user is already logged in
+  // Check if user is already logged in and redirect them
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // If they're already logged in, redirect to the page they were trying to access
-          // or the dashboard if they came directly to /auth
-          navigate(from, { replace: true });
-        }
-      } catch (error) {
-        console.error('Error checking authentication status:', error);
-        toast({
-          title: "Authentication Error",
-          description: "There was an error checking your authentication status.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!isLoading && isAuthenticated) {
+      console.log('User is already authenticated, redirecting to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, from]);
 
-    checkAuth();
-  }, [navigate, toast, from]);
-
-  // Listen for auth changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          // When they log in, redirect to the page they were trying to access
-          navigate(from, { replace: true });
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [navigate, from]);
-
-  if (loading) {
+  // Show loading state while checking authentication
+  if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
         <div className="animate-pulse text-slate-400">Loading authentication...</div>
+      </div>
+    );
+  }
+
+  // Don't render the auth form if user is already authenticated
+  if (isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-slate-900 to-slate-950">
+        <div className="animate-pulse text-slate-400">Redirecting...</div>
       </div>
     );
   }
