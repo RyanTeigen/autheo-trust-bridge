@@ -30,6 +30,16 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid permission ID format' 
+      });
+    }
+    
     const result = await recordSharingService.getSharingPermission(id);
     
     if (result.success) {
@@ -46,7 +56,62 @@ router.get('/:id', async (req, res) => {
 // POST /api/sharing-permissions - Create new sharing permission
 router.post('/', async (req, res) => {
   try {
-    const result = await recordSharingService.shareRecordWithProvider(req.body);
+    const { medicalRecordId, granteeId, permissionType, expiresAt } = req.body;
+    
+    // Validate required fields
+    if (!medicalRecordId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Medical record ID is required'
+      });
+    }
+    
+    if (!granteeId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Grantee ID is required'
+      });
+    }
+    
+    if (!permissionType) {
+      return res.status(400).json({
+        success: false,
+        error: 'Permission type is required'
+      });
+    }
+    
+    // Validate permission type
+    if (!['read', 'write'].includes(permissionType)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Permission type must be either "read" or "write"'
+      });
+    }
+    
+    // Validate UUID formats
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(medicalRecordId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid medical record ID format'
+      });
+    }
+    
+    if (!uuidRegex.test(granteeId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid grantee ID format'
+      });
+    }
+    
+    const shareData = {
+      medicalRecordId,
+      granteeId,
+      permissionType,
+      expiresAt
+    };
+    
+    const result = await recordSharingService.shareRecordWithProvider(shareData);
     
     if (result.success) {
       res.status(201).json(result);
@@ -63,7 +128,39 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await recordSharingService.updateSharingPermission(id, req.body);
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid permission ID format' 
+      });
+    }
+    
+    const { permissionType, expiresAt } = req.body;
+    
+    // Build update object with only provided fields
+    const updateData = {};
+    if (permissionType !== undefined) {
+      if (!['read', 'write'].includes(permissionType)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Permission type must be either "read" or "write"'
+        });
+      }
+      updateData.permissionType = permissionType;
+    }
+    if (expiresAt !== undefined) updateData.expiresAt = expiresAt;
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No fields to update'
+      });
+    }
+    
+    const result = await recordSharingService.updateSharingPermission(id, updateData);
     
     if (result.success) {
       res.json(result);
@@ -80,6 +177,16 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid permission ID format' 
+      });
+    }
+    
     const result = await recordSharingService.revokeSharingPermission(id);
     
     if (result.success) {
@@ -89,6 +196,40 @@ router.delete('/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error revoking sharing permission:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// GET /api/sharing-permissions/record/:recordId - Get sharing permissions for a specific record
+router.get('/record/:recordId', async (req, res) => {
+  try {
+    const { recordId } = req.params;
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(recordId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid record ID format' 
+      });
+    }
+    
+    const { limit, offset } = req.query;
+    const options = { 
+      limit: limit ? parseInt(limit) : undefined, 
+      offset: offset ? parseInt(offset) : undefined 
+    };
+    const filters = { recordId };
+    
+    const result = await recordSharingService.getSharingPermissions(options, filters);
+    
+    if (result.success) {
+      res.json(result);
+    } else {
+      res.status(result.statusCode || 500).json(result);
+    }
+  } catch (error) {
+    console.error('Error fetching record sharing permissions:', error);
     res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });

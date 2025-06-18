@@ -30,6 +30,16 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid record ID format' 
+      });
+    }
+    
     const result = await enhancedMedicalRecordsService.getRecord(id);
     
     if (result.success) {
@@ -46,8 +56,27 @@ router.get('/:id', async (req, res) => {
 // POST /api/medical-records - Create new medical record
 router.post('/', async (req, res) => {
   try {
-    const { recordType, ...data } = req.body;
-    const result = await enhancedMedicalRecordsService.createRecord(data, recordType);
+    const { recordType, title, description, diagnosis, treatment, notes, ...data } = req.body;
+    
+    // Validate required fields
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title is required'
+      });
+    }
+    
+    const recordData = {
+      title,
+      description,
+      diagnosis,
+      treatment,
+      notes,
+      timestamp: new Date().toISOString(),
+      ...data
+    };
+    
+    const result = await enhancedMedicalRecordsService.createRecord(recordData, recordType || 'general');
     
     if (result.success) {
       res.status(201).json(result);
@@ -64,7 +93,44 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await enhancedMedicalRecordsService.updateRecord(id, req.body);
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid record ID format' 
+      });
+    }
+    
+    const { title, description, diagnosis, treatment, notes, ...updateData } = req.body;
+    
+    // Build update object with only provided fields
+    const recordData = {};
+    if (title !== undefined) recordData.title = title;
+    if (description !== undefined) recordData.description = description;
+    if (diagnosis !== undefined) recordData.diagnosis = diagnosis;
+    if (treatment !== undefined) recordData.treatment = treatment;
+    if (notes !== undefined) recordData.notes = notes;
+    
+    // Add any additional data fields
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined) {
+        recordData[key] = updateData[key];
+      }
+    });
+    
+    if (Object.keys(recordData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No fields to update'
+      });
+    }
+    
+    // Add last updated timestamp
+    recordData.lastUpdated = new Date().toISOString();
+    
+    const result = await enhancedMedicalRecordsService.updateRecord(id, recordData);
     
     if (result.success) {
       res.json(result);
@@ -81,6 +147,16 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid record ID format' 
+      });
+    }
+    
     const result = await enhancedMedicalRecordsService.deleteRecord(id);
     
     if (result.success) {
