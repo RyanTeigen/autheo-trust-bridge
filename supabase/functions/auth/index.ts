@@ -16,6 +16,8 @@ serve(async (req) => {
     const url = new URL(req.url)
     const path = url.pathname.split('/').pop()
 
+    console.log('Auth function called with path:', path, 'method:', req.method)
+
     if (path === 'login') {
       return await handleLogin(req)
     } else if (path === 'register') {
@@ -43,9 +45,11 @@ serve(async (req) => {
 
 async function handleLogin(req: Request) {
   try {
+    console.log('Handling login request')
     const { email, password } = await req.json()
 
     if (!email || !password) {
+      console.log('Missing email or password')
       return new Response(
         JSON.stringify({ error: 'Email and password are required' }),
         { 
@@ -57,6 +61,8 @@ async function handleLogin(req: Request) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+    console.log('Attempting to sign in user:', email)
+    
     // Authenticate user
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
@@ -75,6 +81,7 @@ async function handleLogin(req: Request) {
     }
 
     if (!authData.user) {
+      console.log('No user returned from auth')
       return new Response(
         JSON.stringify({ error: 'Authentication failed' }),
         { 
@@ -83,6 +90,8 @@ async function handleLogin(req: Request) {
         }
       )
     }
+
+    console.log('User authenticated successfully:', authData.user.email)
 
     // Get user profile
     const { data: profile, error: profileError } = await supabase
@@ -93,13 +102,7 @@ async function handleLogin(req: Request) {
 
     if (profileError) {
       console.error('Profile fetch error:', profileError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch user profile' }),
-        { 
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
+      // Don't fail login if profile fetch fails
     }
 
     // Create JWT token with user info
@@ -114,6 +117,7 @@ async function handleLogin(req: Request) {
     }
 
     const token = await createJWT(tokenPayload)
+    console.log('JWT token created successfully')
 
     return new Response(
       JSON.stringify({ token }),
@@ -136,9 +140,11 @@ async function handleLogin(req: Request) {
 
 async function handleRegister(req: Request) {
   try {
+    console.log('Handling register request')
     const { email, password, username, role, firstName, lastName } = await req.json()
 
     if (!email || !password) {
+      console.log('Missing email or password for registration')
       return new Response(
         JSON.stringify({ error: 'Email and password are required' }),
         { 
@@ -149,6 +155,8 @@ async function handleRegister(req: Request) {
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    console.log('Attempting to register user:', email)
 
     // Create user with metadata
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -174,6 +182,7 @@ async function handleRegister(req: Request) {
     }
 
     if (!authData.user) {
+      console.log('No user returned from registration')
       return new Response(
         JSON.stringify({ error: 'Failed to create user' }),
         { 
@@ -182,6 +191,8 @@ async function handleRegister(req: Request) {
         }
       )
     }
+
+    console.log('User registered successfully:', authData.user.email)
 
     // Create or update profile
     const { error: profileError } = await supabase
@@ -211,6 +222,7 @@ async function handleRegister(req: Request) {
     }
 
     const token = await createJWT(tokenPayload)
+    console.log('JWT token created for new user')
 
     return new Response(
       JSON.stringify({ token }),
