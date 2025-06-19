@@ -1,23 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuditLogsAPI } from '@/hooks/useAuditLogsAPI';
-
-interface AuditLogEntry {
-  id: string;
-  type: string;
-  action: string;
-  timestamp: string;
-  user: string;
-  resource: string;
-  resourceId?: string;
-  status: 'success' | 'warning' | 'error';
-  details?: string;
-  ipAddress?: string;
-  location?: string;
-  browser?: string;
-  os?: string;
-  duration?: number;
-}
+import { AuditLogEntry as UIAuditLogEntry, AuditLogType } from '@/services/audit/AuditLogEntry';
 
 export const useAuditLogs = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,27 +9,33 @@ export const useAuditLogs = () => {
   const [timeframe, setTimeframe] = useState<string>('24h');
   const { auditLogs: rawAuditLogs, loading, fetchAuditLogs } = useAuditLogsAPI();
 
-  // Transform the raw audit logs to match the expected format
-  const auditLogs: AuditLogEntry[] = rawAuditLogs.map(log => ({
-    id: log.id,
-    type: log.action.toLowerCase().includes('access') ? 'access' : 
-          log.action.toLowerCase().includes('create') ? 'create' :
-          log.action.toLowerCase().includes('update') ? 'update' :
-          log.action.toLowerCase().includes('delete') ? 'delete' :
-          log.action.toLowerCase().includes('login') ? 'login' :
-          log.action.toLowerCase().includes('logout') ? 'logout' :
-          log.action.toLowerCase().includes('sharing') ? 'disclosure' :
-          'admin',
-    action: log.action,
-    timestamp: log.timestamp,
-    user: 'Current User', // We'll need to enhance this with actual user info
-    resource: log.resource,
-    resourceId: log.resource_id || undefined,
-    status: log.status,
-    details: log.details || undefined,
-    ipAddress: log.ip_address || undefined,
-    browser: log.user_agent ? log.user_agent.split(' ')[0] : undefined
-  }));
+  // Transform the raw audit logs to match the UI expected format
+  const auditLogs: UIAuditLogEntry[] = rawAuditLogs.map(log => {
+    // Determine the type based on action
+    let type: AuditLogType = 'admin';
+    if (log.action.toLowerCase().includes('access')) type = 'access';
+    else if (log.action.toLowerCase().includes('create')) type = 'access';
+    else if (log.action.toLowerCase().includes('update')) type = 'amendment';
+    else if (log.action.toLowerCase().includes('delete')) type = 'access';
+    else if (log.action.toLowerCase().includes('login')) type = 'login';
+    else if (log.action.toLowerCase().includes('logout')) type = 'logout';
+    else if (log.action.toLowerCase().includes('sharing')) type = 'disclosure';
+    else if (log.action.toLowerCase().includes('breach')) type = 'breach';
+
+    return {
+      id: log.id,
+      type,
+      action: log.action,
+      timestamp: log.timestamp,
+      user: 'Current User', // We'll need to enhance this with actual user info
+      resource: log.resource,
+      resourceId: log.resource_id || undefined,
+      status: log.status,
+      details: log.details || undefined,
+      ipAddress: log.ip_address || undefined,
+      browser: log.user_agent ? log.user_agent.split(' ')[0] : undefined
+    };
+  });
 
   // Filter logs based on search query, type, and timeframe
   const filteredLogs = auditLogs.filter(log => {

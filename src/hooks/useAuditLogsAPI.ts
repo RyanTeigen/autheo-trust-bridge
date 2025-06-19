@@ -3,6 +3,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuditLog } from '@/hooks/useAuditLog';
 
+interface SupabaseAuditLogEntry {
+  id: string;
+  user_id: string | null;
+  action: string;
+  resource: string;
+  resource_id: string | null;
+  status: string;
+  details: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  timestamp: string;
+}
+
 interface AuditLogEntry {
   id: string;
   user_id: string | null;
@@ -37,10 +50,18 @@ export const useAuditLogsAPI = () => {
         return { success: false, error: error.message };
       }
 
-      setAuditLogs(data || []);
-      await logAccess('audit_logs', undefined, `Retrieved ${data?.length || 0} audit log entries`);
+      // Transform and type the data properly
+      const typedData: AuditLogEntry[] = (data || []).map((log: SupabaseAuditLogEntry) => ({
+        ...log,
+        status: (log.status === 'success' || log.status === 'warning' || log.status === 'error') 
+          ? log.status as 'success' | 'warning' | 'error'
+          : 'success' as const
+      }));
+
+      setAuditLogs(typedData);
+      await logAccess('audit_logs', undefined, `Retrieved ${typedData.length} audit log entries`);
       
-      return { success: true, data: data || [] };
+      return { success: true, data: typedData };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error fetching audit logs:', error);
@@ -72,7 +93,15 @@ export const useAuditLogsAPI = () => {
         return { success: false, error: error.message };
       }
 
-      return { success: true, data: data || [] };
+      // Transform and type the data properly
+      const typedData: AuditLogEntry[] = (data || []).map((log: SupabaseAuditLogEntry) => ({
+        ...log,
+        status: (log.status === 'success' || log.status === 'warning' || log.status === 'error') 
+          ? log.status as 'success' | 'warning' | 'error'
+          : 'success' as const
+      }));
+
+      return { success: true, data: typedData };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error fetching audit logs by resource:', error);
@@ -98,7 +127,15 @@ export const useAuditLogsAPI = () => {
         return { success: false, error: error.message };
       }
 
-      return { success: true, data: data || [] };
+      // Transform and type the data properly
+      const typedData: AuditLogEntry[] = (data || []).map((log: SupabaseAuditLogEntry) => ({
+        ...log,
+        status: (log.status === 'success' || log.status === 'warning' || log.status === 'error') 
+          ? log.status as 'success' | 'warning' | 'error'
+          : 'success' as const
+      }));
+
+      return { success: true, data: typedData };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error fetching audit logs by action:', error);
