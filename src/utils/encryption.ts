@@ -1,8 +1,8 @@
-
 import crypto from 'crypto';
-import { kyberEncrypt, kyberDecrypt, isValidKyberPublicKey } from './pq-kyber';
+import { kyberEncrypt, kyberDecrypt, isValidKyberPublicKey, getKyberParams } from './pq-kyber';
 
 const AES_KEY_LENGTH = 32;
+const AES_IV_LENGTH = 12; // GCM recommended IV size
 
 export interface EncryptedRecord {
   encryptedData: string;
@@ -11,6 +11,7 @@ export interface EncryptedRecord {
   authTag: string;
   algorithm: string;
   timestamp: string;
+  kyberParams?: any; // Optional Kyber parameters for verification
 }
 
 export interface DecryptionResult {
@@ -19,39 +20,49 @@ export interface DecryptionResult {
     algorithm: string;
     timestamp: string;
     quantumSafe: boolean;
+    kyberParams?: any;
   };
 }
 
 /**
  * Encrypt a medical record using quantum-safe hybrid encryption
- * Combines AES-256-GCM for data encryption with Kyber for key encapsulation
+ * Combines AES-256-GCM for data encryption with real Kyber for key encapsulation
  */
 export async function encryptRecord(plaintext: string, recipientPublicKey: string): Promise<EncryptedRecord> {
   if (!recipientPublicKey || !isValidKyberPublicKey(recipientPublicKey)) {
     throw new Error('Invalid recipient public key for quantum-safe encryption');
   }
 
-  // Generate random AES key and IV
-  const aesKey = crypto.randomBytes(AES_KEY_LENGTH);
-  const iv = crypto.randomBytes(12); // AES-GCM recommended IV size
+  try {
+    // Generate random AES key and IV
+    const aesKey = crypto.randomBytes(AES_KEY_LENGTH);
+    const iv = crypto.randomBytes(AES_IV_LENGTH);
 
-  // Encrypt data with AES-256-GCM
-  const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, iv);
-  let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  const authTag = cipher.getAuthTag();
+    // Encrypt data with AES-256-GCM
+    const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, iv);
+    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag();
 
-  // Encrypt AES key with Kyber (post-quantum safe)
-  const pqEncryptedKey = await kyberEncrypt(aesKey.toString('hex'), recipientPublicKey);
+    // Encrypt AES key with real Kyber post-quantum cryptography
+    const pqEncryptedKey = await kyberEncrypt(aesKey.toString('hex'), recipientPublicKey);
 
-  return {
-    encryptedData: encrypted,
-    pqEncryptedKey,
-    iv: iv.toString('hex'),
-    authTag: authTag.toString('hex'),
-    algorithm: 'AES-256-GCM + Kyber-1024',
-    timestamp: new Date().toISOString()
-  };
+    // Get Kyber parameters for metadata
+    const kyberParams = getKyberParams();
+
+    return {
+      encryptedData: encrypted,
+      pqEncryptedKey,
+      iv: iv.toString('hex'),
+      authTag: authTag.toString('hex'),
+      algorithm: 'AES-256-GCM + Kyber-1024',
+      timestamp: new Date().toISOString(),
+      kyberParams
+    };
+  } catch (error) {
+    console.error('Quantum-safe encryption failed:', error);
+    throw new Error(`Quantum-safe encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 /**
@@ -59,7 +70,7 @@ export async function encryptRecord(plaintext: string, recipientPublicKey: strin
  */
 export async function decryptRecord(encrypted: EncryptedRecord, userPrivateKey: string): Promise<DecryptionResult> {
   try {
-    // Decrypt AES key using Kyber
+    // Decrypt AES key using real Kyber
     const aesKeyHex = await kyberDecrypt(encrypted.pqEncryptedKey, userPrivateKey);
     const aesKey = Buffer.from(aesKeyHex, 'hex');
     const iv = Buffer.from(encrypted.iv, 'hex');
@@ -76,16 +87,18 @@ export async function decryptRecord(encrypted: EncryptedRecord, userPrivateKey: 
       metadata: {
         algorithm: encrypted.algorithm || 'AES-256-GCM + Kyber-1024',
         timestamp: encrypted.timestamp || new Date().toISOString(),
-        quantumSafe: true
+        quantumSafe: true,
+        kyberParams: encrypted.kyberParams
       }
     };
   } catch (error) {
-    throw new Error(`Decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Quantum-safe decryption failed:', error);
+    throw new Error(`Quantum-safe decryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
 /**
- * Encrypt data for multiple recipients (useful for shared records)
+ * Encrypt data for multiple recipients using real post-quantum cryptography
  */
 export async function encryptForMultipleRecipients(
   plaintext: string, 
@@ -93,11 +106,43 @@ export async function encryptForMultipleRecipients(
 ): Promise<{ [publicKey: string]: EncryptedRecord }> {
   const results: { [publicKey: string]: EncryptedRecord } = {};
   
-  for (const publicKey of recipientPublicKeys) {
-    results[publicKey] = await encryptRecord(plaintext, publicKey);
+  // Process encryptions in parallel for better performance
+  const encryptionPromises = recipientPublicKeys.map(async (publicKey) => {
+    const encrypted = await encryptRecord(plaintext, publicKey);
+    return { publicKey, encrypted };
+  });
+
+  const encryptionResults = await Promise.all(encryptionPromises);
+  
+  for (const { publicKey, encrypted } of encryptionResults) {
+    results[publicKey] = encrypted;
   }
   
   return results;
+}
+
+/**
+ * Validate encrypted record integrity
+ */
+export function validateEncryptedRecord(encrypted: EncryptedRecord): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  if (!encrypted.encryptedData) errors.push('Missing encrypted data');
+  if (!encrypted.pqEncryptedKey) errors.push('Missing post-quantum encrypted key');
+  if (!encrypted.iv) errors.push('Missing initialization vector');
+  if (!encrypted.authTag) errors.push('Missing authentication tag');
+  if (!encrypted.algorithm) errors.push('Missing algorithm specification');
+  if (!encrypted.timestamp) errors.push('Missing timestamp');
+
+  // Validate Kyber encrypted key format
+  if (encrypted.pqEncryptedKey && !encrypted.pqEncryptedKey.startsWith('kyber_enc_')) {
+    errors.push('Invalid post-quantum encrypted key format');
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors
+  };
 }
 
 /**
