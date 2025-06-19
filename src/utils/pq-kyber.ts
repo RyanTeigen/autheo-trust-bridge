@@ -1,4 +1,3 @@
-
 /**
  * Post-Quantum Cryptography - Kyber Key Encapsulation Mechanism (KEM)
  * Production implementation using real Kyber libraries
@@ -6,7 +5,7 @@
 
 // Import real Kyber implementation
 // Using @noble/post-quantum with correct import structure
-import { kyber } from '@noble/post-quantum';
+import * as pq from '@noble/post-quantum';
 
 export interface KyberKeyPair {
   publicKey: string;
@@ -18,8 +17,8 @@ export interface KyberEncryptedData {
   sharedSecret: string;
 }
 
-// Use Kyber-1024 for maximum security (NIST Level 5)
-const kyberInstance = kyber;
+// Use Kyber-768 (NIST Level 3) - commonly available variant
+const kyberInstance = pq.ml_kem768 || pq.kyber768;
 
 /**
  * Generate a Kyber key pair using real post-quantum cryptography
