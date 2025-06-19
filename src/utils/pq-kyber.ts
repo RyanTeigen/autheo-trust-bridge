@@ -5,8 +5,8 @@
  */
 
 // Import real Kyber implementation
-// Note: Using @noble/post-quantum as primary, with @stablelib/kyber as fallback
-import { kyber768, kyber1024 } from '@noble/post-quantum/kyber';
+// Using @noble/post-quantum with correct import structure
+import { kyber768, kyber1024 } from '@noble/post-quantum';
 
 export interface KyberKeyPair {
   publicKey: string;
