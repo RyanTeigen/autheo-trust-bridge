@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import AuditLogHeader from '@/components/audit/AuditLogHeader';
 import AuditLogFilter from '@/components/audit/AuditLogFilter';
@@ -20,7 +20,8 @@ const AuditLogsPage = () => {
     filterType,
     setFilterType,
     timeframe,
-    setTimeframe
+    setTimeframe,
+    loading
   } = useAuditLogs();
   
   const { profile } = useAuth();
@@ -30,6 +31,17 @@ const AuditLogsPage = () => {
   
   // Add tab state
   const [activeTab, setActiveTab] = useState<string>('overview');
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin text-autheo-primary" />
+          <span className="text-slate-300">Loading audit logs...</span>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
