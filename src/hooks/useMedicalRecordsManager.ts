@@ -24,10 +24,11 @@ export const useMedicalRecordsManager = () => {
   const fetchRecords = async () => {
     setLoading(true);
     try {
-      const response = await getRecords(
-        { limit: 50, offset: 0 },
-        { recordType: filterType === 'all' ? undefined : filterType }
-      );
+      const response = await getRecords({
+        limit: 50, 
+        offset: 0,
+        recordType: filterType === 'all' ? undefined : filterType
+      });
       
       if (response.success) {
         const decryptedRecords = response.data.records.map((record: any) => ({

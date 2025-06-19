@@ -31,14 +31,14 @@ export class AuditLogger {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Prepare audit log entry
-      const auditEntry: Partial<AuditLogEntry> = {
-        user_id: user?.id,
+      // Prepare audit log entry with all required fields
+      const auditEntry = {
+        user_id: user?.id || null,
         action: entry.action,
         resource: entry.resource,
-        resource_id: entry.resource_id,
+        resource_id: entry.resource_id || null,
         status: entry.status,
-        details: entry.details,
+        details: entry.details || null,
         ip_address: entry.ip_address || this.getClientIP(),
         user_agent: entry.user_agent || navigator.userAgent,
         timestamp: new Date().toISOString()
@@ -47,7 +47,7 @@ export class AuditLogger {
       // Insert into audit_logs table
       const { error } = await supabase
         .from('audit_logs')
-        .insert([auditEntry]);
+        .insert(auditEntry);
 
       if (error) {
         console.error('Failed to log audit event:', error);
