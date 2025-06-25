@@ -35,10 +35,27 @@ interface SharingPermission {
   expires_at?: string;
 }
 
+interface QuantumShare {
+  id: string;
+  record_id: string;
+  shared_with_user_id: string;
+  created_at: string;
+  updated_at: string;
+  medical_records?: {
+    id: string;
+    record_type: string;
+    patient_id: string;
+    patients: {
+      full_name: string;
+      email: string;
+    };
+  };
+}
+
 const RecordSharingManager: React.FC = () => {
   const [records, setRecords] = useState<DecryptedMedicalRecord[]>([]);
   const [permissions, setPermissions] = useState<SharingPermission[]>([]);
-  const [quantumShares, setQuantumShares] = useState([]);
+  const [quantumShares, setQuantumShares] = useState<QuantumShare[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecordId, setSelectedRecordId] = useState<string>('');
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
@@ -78,8 +95,8 @@ const RecordSharingManager: React.FC = () => {
         setPermissions(permissionsResult.data.permissions);
       }
 
-      if (quantumSharesResult.success && quantumSharesResult.data) {
-        setQuantumShares(quantumSharesResult.data);
+      if (quantumSharesResult.success && quantumSharesResult.data?.permissions) {
+        setQuantumShares(quantumSharesResult.data.permissions);
       }
     } catch (error) {
       console.error('Error fetching data:', error);

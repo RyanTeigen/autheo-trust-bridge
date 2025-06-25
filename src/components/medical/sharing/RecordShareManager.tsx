@@ -15,6 +15,23 @@ interface RecordShareManagerProps {
   recordTitle?: string;
 }
 
+interface QuantumShare {
+  id: string;
+  record_id: string;
+  shared_with_user_id: string;
+  created_at: string;
+  updated_at: string;
+  medical_records?: {
+    id: string;
+    record_type: string;
+    patient_id: string;
+    patients: {
+      full_name: string;
+      email: string;
+    };
+  };
+}
+
 const RecordShareManager: React.FC<RecordShareManagerProps> = ({ 
   recordId: propRecordId, 
   recordTitle: propRecordTitle 
@@ -23,8 +40,8 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
   const { shareRecord, getSharedWithMe, getMyShares, revokeShare, loading } = useMedicalRecordsSharing();
   
   const [recipientUserId, setRecipientUserId] = useState('');
-  const [myShares, setMyShares] = useState([]);
-  const [sharedWithMe, setSharedWithMe] = useState([]);
+  const [myShares, setMyShares] = useState<QuantumShare[]>([]);
+  const [sharedWithMe, setSharedWithMe] = useState<QuantumShare[]>([]);
   const [activeTab, setActiveTab] = useState<'share' | 'my-shares' | 'shared-with-me'>('share');
 
   useEffect(() => {
@@ -37,12 +54,12 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
       getSharedWithMe()
     ]);
 
-    if (mySharesResult.success) {
-      setMyShares(mySharesResult.data || []);
+    if (mySharesResult.success && mySharesResult.data?.permissions) {
+      setMyShares(mySharesResult.data.permissions);
     }
 
-    if (sharedWithMeResult.success) {
-      setSharedWithMe(sharedWithMeResult.data || []);
+    if (sharedWithMeResult.success && sharedWithMeResult.data?.permissions) {
+      setSharedWithMe(sharedWithMeResult.data.permissions);
     }
   };
 
@@ -119,7 +136,7 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
                   </Alert>
                 ) : (
                   <div className="space-y-2">
-                    {myShares.map((share: any) => (
+                    {myShares.map((share) => (
                       <div key={share.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-slate-200">Record ID: {share.record_id}</p>
@@ -161,7 +178,7 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
                   </Alert>
                 ) : (
                   <div className="space-y-2">
-                    {sharedWithMe.map((share: any) => (
+                    {sharedWithMe.map((share) => (
                       <div key={share.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-slate-200">Record ID: {share.record_id}</p>

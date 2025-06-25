@@ -69,6 +69,10 @@ export const useSharingPermissionsAPI = () => {
     return await quantumSharing.getShareById(permissionId);
   };
 
+  const createSharingPermission = async (input: CreateSharingPermissionInput) => {
+    return await shareRecordWithProvider(input);
+  };
+
   const shareRecordWithProvider = async (input: CreateSharingPermissionInput) => {
     setLoading(true);
     try {
@@ -118,7 +122,11 @@ export const useSharingPermissionsAPI = () => {
     permissionId: string,
     updates: { permissionType?: 'read' | 'write'; expiresAt?: string }
   ) => {
-    return await quantumSharing.updateShare(permissionId, updates);
+    // Transform the updates to match the quantum sharing interface
+    const quantumUpdates = {
+      expires_at: updates.expiresAt
+    };
+    return await quantumSharing.updateShare(permissionId, quantumUpdates);
   };
 
   const revokeSharingPermission = async (permissionId: string) => {
@@ -139,6 +147,7 @@ export const useSharingPermissionsAPI = () => {
     loading: loading || quantumSharing.loading,
     getSharingPermissions,
     getSharingPermission,
+    createSharingPermission,
     shareRecordWithProvider,
     updateSharingPermission,
     revokeSharingPermission
