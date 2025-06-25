@@ -12,6 +12,7 @@ const sharedRecordsRoutes = require('./routes/shared-records');
 const logsRoutes = require('./routes/logs');
 const auditExportRoutes = require('./routes/audit-export');
 const auditAnchorsRoutes = require('./routes/audit-anchors');
+const recordsExportRoutes = require('./routes/records-export');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -42,6 +43,7 @@ app.use('/api/shared-records', sharedRecordsRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/audit', auditExportRoutes);
 app.use('/api/audit', auditAnchorsRoutes);
+app.use('/api/records', recordsExportRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
