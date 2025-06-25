@@ -254,7 +254,7 @@ const QuantumSecurityStatus: React.FC = () => {
               <Info className="h-5 w-5" />
               System Information
             </CardTitle>
-          </Car
+          </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
