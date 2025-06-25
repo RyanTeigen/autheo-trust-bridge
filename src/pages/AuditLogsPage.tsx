@@ -31,6 +31,19 @@ const AuditLogsPage = () => {
   
   // Add tab state
   const [activeTab, setActiveTab] = useState<string>('overview');
+
+  // Create properly typed setter wrappers
+  const handleTimeframeChange = (value: string) => {
+    if (['24h', '7d', '30d', 'all'].includes(value)) {
+      setTimeframe(value);
+    }
+  };
+
+  const handleFilterTypeChange = (type: string) => {
+    if (['all', 'success', 'warning', 'error'].includes(type)) {
+      setFilterType(type);
+    }
+  };
   
   if (loading) {
     return (
@@ -48,7 +61,7 @@ const AuditLogsPage = () => {
       <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
         <AuditLogHeader 
           timeframe={timeframe}
-          setTimeframe={setTimeframe}
+          setTimeframe={handleTimeframeChange}
           filteredLogsCount={filteredLogs.length}
           auditLogsCount={auditLogs.length}
         />
@@ -84,7 +97,7 @@ const AuditLogsPage = () => {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     filterType={filterType}
-                    setFilterType={setFilterType}
+                    setFilterType={handleFilterTypeChange}
                   />
                   
                   <AuditLogsList filteredLogs={filteredLogs} />

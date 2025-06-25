@@ -22,6 +22,12 @@ export const useAuditLogs = () => {
     else if (log.action.toLowerCase().includes('sharing')) type = 'disclosure';
     else if (log.action.toLowerCase().includes('breach')) type = 'breach';
 
+    // Ensure status is properly typed
+    let status: 'success' | 'warning' | 'error' = 'success';
+    if (['success', 'warning', 'error'].includes(log.status)) {
+      status = log.status as 'success' | 'warning' | 'error';
+    }
+
     return {
       id: log.id,
       type,
@@ -30,7 +36,7 @@ export const useAuditLogs = () => {
       user: 'Current User', // We'll need to enhance this with actual user info
       resource: log.resource,
       resourceId: log.resource_id || undefined,
-      status: log.status,
+      status,
       details: log.details || undefined,
       ipAddress: log.ip_address || undefined,
       browser: log.user_agent ? log.user_agent.split(' ')[0] : undefined

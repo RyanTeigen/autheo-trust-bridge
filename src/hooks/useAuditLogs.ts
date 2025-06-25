@@ -17,13 +17,16 @@ interface AuditLog {
   timestamp: string;
 }
 
+type TimeframeType = '24h' | '7d' | '30d' | 'all';
+type FilterType = 'all' | 'success' | 'warning' | 'error';
+
 export function useAuditLogs() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'success' | 'warning' | 'error'>('all');
-  const [timeframe, setTimeframe] = useState<'24h' | '7d' | '30d' | 'all'>('7d');
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [timeframe, setTimeframe] = useState<TimeframeType>('7d');
 
   useEffect(() => {
     fetchAuditLogs();
@@ -67,7 +70,25 @@ export function useAuditLogs() {
         throw fetchError;
       }
 
-      setAuditLogs(data || []);
+      // Transform and type-check the data
+      const transformedData: AuditLog[] = (data || []).map(log => ({
+        id: log.id,
+        user_id: log.user_id,
+        action: log.action,
+        resource: log.resource,
+        status: ['success', 'warning', 'error'].includes(log.status) 
+          ? log.status as 'success' | 'warning' | 'error'
+          : 'success', // Default fallback
+        details: log.details,
+        target_type: log.target_type,
+        target_id: log.target_id,
+        metadata: log.metadata,
+        ip_address: log.ip_address,
+        user_agent: log.user_agent,
+        timestamp: log.timestamp
+      }));
+
+      setAuditLogs(transformedData);
     } catch (err: any) {
       console.error('Error fetching audit logs:', err);
       setError(err.message);
