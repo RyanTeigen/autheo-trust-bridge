@@ -74,9 +74,11 @@ const ShareRecordForm: React.FC<ShareRecordFormProps> = ({
         
         onSuccess?.();
       } else {
+        // Handle both direct error property and nested error
+        const errorMessage = result.error || (result as any).data?.error || "Failed to share record";
         toast({
           title: "Error",
-          description: result.error || "Failed to share record",
+          description: errorMessage,
           variant: "destructive",
         });
       }

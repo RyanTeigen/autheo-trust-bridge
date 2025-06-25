@@ -46,8 +46,9 @@ interface QuantumShare {
     record_type: string;
     patient_id: string;
     patients: {
-      full_name: string;
-      email: string;
+      user_id?: string;
+      full_name?: string;
+      email?: string;
     };
   };
 }
@@ -91,10 +92,21 @@ const RecordSharingManager: React.FC = () => {
         setRecords(decryptedRecords);
       }
 
+      // Handle legacy permissions - transform quantum data to legacy format
       if (permissionsResult.success && permissionsResult.data?.permissions) {
-        setPermissions(permissionsResult.data.permissions);
+        const transformedPermissions = permissionsResult.data.permissions.map((permission: any) => ({
+          id: permission.id,
+          patient_id: permission.patient_id || permission.medical_records?.patient_id,
+          grantee_id: permission.grantee_id || permission.shared_with_user_id,
+          medical_record_id: permission.medical_record_id || permission.record_id,
+          permission_type: permission.permission_type || 'read' as 'read' | 'write',
+          created_at: permission.created_at,
+          expires_at: permission.expires_at
+        }));
+        setPermissions(transformedPermissions);
       }
 
+      // Handle quantum shares - set as raw quantum share data
       if (quantumSharesResult.success && quantumSharesResult.data?.permissions) {
         setQuantumShares(quantumSharesResult.data.permissions);
       }
