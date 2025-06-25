@@ -32,6 +32,19 @@ const AuditLogsPage = () => {
   // Add tab state
   const [activeTab, setActiveTab] = useState<string>('overview');
 
+  // Create properly typed wrapper functions
+  const handleTimeframeChange = (value: string) => {
+    if (value === '24h' || value === '7d' || value === '30d' || value === 'all') {
+      setTimeframe(value);
+    }
+  };
+
+  const handleFilterTypeChange = (type: string) => {
+    if (type === 'all' || type === 'success' || type === 'warning' || type === 'error') {
+      setFilterType(type);
+    }
+  };
+
   // Transform audit logs to match component expectations
   const transformedLogsForDashboard = filteredLogs.map(log => ({
     type: 'access', // Default type for dashboard
@@ -69,7 +82,7 @@ const AuditLogsPage = () => {
       <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
         <AuditLogHeader 
           timeframe={timeframe}
-          setTimeframe={setTimeframe}
+          setTimeframe={handleTimeframeChange}
           filteredLogsCount={filteredLogs.length}
           auditLogsCount={auditLogs.length}
         />
@@ -105,7 +118,7 @@ const AuditLogsPage = () => {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     filterType={filterType}
-                    setFilterType={setFilterType}
+                    setFilterType={handleFilterTypeChange}
                   />
                   
                   <AuditLogsList filteredLogs={transformedLogsForList} />
