@@ -24,7 +24,15 @@ import SmartFormsPage from "./pages/SmartFormsPage";
 import SharedRecordsPage from "./pages/SharedRecordsPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 
-const queryClient = new QueryClient();
+// Create a stable query client instance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => {
   console.log('App rendering...');
