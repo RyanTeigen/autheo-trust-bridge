@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MetricCard } from '@/components/ui/metric-card';
@@ -20,15 +21,37 @@ interface Activity {
   type: string;
 }
 
-interface MockData {
-  totalPatients: number;
-  appointmentsToday: number;
-  pendingReviews: number;
-  messages: number;
-  recentActivity: Activity[];
+interface ProviderMetricsType {
+  patientsToday: number;
+  completedAppointments: number;
+  upcomingAppointments: number;
+  averageWaitTime: string;
+  patientSatisfaction: number;
+  pendingTasks: number;
 }
 
-const mockData: MockData = {
+interface AppointmentType {
+  id: string;
+  patientName: string;
+  time: string;
+  type: string;
+  status: string;
+}
+
+interface PatientType {
+  id: string;
+  name: string;
+  lastVisit: string;
+  reason: string;
+}
+
+interface ProviderDashboardTabProps {
+  metrics: ProviderMetricsType;
+  appointments: AppointmentType[];
+  recentPatients: PatientType[];
+}
+
+const mockData = {
   totalPatients: 124,
   appointmentsToday: 18,
   pendingReviews: 5,
@@ -61,40 +84,44 @@ const mockData: MockData = {
   ]
 };
 
-const ProviderDashboardTab: React.FC = () => {
+const ProviderDashboardTab: React.FC<ProviderDashboardTabProps> = ({ 
+  metrics, 
+  appointments, 
+  recentPatients 
+}) => {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
-          title="Total Patients"
-          value={mockData.totalPatients}
+          title="Patients Today"
+          value={metrics.patientsToday}
           icon={<Users className="h-6 w-6" />}
-          trend="+12%"
-        />
-        <MetricCard
-          title="Appointments Today"
-          value={mockData.appointmentsToday}
-          icon={<Calendar className="h-6 w-6" />}
           trend="+5%"
         />
         <MetricCard
-          title="Pending Reviews"
-          value={mockData.pendingReviews}
-          icon={<FileText className="h-6 w-6" />}
-          trend="-8%"
+          title="Completed Appointments"
+          value={metrics.completedAppointments}
+          icon={<Calendar className="h-6 w-6" />}
+          trend="+12%"
         />
         <MetricCard
-          title="Messages"
-          value={mockData.messages}
+          title="Upcoming Appointments"
+          value={metrics.upcomingAppointments}
+          icon={<FileText className="h-6 w-6" />}
+          trend="Stable"
+        />
+        <MetricCard
+          title="Avg Wait Time"
+          value={metrics.averageWaitTime}
           icon={<MessageCircle className="h-6 w-6" />}
-          trend="+15%"
+          trend="-8%"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-slate-800 border-slate-700">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-autheo-primary">
               <Clock className="h-5 w-5" />
               Recent Activity
             </CardTitle>
@@ -102,13 +129,13 @@ const ProviderDashboardTab: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               {mockData.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-start space-x-3 p-3 bg-slate-700/30 rounded-lg">
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.action}</p>
-                    <p className="text-xs text-gray-600">{activity.patient}</p>
-                    <p className="text-xs text-gray-500">{activity.time}</p>
+                    <p className="text-sm font-medium text-slate-200">{activity.action}</p>
+                    <p className="text-xs text-slate-400">{activity.patient}</p>
+                    <p className="text-xs text-slate-500">{activity.time}</p>
                   </div>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
                     {activity.type}
                   </Badge>
                 </div>
@@ -117,35 +144,35 @@ const ProviderDashboardTab: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-slate-800 border-slate-700">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-autheo-primary">
               <Shield className="h-5 w-5" />
               Security & Compliance
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-green-900/20 rounded-lg border border-green-700/30">
                 <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">Post-Quantum Encryption</span>
+                  <Shield className="h-4 w-4 text-green-400" />
+                  <span className="text-sm font-medium text-slate-200">Post-Quantum Encryption</span>
                 </div>
-                <Badge variant="default" className="bg-green-600">Active</Badge>
+                <Badge variant="default" className="bg-green-600 hover:bg-green-700">Active</Badge>
               </div>
-              <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-blue-900/20 rounded-lg border border-blue-700/30">
                 <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">HIPAA Compliance</span>
+                  <Lock className="h-4 w-4 text-blue-400" />
+                  <span className="text-sm font-medium text-slate-200">HIPAA Compliance</span>
                 </div>
-                <Badge variant="default" className="bg-blue-600">Verified</Badge>
+                <Badge variant="default" className="bg-blue-600 hover:bg-blue-700">Verified</Badge>
               </div>
-              <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-yellow-900/20 rounded-lg border border-yellow-700/30">
                 <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-yellow-600" />
-                  <span className="text-sm font-medium">Audit Logs</span>
+                  <Eye className="h-4 w-4 text-yellow-400" />
+                  <span className="text-sm font-medium text-slate-200">Audit Logs</span>
                 </div>
-                <Badge variant="secondary">Monitoring</Badge>
+                <Badge variant="secondary" className="bg-slate-600 text-slate-200">Monitoring</Badge>
               </div>
             </div>
           </CardContent>
