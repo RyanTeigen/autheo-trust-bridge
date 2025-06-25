@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Hash, Clock, Database, ExternalLink, Shield, Loader2 } from 'lucide-react';
+import { Hash, Clock, Database, ExternalLink, Shield, Loader2, TestTube } from 'lucide-react';
 import { AuditHashService } from '@/services/audit/AuditHashService';
 import { BlockchainAnchorService } from '@/services/audit/BlockchainAnchorService';
 import { useToast } from '@/hooks/use-toast';
@@ -25,7 +25,41 @@ const AuditHashManager: React.FC<AuditHashManagerProps> = ({ onHashAnchored }) =
   const [isGenerating, setIsGenerating] = useState(false);
   const [hashResult, setHashResult] = useState<HashResult | null>(null);
   const [isAnchoring, setIsAnchoring] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const { toast } = useToast();
+
+  const testAuditLogFetch = async () => {
+    setIsTesting(true);
+    try {
+      console.log('🧪 Starting audit log fetch and hash test...');
+      
+      const result = await AuditHashService.generateAuditHashResult();
+      
+      console.log('🎯 Test Results:');
+      console.log(`   - Successfully fetched ${result.logCount} audit logs`);
+      console.log(`   - Generated hash: ${result.hash}`);
+      console.log(`   - Timestamp: ${result.timestamp}`);
+      
+      // Also test blockchain preparation
+      const blockchainData = AuditHashService.prepareForBlockchain(result);
+      console.log('⛓️ Blockchain preparation test successful');
+      
+      toast({
+        title: "Test Completed Successfully! 🎉",
+        description: `Fetched ${result.logCount} logs and generated hash. Check console for details.`,
+      });
+      
+    } catch (error) {
+      console.error('❌ Test failed:', error);
+      toast({
+        title: "Test Failed",
+        description: "Failed to fetch audit logs or generate hash. Check console for details.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   const generateAuditHash = async () => {
     setIsGenerating(true);
@@ -126,7 +160,26 @@ const AuditHashManager: React.FC<AuditHashManagerProps> = ({ onHashAnchored }) =
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          <Button
+            onClick={testAuditLogFetch}
+            disabled={isTesting}
+            variant="outline"
+            className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-slate-900"
+          >
+            {isTesting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <TestTube className="h-4 w-4 mr-2" />
+                Test Fetch & Hash
+              </>
+            )}
+          </Button>
+
           <Button
             onClick={generateAuditHash}
             disabled={isGenerating}
@@ -217,9 +270,11 @@ const AuditHashManager: React.FC<AuditHashManagerProps> = ({ onHashAnchored }) =
         )}
 
         <div className="text-xs text-slate-400 space-y-1">
+          <p>• <strong>Test Fetch & Hash:</strong> Runs the audit log fetching and hashing locally with detailed console logging</p>
+          <p>• <strong>Generate Hash:</strong> Creates a hash for UI display and potential anchoring</p>
+          <p>• <strong>Anchor on Chain:</strong> Simulates blockchain anchoring and stores the record</p>
           <p>• Hash is computed using SHA-256 of concatenated audit log entries</p>
           <p>• Blockchain anchoring creates an immutable timestamp proof</p>
-          <p>• This ensures audit logs cannot be tampered with retroactively</p>
         </div>
       </CardContent>
     </Card>
