@@ -4,9 +4,43 @@
  * Production implementation using real Kyber libraries
  */
 
-// Import real Kyber implementation
-// Using @noble/post-quantum with correct import structure
-import * as pq from '@noble/post-quantum';
+// Import specific Kyber submodules instead of root module
+let kyberInstance: any;
+let isKyberAvailable = false;
+
+// Try to import available Kyber implementations
+const initializeKyber = async () => {
+  try {
+    // Try ML-KEM (the standardized version of Kyber)
+    try {
+      const mlkem = await import('@noble/post-quantum/ml-kem');
+      kyberInstance = mlkem.ml_kem768; // Use ML-KEM-768 as default
+      isKyberAvailable = true;
+      console.log('Successfully loaded ML-KEM-768 from @noble/post-quantum');
+      return;
+    } catch (error) {
+      console.log('ML-KEM not available, trying other options');
+    }
+
+    // Try other possible exports
+    try {
+      const kyber = await import('@noble/post-quantum/kyber');
+      kyberInstance = kyber.kyber768;
+      isKyberAvailable = true;
+      console.log('Successfully loaded Kyber-768 from @noble/post-quantum');
+      return;
+    } catch (error) {
+      console.log('Kyber not available, using fallback');
+    }
+
+  } catch (error) {
+    console.error('Failed to initialize any Kyber implementation:', error);
+    isKyberAvailable = false;
+  }
+};
+
+// Initialize on module load
+initializeKyber().catch(console.error);
 
 export interface KyberKeyPair {
   publicKey: string;
@@ -18,41 +52,14 @@ export interface KyberEncryptedData {
   sharedSecret: string;
 }
 
-// Check what's actually available in the library and use it
-// The @noble/post-quantum library may export different names
-let kyberInstance: any;
-
-try {
-  // Try to find the correct Kyber implementation
-  kyberInstance = (pq as any).kyber512 || (pq as any).kyber768 || (pq as any).kyber1024 || 
-                  (pq as any).ml_kem512 || (pq as any).ml_kem768 || (pq as any).ml_kem1024 ||
-                  (pq as any).mlkem512 || (pq as any).mlkem768 || (pq as any).mlkem1024;
-  
-  // If none of the above work, use the first available method
-  if (!kyberInstance) {
-    const availableKeys = Object.keys(pq);
-    console.log('Available exports from @noble/post-quantum:', availableKeys);
-    
-    // Try to use any available export that looks like a KEM
-    for (const key of availableKeys) {
-      if (key.toLowerCase().includes('kyber') || key.toLowerCase().includes('kem') || key.toLowerCase().includes('mlkem')) {
-        kyberInstance = (pq as any)[key];
-        console.log(`Using ${key} from @noble/post-quantum`);
-        break;
-      }
-    }
-  }
-} catch (error) {
-  console.error('Error initializing Kyber instance:', error);
-}
-
 /**
  * Generate a Kyber key pair using real post-quantum cryptography
  */
 export async function kyberKeyGen(): Promise<KyberKeyPair> {
   try {
-    if (!kyberInstance) {
-      throw new Error('Kyber implementation not available - falling back to mock implementation');
+    if (!isKyberAvailable || !kyberInstance) {
+      console.warn('Kyber implementation not available - using mock implementation');
+      throw new Error('Kyber implementation not available');
     }
 
     // Generate actual Kyber keypair
@@ -92,7 +99,7 @@ export async function kyberEncrypt(data: string, recipientPublicKey: string): Pr
     const publicKeyHex = recipientPublicKey.replace('kyber_pk_', '');
     const publicKeyBytes = new Uint8Array(Buffer.from(publicKeyHex, 'hex'));
 
-    if (kyberInstance && kyberInstance.encapsulate) {
+    if (isKyberAvailable && kyberInstance && kyberInstance.encapsulate) {
       // Use real Kyber KEM to encapsulate a shared secret
       const { ciphertext, sharedSecret } = kyberInstance.encapsulate(publicKeyBytes);
 
@@ -164,7 +171,7 @@ export async function kyberDecrypt(encryptedData: string, userPrivateKey: string
     const combinedHex = encryptedData.replace('kyber_enc_', '');
     const combined = new Uint8Array(Buffer.from(combinedHex, 'hex'));
     
-    if (kyberInstance && kyberInstance.decapsulate) {
+    if (isKyberAvailable && kyberInstance && kyberInstance.decapsulate) {
       // Extract lengths and data
       const view = new DataView(combined.buffer);
       const ciphertextLength = view.getUint32(0, true);
@@ -245,10 +252,10 @@ export function isValidKyberPrivateKey(privateKey: string): boolean {
  */
 export function getKyberParams() {
   return {
-    algorithm: 'Kyber',
-    quantumSafe: true,
+    algorithm: isKyberAvailable ? 'ML-KEM-768/Kyber-768' : 'Mock Implementation',
+    quantumSafe: isKyberAvailable,
     implementation: '@noble/post-quantum',
-    available: !!kyberInstance
+    available: isKyberAvailable
   };
 }
 
