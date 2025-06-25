@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Share2, Eye } from 'lucide-react';
 import RecordShareManager from '@/components/medical/sharing/RecordShareManager';
+import { ShareManager } from '@/components/medical/sharing/ShareManager';
 import { useToast } from '@/hooks/use-toast';
 
 const SharedRecordsTab: React.FC = () => {
@@ -45,11 +46,18 @@ const SharedRecordsTab: React.FC = () => {
             Quantum-Safe Sharing
           </TabsTrigger>
           <TabsTrigger 
-            value="legacy-shares" 
+            value="standard-shares" 
             className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-2"
           >
             <Share2 className="h-4 w-4" />
-            Legacy Sharing
+            Standard Sharing
+          </TabsTrigger>
+          <TabsTrigger 
+            value="legacy-shares" 
+            className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            Legacy System
           </TabsTrigger>
         </TabsList>
         
@@ -70,22 +78,39 @@ const SharedRecordsTab: React.FC = () => {
           </div>
         </TabsContent>
         
+        <TabsContent value="standard-shares" className="mt-0">
+          <div className="space-y-6">
+            <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Share2 className="h-5 w-5 text-blue-400" />
+                <h3 className="text-lg font-semibold text-blue-400">Standard Record Sharing</h3>
+              </div>
+              <p className="text-slate-300 text-sm">
+                Use the standard sharing system to manage access to your medical records with healthcare providers. 
+                This system provides secure access control with traditional encryption methods.
+              </p>
+            </div>
+            
+            <ShareManager />
+          </div>
+        </TabsContent>
+        
         <TabsContent value="legacy-shares" className="mt-0">
           <div className="space-y-6">
             <div className="bg-amber-900/20 border border-amber-500/30 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Share2 className="h-5 w-5 text-amber-400" />
+                <Eye className="h-5 w-5 text-amber-400" />
                 <h3 className="text-lg font-semibold text-amber-400">Legacy Sharing System</h3>
               </div>
               <p className="text-slate-300 text-sm">
                 The legacy sharing system uses traditional encryption methods. While still secure for current threats, 
-                we recommend using the quantum-safe sharing system for future-proof protection.
+                we recommend using the quantum-safe or standard sharing systems for enhanced protection.
               </p>
             </div>
             
             <div className="text-center py-8 text-slate-400">
               <p>Legacy sharing features will be displayed here.</p>
-              <p className="text-sm mt-2">Consider upgrading to quantum-safe sharing for enhanced security.</p>
+              <p className="text-sm mt-2">Consider upgrading to quantum-safe or standard sharing for enhanced security.</p>
             </div>
           </div>
         </TabsContent>
