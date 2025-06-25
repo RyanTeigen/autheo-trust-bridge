@@ -32,18 +32,26 @@ const AuditLogsPage = () => {
   // Add tab state
   const [activeTab, setActiveTab] = useState<string>('overview');
 
-  // Create properly typed setter wrappers
-  const handleTimeframeChange = (value: string) => {
-    if (['24h', '7d', '30d', 'all'].includes(value)) {
-      setTimeframe(value);
-    }
-  };
+  // Transform audit logs to match component expectations
+  const transformedLogsForDashboard = filteredLogs.map(log => ({
+    type: 'access', // Default type for dashboard
+    status: log.status,
+    timestamp: log.timestamp
+  }));
 
-  const handleFilterTypeChange = (type: string) => {
-    if (['all', 'success', 'warning', 'error'].includes(type)) {
-      setFilterType(type);
-    }
-  };
+  const transformedLogsForList = filteredLogs.map(log => ({
+    id: log.id,
+    type: 'access' as const, // Default type for list
+    action: log.action,
+    timestamp: log.timestamp,
+    user: 'Current User', // Default user
+    resource: log.resource,
+    resourceId: log.target_id,
+    status: log.status,
+    details: log.details,
+    ipAddress: log.ip_address,
+    browser: log.user_agent ? log.user_agent.split(' ')[0] : undefined
+  }));
   
   if (loading) {
     return (
@@ -61,7 +69,7 @@ const AuditLogsPage = () => {
       <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
         <AuditLogHeader 
           timeframe={timeframe}
-          setTimeframe={handleTimeframeChange}
+          setTimeframe={setTimeframe}
           filteredLogsCount={filteredLogs.length}
           auditLogsCount={auditLogs.length}
         />
@@ -81,7 +89,7 @@ const AuditLogsPage = () => {
             <TabsTrigger value="logs" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 text-slate-300">Audit Logs</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-6">
-            <AuditLogDashboard logs={filteredLogs} />
+            <AuditLogDashboard logs={transformedLogsForDashboard} />
           </TabsContent>
           <TabsContent value="logs" className="mt-6">
             <Card className="bg-slate-800 border-slate-700 text-slate-100">
@@ -97,10 +105,10 @@ const AuditLogsPage = () => {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     filterType={filterType}
-                    setFilterType={handleFilterTypeChange}
+                    setFilterType={setFilterType}
                   />
                   
-                  <AuditLogsList filteredLogs={filteredLogs} />
+                  <AuditLogsList filteredLogs={transformedLogsForList} />
                 </div>
               </CardContent>
             </Card>

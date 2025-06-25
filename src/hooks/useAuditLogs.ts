@@ -11,7 +11,7 @@ interface AuditLog {
   details?: string;
   target_type?: string;
   target_id?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any> | null;
   ip_address?: string;
   user_agent?: string;
   timestamp: string;
@@ -82,7 +82,9 @@ export function useAuditLogs() {
         details: log.details,
         target_type: log.target_type,
         target_id: log.target_id,
-        metadata: log.metadata,
+        metadata: log.metadata ? 
+          (typeof log.metadata === 'object' ? log.metadata as Record<string, any> : null) : 
+          null,
         ip_address: log.ip_address,
         user_agent: log.user_agent,
         timestamp: log.timestamp
