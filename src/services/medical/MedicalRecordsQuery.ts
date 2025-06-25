@@ -36,7 +36,7 @@ export class MedicalRecordsQuery extends BaseService {
       const offset = Math.max(options.offset || 0, 0);
 
       const [records, totalCount] = await Promise.all([
-        MedicalRecordsRepository.findByPatientId(
+        MedicalRecordsRepository.findByPatientIdWithPatients(
           patientResult.data.id,
           { limit, offset },
           { recordType: filters.recordType }

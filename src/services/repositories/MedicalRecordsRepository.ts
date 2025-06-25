@@ -73,6 +73,34 @@ export class MedicalRecordsRepository {
     return records || [];
   }
 
+  static async findByPatientIdWithPatients(
+    patientId: string, 
+    options: PaginationOptions = {},
+    filters: MedicalRecordFilters = {}
+  ): Promise<(MedicalRecord & { patients: { user_id: string } })[]> {
+    const limit = Math.min(Math.max(options.limit || 10, 1), 100);
+    const offset = Math.max(options.offset || 0, 0);
+
+    let query = supabase
+      .from('medical_records')
+      .select('*, patients!inner(user_id)')
+      .eq('patient_id', patientId);
+
+    if (filters.recordType) {
+      query = query.eq('record_type', filters.recordType);
+    }
+
+    const { data: records, error } = await query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    return records as (MedicalRecord & { patients: { user_id: string } })[] || [];
+  }
+
   static async update(id: string, encryptedData: string): Promise<void> {
     const { error } = await supabase
       .from('medical_records')

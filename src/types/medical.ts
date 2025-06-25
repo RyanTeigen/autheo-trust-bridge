@@ -36,5 +36,12 @@ export interface SharingPermission {
 }
 
 export interface DecryptedMedicalRecord extends Omit<MedicalRecord, 'encrypted_data'> {
+  title: string;
+  description: string;
+  recordType: string;
   data: any;
+  encryption?: {
+    isQuantumSafe: boolean;
+    algorithm: string;
+  };
 }

@@ -1,3 +1,4 @@
+
 import { BaseService, ServiceResponse } from '../BaseService';
 import { DecryptedMedicalRecord } from '@/types/medical';
 import { ValidationError, AuthorizationError, NotFoundError } from '@/utils/errorHandling';
@@ -39,7 +40,7 @@ export class MedicalRecordsCRUD extends BaseService {
         throw new AuthorizationError('Cannot create records for other patients');
       }
 
-      const encryptedData = MedicalRecordsEncryption.encryptRecordData(sanitizedData);
+      const encryptedData = await MedicalRecordsEncryption.encryptRecordData(sanitizedData);
       const result = await MedicalRecordsRepository.create(patientId, encryptedData, sanitizedRecordType);
 
       return this.createSuccessResponse(result, { 
@@ -114,7 +115,7 @@ export class MedicalRecordsCRUD extends BaseService {
       // Decrypt current data, merge with updates, then re-encrypt
       const currentData = JSON.parse(decrypt(record.encrypted_data));
       const updatedData = { ...currentData, ...updateFields };
-      const encryptedData = MedicalRecordsEncryption.encryptRecordData(updatedData);
+      const encryptedData = await MedicalRecordsEncryption.encryptRecordData(updatedData);
       
       await MedicalRecordsRepository.update(sanitizedId, encryptedData);
 
