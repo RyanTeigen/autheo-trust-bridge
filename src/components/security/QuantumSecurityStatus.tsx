@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -106,15 +105,15 @@ const QuantumSecurityStatus: React.FC = () => {
     ];
   };
 
-  const getOverallStatus = () => {
-    if (!healthStatus) return { level: 'unknown', score: 0 };
+  const getOverallStatus = (): { level: 'legacy' | 'quantum-safe' | 'post-quantum' | 'hybrid'; score: number } => {
+    if (!healthStatus) return { level: 'legacy', score: 0 };
     
     if (healthStatus.operational && kyberParams?.quantumSafe) {
-      return { level: 'quantum-safe' as const, score: 95 };
+      return { level: 'quantum-safe', score: 95 };
     } else if (healthStatus.operational) {
-      return { level: 'hybrid' as const, score: 75 };
+      return { level: 'hybrid', score: 75 };
     } else {
-      return { level: 'legacy' as const, score: 30 };
+      return { level: 'legacy', score: 30 };
     }
   };
 

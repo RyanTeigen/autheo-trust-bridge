@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, CheckCircle, Calendar, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -105,7 +104,9 @@ const CompliancePage = () => {
         )}
 
         {/* Quantum Security Dashboard - New primary security component */}
-        <QuantumSecurityDashboard className="mb-6" />
+        <div className="mb-6">
+          <QuantumSecurityDashboard />
+        </div>
         
         {/* Real-Time Compliance Monitor - Primary component for live monitoring */}
         <RealTimeComplianceMonitor className="mb-6" />

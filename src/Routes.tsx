@@ -1,5 +1,4 @@
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { FrontendAuthProvider } from '@/contexts/FrontendAuthContext';
 import { HealthRecordsProvider } from '@/contexts/HealthRecordsContext';
@@ -36,6 +35,14 @@ const QuantumSecurityPage = lazy(() => import('@/pages/QuantumSecurityPage'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const Unauthorized = lazy(() => import('@/pages/Unauthorized'));
 
+const MainLayoutWrapper = () => {
+  return (
+    <MainLayout>
+      <Outlet />
+    </MainLayout>
+  );
+};
+
 const AppRoutes = () => {
   return (
     <Router>
@@ -50,7 +57,7 @@ const AppRoutes = () => {
                       <Route path="/auth" element={<LazyRoute component={AuthPage} />} />
                       <Route path="/unauthorized" element={<LazyRoute component={Unauthorized} />} />
                       
-                      <Route path="/" element={<MainLayout />}>
+                      <Route path="/" element={<MainLayoutWrapper />}>
                         <Route index element={<LazyRoute component={Index} />} />
                         
                         <Route path="/patient-dashboard" element={
