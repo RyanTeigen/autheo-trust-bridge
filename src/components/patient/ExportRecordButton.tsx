@@ -43,7 +43,7 @@ export function ExportRecordButton({
         {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${user.accessToken}`,
+            'Authorization': `Bearer ${user.token || user.access_token}`,
             'Content-Type': 'application/json'
           }
         }
