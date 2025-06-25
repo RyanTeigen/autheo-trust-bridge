@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertTriangle, CheckCircle, Clock, TrendingUp, TrendingDown, Minus, Users, Database, Activity } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle, Clock, TrendingUp, TrendingDown, Minus, Users, Database, Activity, FileText, Eye, UserCheck } from 'lucide-react';
 import ComplianceProgressIndicator from '@/components/ui/ComplianceProgressIndicator';
 import { MetricCard } from '@/components/ui/metric-card';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +21,14 @@ interface ComplianceMetrics {
   recentErrors: number;
   complianceScore: number;
   riskLevel: 'low' | 'medium' | 'high';
+  uniquePatients: number;
+  uniqueProviders: number;
+  recentAccessCount: number;
+  recordSharesCount: number;
+  soapNotesCount: number;
+  medicalRecordsCount: number;
+  accessDeniedCount: number;
+  successfulLogins: number;
 }
 
 const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudit }) => {
@@ -31,7 +39,15 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
     activeUsers: 0,
     recentErrors: 0,
     complianceScore: 92,
-    riskLevel: 'low'
+    riskLevel: 'low',
+    uniquePatients: 0,
+    uniqueProviders: 0,
+    recentAccessCount: 0,
+    recordSharesCount: 0,
+    soapNotesCount: 0,
+    medicalRecordsCount: 0,
+    accessDeniedCount: 0,
+    successfulLogins: 0
   });
   const [loading, setLoading] = useState(true);
   const { logAccess } = useAuditLog();
@@ -67,18 +83,72 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
         .gte('timestamp', yesterday.toISOString())
         .not('user_id', 'is', null);
 
+      // Fetch unique patients count
+      const { count: uniquePatientsCount } = await supabase
+        .from('patients')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch unique providers count  
+      const { count: uniqueProvidersCount } = await supabase
+        .from('providers')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch recent access count (last 7 days)
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      
+      const { count: recentAccessCount } = await supabase
+        .from('audit_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('action', 'ACCESS')
+        .gte('timestamp', lastWeek.toISOString());
+
+      // Fetch record shares count
+      const { count: recordSharesCount } = await supabase
+        .from('record_shares')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch SOAP notes count
+      const { count: soapNotesCount } = await supabase
+        .from('soap_notes')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch medical records count
+      const { count: medicalRecordsCount } = await supabase
+        .from('medical_records')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch access denied count (last 30 days)
+      const lastMonth = new Date();
+      lastMonth.setDate(lastMonth.getDate() - 30);
+      
+      const { count: accessDeniedCount } = await supabase
+        .from('audit_logs')
+        .select('*', { count: 'exact', head: true })
+        .ilike('details', '%denied%')
+        .gte('timestamp', lastMonth.toISOString());
+
+      // Fetch successful logins (last 7 days)
+      const { count: successfulLogins } = await supabase
+        .from('audit_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('action', 'LOGIN')
+        .eq('status', 'success')
+        .gte('timestamp', lastWeek.toISOString());
+
       // Calculate error rate
       const errorRate = totalLogs && totalLogs > 0 ? ((errorCount || 0) / totalLogs) * 100 : 0;
       
-      // Determine risk level based on error rate
+      // Determine risk level based on error rate and access denied count
       let riskLevel: 'low' | 'medium' | 'high' = 'low';
-      if (errorRate > 10) riskLevel = 'high';
-      else if (errorRate > 5) riskLevel = 'medium';
+      if (errorRate > 10 || (accessDeniedCount || 0) > 50) riskLevel = 'high';
+      else if (errorRate > 5 || (accessDeniedCount || 0) > 20) riskLevel = 'medium';
 
       // Calculate compliance score based on metrics
       let complianceScore = 100;
       if (errorRate > 0) complianceScore -= Math.min(errorRate * 2, 20);
       if ((errorCount || 0) > 10) complianceScore -= 10;
+      if ((accessDeniedCount || 0) > 20) complianceScore -= 15;
       
       setMetrics({
         totalAuditLogs: totalLogs || 0,
@@ -86,7 +156,15 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
         activeUsers: activeUserCount || 0,
         recentErrors: errorCount || 0,
         complianceScore: Math.max(Math.round(complianceScore), 0),
-        riskLevel
+        riskLevel,
+        uniquePatients: uniquePatientsCount || 0,
+        uniqueProviders: uniqueProvidersCount || 0,
+        recentAccessCount: recentAccessCount || 0,
+        recordSharesCount: recordSharesCount || 0,
+        soapNotesCount: soapNotesCount || 0,
+        medicalRecordsCount: medicalRecordsCount || 0,
+        accessDeniedCount: accessDeniedCount || 0,
+        successfulLogins: successfulLogins || 0
       });
       
       setOverallScore(Math.max(Math.round(complianceScore), 0));
@@ -129,7 +207,53 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
     },
   ];
 
-  // New system health metrics
+  // New detailed metrics
+  const detailedMetrics = [
+    {
+      title: 'Unique Patients',
+      value: loading ? '...' : metrics.uniquePatients.toLocaleString(),
+      trend: 'up',
+      icon: <UserCheck className="h-4 w-4" />,
+      description: 'Total registered patients'
+    },
+    {
+      title: 'Unique Providers',
+      value: loading ? '...' : metrics.uniqueProviders.toLocaleString(),
+      trend: 'up',
+      icon: <Users className="h-4 w-4" />,
+      description: 'Total registered providers'
+    },
+    {
+      title: 'Recent Access',
+      value: loading ? '...' : metrics.recentAccessCount.toLocaleString(),
+      trend: metrics.recentAccessCount > 100 ? 'up' : 'stable',
+      icon: <Eye className="h-4 w-4" />,
+      description: 'Access events (last 7 days)'
+    },
+    {
+      title: 'Record Shares',
+      value: loading ? '...' : metrics.recordSharesCount.toLocaleString(),
+      trend: 'up',
+      icon: <FileText className="h-4 w-4" />,
+      description: 'Total shared records'
+    },
+    {
+      title: 'SOAP Notes',
+      value: loading ? '...' : metrics.soapNotesCount.toLocaleString(),
+      trend: 'up',
+      icon: <FileText className="h-4 w-4" />,
+      description: 'Clinical documentation'
+    },
+    {
+      title: 'Medical Records',
+      value: loading ? '...' : metrics.medicalRecordsCount.toLocaleString(),
+      trend: 'up',
+      icon: <Database className="h-4 w-4" />,
+      description: 'Total medical records'
+    }
+  ];
+
+  // System health metrics
   const systemHealthMetrics = [
     {
       title: 'Error Rate',
@@ -144,6 +268,20 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
       trend: metrics.riskLevel === 'low' ? 'up' : 'down',
       icon: <AlertTriangle className="h-4 w-4" />,
       description: 'Current risk assessment'
+    },
+    {
+      title: 'Access Denied',
+      value: loading ? '...' : metrics.accessDeniedCount.toString(),
+      trend: metrics.accessDeniedCount < 10 ? 'up' : 'down',
+      icon: <Shield className="h-4 w-4" />,
+      description: 'Blocked access attempts (30 days)'
+    },
+    {
+      title: 'Successful Logins',
+      value: loading ? '...' : metrics.successfulLogins.toString(),
+      trend: 'up',
+      icon: <CheckCircle className="h-4 w-4" />,
+      description: 'Valid authentication (7 days)'
     }
   ];
 
@@ -173,6 +311,12 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
       description: `${metrics.recentErrors} errors logged in the last 24 hours`,
       priority: metrics.recentErrors > 5 ? 'high' : 'low',
       dueDate: 'Immediate attention needed'
+    },
+    {
+      title: 'Review Access Denials',
+      description: `${metrics.accessDeniedCount} access attempts denied in the last 30 days`,
+      priority: metrics.accessDeniedCount > 20 ? 'high' : 'medium',
+      dueDate: 'Review security logs'
     }
   ];
 
@@ -260,18 +404,38 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
         ))}
       </div>
 
+      {/* Detailed Metrics Section */}
+      <div>
+        <h3 className="text-lg font-semibold text-slate-100 mb-4">Detailed Analytics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {detailedMetrics.map((metric, index) => (
+            <MetricCard
+              key={index}
+              title={metric.title}
+              value={metric.value}
+              icon={metric.icon}
+              trend={getTrendIcon(metric.trend)}
+              description={metric.description}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* System Health Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {systemHealthMetrics.map((metric, index) => (
-          <MetricCard
-            key={index}
-            title={metric.title}
-            value={metric.value}
-            icon={metric.icon}
-            trend={getTrendIcon(metric.trend)}
-            description={metric.description}
-          />
-        ))}
+      <div>
+        <h3 className="text-lg font-semibold text-slate-100 mb-4">System Health</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {systemHealthMetrics.map((metric, index) => (
+            <MetricCard
+              key={index}
+              title={metric.title}
+              value={metric.value}
+              icon={metric.icon}
+              trend={getTrendIcon(metric.trend)}
+              description={metric.description}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Critical Actions */}
