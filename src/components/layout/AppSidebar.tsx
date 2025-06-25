@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -255,4 +254,4 @@ const AppSidebar: React.FC = () => {
   );
 };
 
-export default AppSidebarr;
+export default AppSidebar;
