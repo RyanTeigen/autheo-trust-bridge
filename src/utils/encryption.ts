@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { kyberEncrypt, kyberDecrypt, isValidKyberPublicKey, getKyberParams } from './pq-kyber';
+import { hybridEncrypt, hybridDecrypt, HybridEncryptedData, HybridDecryptionResult, validateHybridEncryptedData } from './hybrid-encryption';
+import { isValidKyberPublicKey, getKyberParams } from './pq-kyber';
 
 const AES_KEY_LENGTH = 32;
 const AES_IV_LENGTH = 12; // GCM recommended IV size
@@ -25,8 +26,7 @@ export interface DecryptionResult {
 }
 
 /**
- * Encrypt a medical record using quantum-safe hybrid encryption
- * Combines AES-256-GCM for data encryption with real Kyber for key encapsulation
+ * Encrypt a medical record using hybrid encryption (AES-256-GCM + Kyber KEM)
  */
 export async function encryptRecord(plaintext: string, recipientPublicKey: string): Promise<EncryptedRecord> {
   if (!recipientPublicKey || !isValidKyberPublicKey(recipientPublicKey)) {
@@ -34,29 +34,19 @@ export async function encryptRecord(plaintext: string, recipientPublicKey: strin
   }
 
   try {
-    // Generate random AES key and IV
-    const aesKey = crypto.randomBytes(AES_KEY_LENGTH);
-    const iv = crypto.randomBytes(AES_IV_LENGTH);
-
-    // Encrypt data with AES-256-GCM
-    const cipher = crypto.createCipheriv('aes-256-gcm', aesKey, iv);
-    let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    const authTag = cipher.getAuthTag();
-
-    // Encrypt AES key with real Kyber post-quantum cryptography
-    const pqEncryptedKey = await kyberEncrypt(aesKey.toString('hex'), recipientPublicKey);
-
+    // Use hybrid encryption
+    const hybridResult = await hybridEncrypt(plaintext, recipientPublicKey);
+    
     // Get Kyber parameters for metadata
     const kyberParams = getKyberParams();
 
     return {
-      encryptedData: encrypted,
-      pqEncryptedKey,
-      iv: iv.toString('hex'),
-      authTag: authTag.toString('hex'),
-      algorithm: 'AES-256-GCM + Kyber-1024',
-      timestamp: new Date().toISOString(),
+      encryptedData: hybridResult.encryptedData,
+      pqEncryptedKey: hybridResult.pqEncryptedKey,
+      iv: hybridResult.iv,
+      authTag: hybridResult.authTag,
+      algorithm: hybridResult.algorithm,
+      timestamp: hybridResult.timestamp,
       kyberParams
     };
   } catch (error) {
@@ -66,28 +56,28 @@ export async function encryptRecord(plaintext: string, recipientPublicKey: strin
 }
 
 /**
- * Decrypt a medical record using quantum-safe hybrid decryption
+ * Decrypt a medical record using hybrid decryption (Kyber KEM + AES-256-GCM)
  */
 export async function decryptRecord(encrypted: EncryptedRecord, userPrivateKey: string): Promise<DecryptionResult> {
   try {
-    // Decrypt AES key using real Kyber
-    const aesKeyHex = await kyberDecrypt(encrypted.pqEncryptedKey, userPrivateKey);
-    const aesKey = Buffer.from(aesKeyHex, 'hex');
-    const iv = Buffer.from(encrypted.iv, 'hex');
-    const authTag = Buffer.from(encrypted.authTag, 'hex');
+    // Convert to hybrid format and decrypt
+    const hybridEncrypted: HybridEncryptedData = {
+      encryptedData: encrypted.encryptedData,
+      pqEncryptedKey: encrypted.pqEncryptedKey,
+      iv: encrypted.iv,
+      authTag: encrypted.authTag,
+      algorithm: encrypted.algorithm,
+      timestamp: encrypted.timestamp
+    };
 
-    // Decrypt data with AES-256-GCM
-    const decipher = crypto.createDecipheriv('aes-256-gcm', aesKey, iv);
-    decipher.setAuthTag(authTag);
-    let decrypted = decipher.update(encrypted.encryptedData, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
+    const hybridResult = await hybridDecrypt(hybridEncrypted, userPrivateKey);
 
     return {
-      data: decrypted,
+      data: hybridResult.data,
       metadata: {
-        algorithm: encrypted.algorithm || 'AES-256-GCM + Kyber-1024',
-        timestamp: encrypted.timestamp || new Date().toISOString(),
-        quantumSafe: true,
+        algorithm: hybridResult.metadata.algorithm,
+        timestamp: hybridResult.metadata.timestamp,
+        quantumSafe: hybridResult.metadata.quantumSafe,
         kyberParams: encrypted.kyberParams
       }
     };
@@ -98,7 +88,7 @@ export async function decryptRecord(encrypted: EncryptedRecord, userPrivateKey: 
 }
 
 /**
- * Encrypt data for multiple recipients using real post-quantum cryptography
+ * Encrypt data for multiple recipients using hybrid post-quantum cryptography
  */
 export async function encryptForMultipleRecipients(
   plaintext: string, 
@@ -125,24 +115,16 @@ export async function encryptForMultipleRecipients(
  * Validate encrypted record integrity
  */
 export function validateEncryptedRecord(encrypted: EncryptedRecord): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
-
-  if (!encrypted.encryptedData) errors.push('Missing encrypted data');
-  if (!encrypted.pqEncryptedKey) errors.push('Missing post-quantum encrypted key');
-  if (!encrypted.iv) errors.push('Missing initialization vector');
-  if (!encrypted.authTag) errors.push('Missing authentication tag');
-  if (!encrypted.algorithm) errors.push('Missing algorithm specification');
-  if (!encrypted.timestamp) errors.push('Missing timestamp');
-
-  // Validate Kyber encrypted key format
-  if (encrypted.pqEncryptedKey && !encrypted.pqEncryptedKey.startsWith('kyber_enc_')) {
-    errors.push('Invalid post-quantum encrypted key format');
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors
+  const hybridData: HybridEncryptedData = {
+    encryptedData: encrypted.encryptedData,
+    pqEncryptedKey: encrypted.pqEncryptedKey,
+    iv: encrypted.iv,
+    authTag: encrypted.authTag,
+    algorithm: encrypted.algorithm,
+    timestamp: encrypted.timestamp
   };
+
+  return validateHybridEncryptedData(hybridData);
 }
 
 /**
