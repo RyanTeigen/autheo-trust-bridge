@@ -10,6 +10,7 @@ const patientsRoutes = require('./routes/patients');
 const sharingPermissionsRoutes = require('./routes/sharing-permissions');
 const sharedRecordsRoutes = require('./routes/shared-records');
 const logsRoutes = require('./routes/logs');
+const auditExportRoutes = require('./routes/audit-export');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -38,6 +39,7 @@ app.use('/api/patients', patientsRoutes);
 app.use('/api/sharing-permissions', sharingPermissionsRoutes);
 app.use('/api/shared-records', sharedRecordsRoutes);
 app.use('/api/logs', logsRoutes);
+app.use('/api/audit', auditExportRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

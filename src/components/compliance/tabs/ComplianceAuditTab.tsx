@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import SmartAnchoringWidget from '../audit-trail/SmartAnchoringWidget';
 import RevokedSharesList from '../RevokedSharesList';
 import { AuditLogTable } from '../AuditLogTable';
+import ExportAuditLogsButton from '../ExportAuditLogsButton';
 
 const ComplianceAuditTab: React.FC = () => {
   const [auditStats, setAuditStats] = useState({
@@ -33,13 +35,6 @@ const ComplianceAuditTab: React.FC = () => {
     toast({
       title: "Full Audit Initiated",
       description: "Comprehensive audit scan is running. This may take several minutes.",
-    });
-  };
-
-  const handleExportAuditLogs = () => {
-    toast({
-      title: "Export Started",
-      description: "Audit logs are being prepared for download.",
     });
   };
 
@@ -119,26 +114,34 @@ const ComplianceAuditTab: React.FC = () => {
             Audit Actions
           </CardTitle>
           <CardDescription>
-            Run comprehensive audits and export compliance reports
+            Run comprehensive audits, export compliance reports, and manage audit data
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Button
-              onClick={handleRunFullAudit}
-              className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Run Full Audit
-            </Button>
-            <Button
-              onClick={handleExportAuditLogs}
-              variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-700"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Export Audit Logs
-            </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-slate-300">System Auditing</h4>
+              <Button
+                onClick={handleRunFullAudit}
+                className="w-full bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Run Full Audit
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-slate-300">Data Export & Verification</h4>
+              <ExportAuditLogsButton />
+              
+              <Alert className="mt-3 bg-blue-900/20 border-blue-500/30">
+                <Shield className="h-4 w-4" />
+                <AlertDescription className="text-blue-200 text-xs">
+                  <strong>Integrity Verification:</strong> Each export includes a SHA-256 hash for tamper detection. 
+                  Store this hash securely for compliance verification.
+                </AlertDescription>
+              </Alert>
+            </div>
           </div>
         </CardContent>
       </Card>
