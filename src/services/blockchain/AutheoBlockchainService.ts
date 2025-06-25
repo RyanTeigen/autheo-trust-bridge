@@ -11,7 +11,7 @@ export interface BlockchainTransaction {
   timestamp: number;
 }
 
-export { AnchorResult };
+export type { AnchorResult };
 
 class AutheoBlockchainService {
   private connection: BlockchainConnection;

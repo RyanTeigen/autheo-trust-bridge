@@ -107,7 +107,7 @@ export class ContractInteraction {
       const block = await this.web3.eth.getBlock(receipt.blockNumber);
 
       return {
-        hash: receipt.transactionHash,
+        transactionHash: receipt.transactionHash,
         blockNumber: Number(receipt.blockNumber),
         gasUsed: Number(receipt.gasUsed),
         status: Boolean(receipt.status),
