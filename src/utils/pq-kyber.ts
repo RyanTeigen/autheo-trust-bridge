@@ -4,37 +4,74 @@
  * Production implementation using real Kyber libraries
  */
 
-// Import specific Kyber submodules instead of root module
+// Import the main module and check what's available
 let kyberInstance: any;
 let isKyberAvailable = false;
 
-// Try to import available Kyber implementations
+// Initialize Kyber by checking what's actually available in the library
 const initializeKyber = async () => {
   try {
-    // Try ML-KEM (the standardized version of Kyber)
-    try {
-      const mlkem = await import('@noble/post-quantum/ml-kem');
-      kyberInstance = mlkem.ml_kem768; // Use ML-KEM-768 as default
+    // Import the main module to see what's available
+    const pq = await import('@noble/post-quantum');
+    console.log('Available exports from @noble/post-quantum:', Object.keys(pq));
+    
+    // Try to find any available Kyber/ML-KEM implementation
+    const availableExports = Object.keys(pq);
+    
+    // Look for ML-KEM implementations first (standardized version)
+    if ('ml_kem768' in pq) {
+      kyberInstance = (pq as any).ml_kem768;
       isKyberAvailable = true;
       console.log('Successfully loaded ML-KEM-768 from @noble/post-quantum');
       return;
-    } catch (error) {
-      console.log('ML-KEM not available, trying other options');
+    } else if ('ml_kem512' in pq) {
+      kyberInstance = (pq as any).ml_kem512;
+      isKyberAvailable = true;
+      console.log('Successfully loaded ML-KEM-512 from @noble/post-quantum');
+      return;
+    } else if ('ml_kem1024' in pq) {
+      kyberInstance = (pq as any).ml_kem1024;
+      isKyberAvailable = true;
+      console.log('Successfully loaded ML-KEM-1024 from @noble/post-quantum');
+      return;
     }
-
-    // Try other possible exports
-    try {
-      const kyber = await import('@noble/post-quantum/kyber');
-      kyberInstance = kyber.kyber768;
+    
+    // Look for traditional Kyber implementations
+    if ('kyber768' in pq) {
+      kyberInstance = (pq as any).kyber768;
       isKyberAvailable = true;
       console.log('Successfully loaded Kyber-768 from @noble/post-quantum');
       return;
-    } catch (error) {
-      console.log('Kyber not available, using fallback');
+    } else if ('kyber512' in pq) {
+      kyberInstance = (pq as any).kyber512;
+      isKyberAvailable = true;
+      console.log('Successfully loaded Kyber-512 from @noble/post-quantum');
+      return;
+    } else if ('kyber1024' in pq) {
+      kyberInstance = (pq as any).kyber1024;
+      isKyberAvailable = true;
+      console.log('Successfully loaded Kyber-1024 from @noble/post-quantum');
+      return;
     }
-
+    
+    // Look for any export that might be a KEM implementation
+    for (const exportName of availableExports) {
+      const exportValue = (pq as any)[exportName];
+      if (exportValue && typeof exportValue === 'object' && 
+          (exportValue.keygen || exportValue.encapsulate || exportValue.decapsulate)) {
+        kyberInstance = exportValue;
+        isKyberAvailable = true;
+        console.log(`Successfully loaded ${exportName} from @noble/post-quantum`);
+        return;
+      }
+    }
+    
+    console.warn('No suitable Kyber/ML-KEM implementation found in @noble/post-quantum');
+    isKyberAvailable = false;
+    
   } catch (error) {
-    console.error('Failed to initialize any Kyber implementation:', error);
+    console.error('Failed to initialize Kyber implementation:', error);
+    console.warn('The @noble/post-quantum library may not be properly installed or may not contain Kyber implementations');
     isKyberAvailable = false;
   }
 };
