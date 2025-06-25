@@ -24,9 +24,10 @@ export interface SharedRecord {
 }
 
 export interface DecryptedSharedRecord extends SharedRecord {
-  decryptionStatus: 'encrypted' | 'decrypted';
+  decryptionStatus: 'encrypted' | 'decrypted' | 'failed';
   decryptedData?: any;
   message?: string;
+  error?: string;
 }
 
 export const useSharedRecordsAPI = () => {
@@ -78,7 +79,7 @@ export const useSharedRecordsAPI = () => {
     }
   };
 
-  const decryptSharedRecord = async (shareId: string) => {
+  const getDecryptedSharedRecords = async (privateKey?: string) => {
     setLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -86,12 +87,71 @@ export const useSharedRecordsAPI = () => {
         throw new Error('No authenticated session');
       }
 
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      };
+
+      // Add private key to headers if provided
+      if (privateKey) {
+        headers['x-private-key'] = privateKey;
+      }
+
+      const response = await fetch('/api/shared-records/decrypted', {
+        method: 'GET',
+        headers,
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        return {
+          success: true,
+          data: result.data.sharedRecords as DecryptedSharedRecord[],
+          count: result.data.count
+        };
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to fetch decrypted shared records",
+          variant: "destructive",
+        });
+        return { success: false, error: result.error };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast({
+        title: "Error",
+        description: "Failed to fetch decrypted shared records",
+        variant: "destructive",
+      });
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const decryptSharedRecord = async (shareId: string, privateKey?: string) => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No authenticated session');
+      }
+
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json',
+      };
+
+      // Add private key to headers if provided
+      if (privateKey) {
+        headers['x-private-key'] = privateKey;
+      }
+
       const response = await fetch(`/api/shared-records/${shareId}/decrypt`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       const result = await response.json();
@@ -125,6 +185,7 @@ export const useSharedRecordsAPI = () => {
   return {
     loading,
     getSharedRecords,
+    getDecryptedSharedRecords,
     decryptSharedRecord
   };
 };
