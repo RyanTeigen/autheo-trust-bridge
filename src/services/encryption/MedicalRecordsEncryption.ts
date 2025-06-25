@@ -24,6 +24,20 @@ export interface EncryptedMedicalRecord {
   updated_at: string;
 }
 
+export interface DecryptedRecord {
+  id: string;
+  patient_id: string;
+  data: any;
+  record_type: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: {
+    algorithm: string;
+    timestamp: string;
+    encrypted: boolean;
+  };
+}
+
 export class MedicalRecordsEncryption {
   // -- Encrypt medical record data --
   static async encryptMedicalRecord(data: any, userId: string): Promise<{ encrypted_data: string; iv: string }> {
@@ -38,6 +52,16 @@ export class MedicalRecordsEncryption {
       encrypted_data: encrypted.ciphertext,
       iv: encrypted.iv
     };
+  }
+
+  // -- Alias for consistency --
+  static async encryptRecordData(data: any, userId?: string): Promise<{ encrypted_data: string; iv: string }> {
+    const { data: { user } } = await supabase.auth.getUser();
+    const userIdToUse = userId || user?.id;
+    if (!userIdToUse) {
+      throw new Error('User not authenticated');
+    }
+    return this.encryptMedicalRecord(data, userIdToUse);
   }
 
   // -- Decrypt medical record data --
@@ -56,6 +80,53 @@ export class MedicalRecordsEncryption {
     return await decryptRecordForSelf({ iv, ciphertext: encrypted_data }, privateKey);
   }
 
+  // -- Decrypt single record --
+  static async decryptSingleRecord(record: any): Promise<DecryptedRecord> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const decryptedData = await this.decryptMedicalRecord(
+      record.encrypted_data,
+      record.iv,
+      user.id
+    );
+
+    return {
+      id: record.id,
+      patient_id: record.patient_id,
+      data: decryptedData,
+      record_type: record.record_type,
+      created_at: record.created_at,
+      updated_at: record.updated_at,
+      metadata: {
+        algorithm: 'AES-GCM + X25519',
+        timestamp: new Date().toISOString(),
+        encrypted: true
+      }
+    };
+  }
+
+  // -- Decrypt multiple records --
+  static async decryptRecords(records: any[]): Promise<DecryptedRecord[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    const decryptedRecords = [];
+    for (const record of records) {
+      try {
+        const decrypted = await this.decryptSingleRecord(record);
+        decryptedRecords.push(decrypted);
+      } catch (error) {
+        console.error(`Failed to decrypt record ${record.id}:`, error);
+      }
+    }
+    return decryptedRecords;
+  }
+
   // -- Create encrypted medical record --
   static async createEncryptedRecord(
     data: any, 
@@ -68,7 +139,7 @@ export class MedicalRecordsEncryption {
       }
 
       // Get or create patient record
-      const { data: patientData } = await supabase
+      let { data: patientData, error: patientError } = await supabase
         .from('patients')
         .select('id')
         .eq('user_id', user.id)
@@ -77,11 +148,22 @@ export class MedicalRecordsEncryption {
       let patientId = patientData?.id;
       
       if (!patientId) {
-        const { data: newPatient } = await supabase
+        const { data: newPatient, error: createError } = await supabase
           .from('patients')
-          .insert({ user_id: user.id })
+          .insert({ 
+            id: crypto.randomUUID(),
+            user_id: user.id,
+            full_name: user.user_metadata?.full_name || user.email || 'Unknown',
+            email: user.email
+          })
           .select('id')
           .single();
+        
+        if (createError) {
+          console.error('Error creating patient:', createError);
+          return { success: false, error: 'Failed to create patient record' };
+        }
+        
         patientId = newPatient?.id;
       }
 
@@ -105,6 +187,7 @@ export class MedicalRecordsEncryption {
         .single();
 
       if (error) {
+        console.error('Database error:', error);
         return { success: false, error: error.message };
       }
 
@@ -116,14 +199,14 @@ export class MedicalRecordsEncryption {
   }
 
   // -- Get and decrypt medical records --
-  static async getDecryptedRecords(): Promise<{ success: boolean; records?: any[]; error?: string }> {
+  static async getDecryptedRecords(): Promise<{ success: boolean; records?: DecryptedRecord[]; error?: string }> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Get patient records
+      // Get patient records - for now, just get all records where we can access them
       const { data: records, error } = await supabase
         .from('medical_records')
         .select(`
@@ -133,6 +216,7 @@ export class MedicalRecordsEncryption {
           record_type,
           created_at,
           updated_at,
+          patient_id,
           patients!inner (
             id,
             user_id
@@ -141,36 +225,12 @@ export class MedicalRecordsEncryption {
         .eq('patients.user_id', user.id);
 
       if (error) {
+        console.error('Database error:', error);
         return { success: false, error: error.message };
       }
 
       // Decrypt each record
-      const decryptedRecords = [];
-      for (const record of records || []) {
-        try {
-          const decryptedData = await this.decryptMedicalRecord(
-            record.encrypted_data,
-            record.iv,
-            user.id
-          );
-
-          decryptedRecords.push({
-            id: record.id,
-            data: decryptedData,
-            record_type: record.record_type,
-            created_at: record.created_at,
-            updated_at: record.updated_at,
-            metadata: {
-              algorithm: 'AES-GCM + X25519',
-              timestamp: new Date().toISOString(),
-              encrypted: true
-            }
-          });
-        } catch (decryptError) {
-          console.error(`Failed to decrypt record ${record.id}:`, decryptError);
-          // Continue with other records
-        }
-      }
+      const decryptedRecords = await this.decryptRecords(records || []);
 
       return { success: true, records: decryptedRecords };
     } catch (error) {
@@ -179,3 +239,8 @@ export class MedicalRecordsEncryption {
     }
   }
 }
+
+// Legacy export for compatibility
+export const decrypt = (encrypted: string): any => {
+  throw new Error('decrypt function deprecated - use MedicalRecordsEncryption.decryptMedicalRecord instead');
+};

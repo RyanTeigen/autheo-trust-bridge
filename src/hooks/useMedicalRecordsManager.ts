@@ -1,20 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { MedicalRecordsEncryption } from '@/services/encryption/MedicalRecordsEncryption';
-
-interface DecryptedRecord {
-  id: string;
-  data: any;
-  record_type: string;
-  created_at: string;
-  updated_at: string;
-  metadata?: {
-    algorithm: string;
-    timestamp: string;
-    encrypted: boolean;
-  };
-}
+import { MedicalRecordsEncryption, DecryptedRecord } from '@/services/encryption/MedicalRecordsEncryption';
 
 export const useMedicalRecordsManager = () => {
   const [records, setRecords] = useState<DecryptedRecord[]>([]);

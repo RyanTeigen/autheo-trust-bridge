@@ -16,19 +16,7 @@ import {
   Stethoscope
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-interface DecryptedRecord {
-  id: string;
-  data: any;
-  record_type: string;
-  created_at: string;
-  updated_at: string;
-  metadata?: {
-    algorithm: string;
-    timestamp: string;
-    encrypted: boolean;
-  };
-}
+import { DecryptedRecord } from '@/services/encryption/MedicalRecordsEncryption';
 
 interface MedicalRecordsGridProps {
   records: DecryptedRecord[];
