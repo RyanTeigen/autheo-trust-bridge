@@ -19,6 +19,18 @@ export interface AnchorResult {
   error?: string;
 }
 
+export interface TransactionVerification {
+  exists: boolean;
+  confirmed: boolean;
+  blockNumber?: number;
+  gasUsed?: number;
+  status?: boolean;
+  timestamp?: number;
+  confirmations?: number;
+  logs?: any[];
+  explorerUrl?: string;
+}
+
 export class ContractInteraction {
   private connection: BlockchainConnection;
   private web3: Web3;
@@ -77,6 +89,8 @@ export class ContractInteraction {
         });
 
       console.log('✅ Transaction successful:', transaction.transactionHash);
+      console.log(`📊 Block Number: ${transaction.blockNumber}`);
+      console.log(`⛽ Gas Used: ${transaction.gasUsed}`);
 
       return {
         success: true,
@@ -118,6 +132,70 @@ export class ContractInteraction {
     } catch (error) {
       console.error('❌ Failed to verify anchor:', error);
       return null;
+    }
+  }
+
+  /**
+   * Comprehensive transaction verification with explorer integration
+   */
+  async verifyTransactionWithDetails(transactionHash: string): Promise<TransactionVerification> {
+    try {
+      console.log(`🔍 Verifying transaction: ${transactionHash}`);
+      
+      // Get transaction receipt
+      const receipt = await this.web3.eth.getTransactionReceipt(transactionHash);
+      if (!receipt) {
+        console.log('❌ Transaction not found');
+        return {
+          exists: false,
+          confirmed: false
+        };
+      }
+
+      // Get current block number for confirmations
+      const currentBlockNumber = await this.web3.eth.getBlockNumber();
+      const confirmations = Number(currentBlockNumber) - Number(receipt.blockNumber);
+
+      // Get block details
+      const block = await this.web3.eth.getBlock(receipt.blockNumber);
+      
+      // Get transaction details
+      const transaction = await this.web3.eth.getTransaction(transactionHash);
+
+      const networkConfig = this.connection.getNetworkConfig();
+      const useMainnet = networkConfig.chainId === 1;
+      const explorerUrl = `${networkConfig.explorerUrl}/tx/${transactionHash}`;
+
+      const result: TransactionVerification = {
+        exists: true,
+        confirmed: Boolean(receipt.status),
+        blockNumber: Number(receipt.blockNumber),
+        gasUsed: Number(receipt.gasUsed),
+        status: Boolean(receipt.status),
+        timestamp: typeof block.timestamp === 'string' 
+          ? parseInt(block.timestamp) 
+          : Number(block.timestamp),
+        confirmations,
+        logs: receipt.logs,
+        explorerUrl
+      };
+
+      console.log('✅ Transaction verification complete:');
+      console.log(`   - Block Number: ${result.blockNumber}`);
+      console.log(`   - Status: ${result.status ? 'Success' : 'Failed'}`);
+      console.log(`   - Confirmations: ${result.confirmations}`);
+      console.log(`   - Gas Used: ${result.gasUsed}`);
+      console.log(`   - Explorer URL: ${result.explorerUrl}`);
+
+      return result;
+
+    } catch (error) {
+      console.error('❌ Transaction verification failed:', error);
+      return {
+        exists: false,
+        confirmed: false,
+        explorerUrl: `${this.connection.getNetworkConfig().explorerUrl}/tx/${transactionHash}`
+      };
     }
   }
 

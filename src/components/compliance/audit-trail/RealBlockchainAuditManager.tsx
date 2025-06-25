@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { 
   Hash, 
   Clock, 
@@ -15,11 +17,18 @@ import {
   Zap, 
   AlertTriangle,
   CheckCircle,
-  Globe
+  Globe,
+  Search,
+  Eye
 } from 'lucide-react';
 import { RealBlockchainAnchorService, RealAnchorResult } from '@/services/audit/RealBlockchainAnchorService';
-import { AuditHashService } from '@/services/audit/AuditHashService';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  checkNetworkStatus,
+  testAuditLogFetch,
+  generateAuditHash,
+  anchorOnRealBlockchain
+} from './RealBlockchainAuditManagerHelpers';
 
 interface NetworkStatus {
   connected: boolean;
@@ -38,6 +47,17 @@ interface RealAnchorRecord extends RealAnchorResult {
   timestamp?: string;
 }
 
+interface TransactionVerification {
+  exists: boolean;
+  confirmed: boolean;
+  blockNumber?: number;
+  gasUsed?: number;
+  status?: boolean;
+  timestamp?: number;
+  confirmations?: number;
+  explorerUrl?: string;
+}
+
 interface RealBlockchainAuditManagerProps {
   onHashAnchored?: () => void;
   useMainnet?: boolean;
@@ -52,153 +72,99 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
   const [isAnchoring, setIsAnchoring] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isCheckingNetwork, setIsCheckingNetwork] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [anchorResult, setAnchorResult] = useState<RealAnchorRecord | null>(null);
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus | null>(null);
+  const [verificationTxHash, setVerificationTxHash] = useState('');
+  const [verificationResult, setVerificationResult] = useState<TransactionVerification | null>(null);
   const { toast } = useToast();
 
   const blockchainService = new RealBlockchainAnchorService(useMainnet);
 
-  const checkNetworkStatus = async () => {
-    setIsCheckingNetwork(true);
+  const handleCheckNetworkStatus = () => {
+    checkNetworkStatus(blockchainService, setIsCheckingNetwork, setNetworkStatus, toast);
+  };
+
+  const handleTestAuditLogFetch = () => {
+    testAuditLogFetch(setIsTesting, toast);
+  };
+
+  const handleGenerateAuditHash = () => {
+    generateAuditHash(setIsGenerating, setHashResult, toast);
+  };
+
+  const handleAnchorOnRealBlockchain = () => {
+    anchorOnRealBlockchain(
+      hashResult,
+      blockchainService,
+      useMainnet,
+      setIsAnchoring,
+      setAnchorResult,
+      setHashResult,
+      onHashAnchored,
+      toast
+    );
+  };
+
+  const verifyTransaction = async () => {
+    if (!verificationTxHash.trim()) {
+      toast({
+        title: "Missing Transaction Hash",
+        description: "Please enter a transaction hash to verify",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsVerifying(true);
     try {
-      console.log('🌐 Checking blockchain network status...');
+      console.log(`🔍 Verifying transaction: ${verificationTxHash}`);
       
-      const status = await blockchainService.getNetworkStatus();
-      setNetworkStatus(status);
+      const verification = await blockchainService.verifyBlockchainAnchor(verificationTxHash);
       
-      if (status.connected) {
+      if (verification.verified && verification.transaction) {
+        const explorerUrl = `${useMainnet ? 'https://explorer.autheo.io' : 'https://testnet-explorer.autheo.io'}/tx/${verificationTxHash}`;
+        
+        setVerificationResult({
+          exists: true,
+          confirmed: verification.transaction.status,
+          blockNumber: verification.transaction.blockNumber,
+          gasUsed: verification.transaction.gasUsed,
+          status: verification.transaction.status,
+          timestamp: verification.transaction.timestamp,
+          confirmations: 0, // Would need current block to calculate
+          explorerUrl
+        });
+
         toast({
-          title: "Blockchain Connected! 🎉",
-          description: `Connected to ${status.networkInfo?.networkName}. Balance: ${status.balance} ETH`,
+          title: "Transaction Verified! ✅",
+          description: `Transaction found in block ${verification.transaction.blockNumber}`,
         });
       } else {
+        const explorerUrl = `${useMainnet ? 'https://explorer.autheo.io' : 'https://testnet-explorer.autheo.io'}/tx/${verificationTxHash}`;
+        
+        setVerificationResult({
+          exists: false,
+          confirmed: false,
+          explorerUrl
+        });
+
         toast({
-          title: "Connection Failed",
-          description: status.error || "Could not connect to blockchain network",
+          title: "Transaction Not Found",
+          description: verification.error || "Transaction could not be verified on the blockchain",
           variant: "destructive"
         });
       }
-      
+
     } catch (error) {
-      console.error('❌ Network check failed:', error);
+      console.error('❌ Transaction verification failed:', error);
       toast({
-        title: "Network Check Failed",
-        description: "Failed to check blockchain network status",
+        title: "Verification Failed",
+        description: "Failed to verify transaction on blockchain",
         variant: "destructive"
       });
     } finally {
-      setIsCheckingNetwork(false);
-    }
-  };
-
-  const testAuditLogFetch = async () => {
-    setIsTesting(true);
-    try {
-      console.log('🧪 Starting audit log fetch and hash test...');
-      
-      const result = await AuditHashService.generateAuditHashResult();
-      
-      console.log('🎯 Test Results:');
-      console.log(`   - Successfully fetched ${result.logCount} audit logs`);
-      console.log(`   - Generated hash: ${result.hash}`);
-      console.log(`   - Timestamp: ${result.timestamp}`);
-      
-      // Also test blockchain preparation
-      const blockchainData = AuditHashService.prepareForBlockchain(result);
-      console.log('⛓️ Blockchain preparation test successful');
-      
-      toast({
-        title: "Test Completed Successfully! 🎉",
-        description: `Fetched ${result.logCount} logs and generated hash. Check console for details.`,
-      });
-      
-    } catch (error) {
-      console.error('❌ Test failed:', error);
-      toast({
-        title: "Test Failed",
-        description: "Failed to fetch audit logs or generate hash. Check console for details.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  const generateAuditHash = async () => {
-    setIsGenerating(true);
-    try {
-      const result = await AuditHashService.generateAuditHashResult();
-      
-      setHashResult({
-        hash: result.hash,
-        logCount: result.logCount,
-        timestamp: result.timestamp,
-        isAnchored: false
-      });
-
-      toast({
-        title: "Audit Hash Generated",
-        description: `Successfully hashed ${result.logCount} audit log entries`,
-      });
-    } catch (error) {
-      console.error('❌ Error generating audit hash:', error);
-      toast({
-        title: "Error",
-        description: "Failed to generate audit hash",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const anchorOnRealBlockchain = async () => {
-    if (!hashResult) return;
-
-    setIsAnchoring(true);
-    try {
-      console.log('⛓️ Starting real blockchain anchoring...');
-      
-      // Generate and anchor in one operation
-      const result = await blockchainService.generateAndAnchorAuditHash(100, {
-        useMainnet,
-        skipDatabaseStorage: false
-      });
-
-      if (result.success) {
-        setAnchorResult({
-          ...result,
-          timestamp: new Date().toISOString()
-        });
-
-        setHashResult(prev => prev ? {
-          ...prev,
-          isAnchored: true,
-          blockchainTxHash: result.transactionHash
-        } : null);
-
-        toast({
-          title: "Successfully Anchored on Blockchain! 🎉",
-          description: `Transaction: ${result.transactionHash?.substring(0, 12)}...`,
-        });
-
-        // Notify parent component to refresh
-        if (onHashAnchored) {
-          onHashAnchored();
-        }
-      } else {
-        throw new Error(result.error || 'Anchoring failed');
-      }
-
-    } catch (error) {
-      console.error('❌ Error anchoring on blockchain:', error);
-      toast({
-        title: "Blockchain Anchoring Failed",
-        description: error instanceof Error ? error.message : "Failed to anchor hash on blockchain",
-        variant: "destructive"
-      });
-    } finally {
-      setIsAnchoring(false);
+      setIsVerifying(false);
     }
   };
 
@@ -213,14 +179,14 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
           </Badge>
         </CardTitle>
         <CardDescription>
-          Anchor cryptographic hashes of audit logs on the Autheo blockchain network
+          Anchor cryptographic hashes of audit logs on the Autheo blockchain network and verify transactions
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Network Status */}
         <div className="flex flex-wrap gap-3">
           <Button
-            onClick={checkNetworkStatus}
+            onClick={handleCheckNetworkStatus}
             disabled={isCheckingNetwork}
             variant="outline"
             className="border-green-500 text-green-400 hover:bg-green-500 hover:text-slate-900"
@@ -239,7 +205,7 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
           </Button>
 
           <Button
-            onClick={testAuditLogFetch}
+            onClick={handleTestAuditLogFetch}
             disabled={isTesting}
             variant="outline"
             className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-slate-900"
@@ -258,7 +224,7 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
           </Button>
 
           <Button
-            onClick={generateAuditHash}
+            onClick={handleGenerateAuditHash}
             disabled={isGenerating}
             className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
           >
@@ -277,7 +243,7 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
 
           {hashResult && !hashResult.isAnchored && (
             <Button
-              onClick={anchorOnRealBlockchain}
+              onClick={handleAnchorOnRealBlockchain}
               disabled={isAnchoring || !networkStatus?.connected}
               variant="outline"
               className="border-autheo-primary text-autheo-primary hover:bg-autheo-primary hover:text-slate-900"
@@ -296,6 +262,60 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
             </Button>
           )}
         </div>
+
+        {/* Transaction Verification Section */}
+        <Card className="bg-slate-700/50 border-slate-600">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm text-slate-200 flex items-center gap-2">
+              <Search className="h-4 w-4" />
+              Transaction Verification
+            </CardTitle>
+            <CardDescription className="text-xs text-slate-400">
+              Verify any transaction hash on the Autheo blockchain explorer
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="tx-hash" className="text-xs text-slate-300">
+                Transaction Hash
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="tx-hash"
+                  value={verificationTxHash}
+                  onChange={(e) => setVerificationTxHash(e.target.value)}
+                  placeholder="0x..."
+                  className="bg-slate-800 border-slate-600 text-slate-200 font-mono text-xs"
+                />
+                <Button
+                  onClick={verifyTransaction}
+                  disabled={isVerifying || !verificationTxHash.trim()}
+                  size="sm"
+                  variant="outline"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-slate-900"
+                >
+                  {isVerifying ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            {/* Auto-fill from anchor result */}
+            {anchorResult?.transactionHash && (
+              <Button
+                onClick={() => setVerificationTxHash(anchorResult.transactionHash!)}
+                size="sm"
+                variant="ghost"
+                className="text-xs text-slate-400 hover:text-slate-200"
+              >
+                Use last anchored tx: {anchorResult.transactionHash.substring(0, 12)}...
+              </Button>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Network Status Display */}
         {networkStatus && (
@@ -320,6 +340,55 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
                 )}
                 {!networkStatus.connected && networkStatus.error && (
                   <div className="text-xs text-red-400">{networkStatus.error}</div>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Verification Result Display */}
+        {verificationResult && (
+          <Alert className={`${verificationResult.exists && verificationResult.confirmed ? 'bg-green-900/20 border-green-500/30' : 'bg-red-900/20 border-red-500/30'}`}>
+            {verificationResult.exists && verificationResult.confirmed ? (
+              <CheckCircle className="h-4 w-4" />
+            ) : (
+              <AlertTriangle className="h-4 w-4" />
+            )}
+            <AlertDescription>
+              <div className="space-y-2">
+                <div className="text-sm font-medium">
+                  {verificationResult.exists ? 
+                    (verificationResult.confirmed ? 'Transaction Verified ✅' : 'Transaction Failed ❌') : 
+                    'Transaction Not Found ❌'
+                  }
+                </div>
+                {verificationResult.exists && (
+                  <div className="text-xs space-y-1">
+                    {verificationResult.blockNumber && (
+                      <div>Block Number: {verificationResult.blockNumber.toLocaleString()}</div>
+                    )}
+                    {verificationResult.gasUsed && (
+                      <div>Gas Used: {verificationResult.gasUsed.toLocaleString()}</div>
+                    )}
+                    {verificationResult.timestamp && (
+                      <div>Timestamp: {new Date(verificationResult.timestamp * 1000).toLocaleString()}</div>
+                    )}
+                    {verificationResult.confirmations !== undefined && (
+                      <div>Confirmations: {verificationResult.confirmations}</div>
+                    )}
+                  </div>
+                )}
+                {verificationResult.explorerUrl && (
+                  <div className="pt-2">
+                    <a 
+                      href={verificationResult.explorerUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1"
+                    >
+                      View on Autheo Explorer <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
                 )}
               </div>
             </AlertDescription>
@@ -411,6 +480,7 @@ const RealBlockchainAuditManager: React.FC<RealBlockchainAuditManagerProps> = ({
           <p>• <strong>Test Hash Generation:</strong> Tests audit log fetching and hashing locally</p>
           <p>• <strong>Generate Hash:</strong> Creates a hash for blockchain anchoring</p>
           <p>• <strong>Anchor on Blockchain:</strong> Stores the hash immutably on Autheo blockchain</p>
+          <p>• <strong>Transaction Verification:</strong> Verify any transaction hash on the Autheo explorer</p>
           <p>• Network: {useMainnet ? 'Autheo Mainnet (LIVE)' : 'Autheo Testnet (Testing)'}</p>
           <p>• Hash is computed using SHA-256 of concatenated audit log entries</p>
           <p>• Blockchain anchoring provides cryptographic proof of data integrity</p>
