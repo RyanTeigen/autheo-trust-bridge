@@ -89,7 +89,7 @@ const MedicalNotesPage = () => {
       </div>
 
       {!hasProviderRole && (
-        <Alert variant="warning" className="mb-4">
+        <Alert className="mb-4">
           <AlertCircle className="h-5 w-5" />
           <AlertDescription>
             You are accessing this page with creator privileges. Normally, this page is restricted to users with provider or admin roles.

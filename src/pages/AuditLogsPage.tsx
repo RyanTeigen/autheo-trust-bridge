@@ -54,7 +54,7 @@ const AuditLogsPage = () => {
         />
 
         {!hasComplianceRole && (
-          <Alert variant="warning" className="mb-4 bg-amber-900/20 border-amber-500/30 text-amber-200">
+          <Alert className="mb-4 bg-amber-900/20 border-amber-500/30 text-amber-200">
             <AlertTriangle className="h-5 w-5" />
             <AlertDescription>
               You are accessing this page with creator privileges. Normally, this page is restricted to users with compliance or admin roles.

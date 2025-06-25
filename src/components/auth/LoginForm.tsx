@@ -126,7 +126,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Alert variant="warning" className="mb-4">
+      <Alert className="mb-4">
         <AlertCircle className="h-4 w-4" />
         <AlertDescription className="text-xs">
           Using JWT-based authentication. Make sure your backend API is running at {API_BASE_URL}
