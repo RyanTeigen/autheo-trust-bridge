@@ -21,6 +21,14 @@ interface RecordShare {
   updated_at: string;
 }
 
+interface RevokedShare {
+  id: string;
+  record_id: string;
+  revoked_by: string;
+  revoked_at: string;
+  reason?: string;
+}
+
 export class MedicalRecordsSharing extends BaseService {
   /**
    * Share a medical record with another user using post-quantum encryption
@@ -85,7 +93,7 @@ export class MedicalRecordsSharing extends BaseService {
   }
 
   /**
-   * Get all records shared with the current user
+   * Get all records shared with the current user (excluding revoked ones)
    */
   async getSharedWithMe(): Promise<ServiceResponse<RecordShare[]>> {
     try {
@@ -95,10 +103,16 @@ export class MedicalRecordsSharing extends BaseService {
         throw new AuthorizationError('Insufficient permissions to read shared records');
       }
 
+      // Get active shares that haven't been revoked
       const { data: shares, error } = await supabase
         .from('record_shares')
         .select('*')
         .eq('shared_with_user_id', context.userId)
+        .not('record_id', 'in', 
+          supabase
+            .from('revoked_shares')
+            .select('record_id')
+        )
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -115,7 +129,7 @@ export class MedicalRecordsSharing extends BaseService {
   }
 
   /**
-   * Get all shares created by the current user
+   * Get all shares created by the current user (excluding revoked ones)
    */
   async getMyShares(): Promise<ServiceResponse<RecordShare[]>> {
     try {
@@ -130,6 +144,7 @@ export class MedicalRecordsSharing extends BaseService {
         return this.createErrorResponse('Patient record not found', 404);
       }
 
+      // Get active shares that haven't been revoked
       const { data: shares, error } = await supabase
         .from('record_shares')
         .select(`
@@ -137,6 +152,11 @@ export class MedicalRecordsSharing extends BaseService {
           medical_records!inner(patient_id)
         `)
         .eq('medical_records.patient_id', patientResult.data.id)
+        .not('record_id', 'in', 
+          supabase
+            .from('revoked_shares')
+            .select('record_id')
+        )
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -153,9 +173,9 @@ export class MedicalRecordsSharing extends BaseService {
   }
 
   /**
-   * Revoke a record share
+   * Revoke a record share by creating a revocation record
    */
-  async revokeShare(shareId: string): Promise<ServiceResponse<void>> {
+  async revokeShare(shareId: string, reason?: string): Promise<ServiceResponse<void>> {
     try {
       const context = await this.validateAuthentication();
       
@@ -189,22 +209,92 @@ export class MedicalRecordsSharing extends BaseService {
         throw new AuthorizationError('Cannot revoke shares for records that do not belong to you');
       }
 
-      // Delete the share
-      const { error } = await supabase
-        .from('record_shares')
-        .delete()
-        .eq('id', shareId);
+      // Check if already revoked
+      const { data: existingRevocation } = await supabase
+        .from('revoked_shares')
+        .select('id')
+        .eq('record_id', share.record_id)
+        .maybeSingle();
 
-      if (error) {
-        return this.handleError(error, 'revokeShare');
+      if (existingRevocation) {
+        throw new ValidationError('This share has already been revoked');
+      }
+
+      // Create revocation record instead of deleting the share
+      const { error: revokeError } = await supabase
+        .from('revoked_shares')
+        .insert({
+          record_id: share.record_id,
+          revoked_by: context.userId,
+          reason: reason || 'Access revoked by record owner'
+        });
+
+      if (revokeError) {
+        return this.handleError(revokeError, 'revokeShare');
       }
 
       return this.createSuccessResponse(undefined, {
         operation: 'revokeShare',
-        shareId
+        shareId,
+        recordId: share.record_id
       });
     } catch (error) {
       return this.handleError(error, 'revokeShare');
+    }
+  }
+
+  /**
+   * Get revocation history for the current user's records
+   */
+  async getRevocationHistory(): Promise<ServiceResponse<RevokedShare[]>> {
+    try {
+      const context = await this.validateAuthentication();
+      
+      if (!await this.validatePermission('read:own_data', context)) {
+        throw new AuthorizationError('Insufficient permissions to read revocation history');
+      }
+
+      const { data: revocations, error } = await supabase
+        .from('revoked_shares')
+        .select('*')
+        .eq('revoked_by', context.userId)
+        .order('revoked_at', { ascending: false });
+
+      if (error) {
+        return this.handleError(error, 'getRevocationHistory');
+      }
+
+      return this.createSuccessResponse(revocations || [], {
+        operation: 'getRevocationHistory',
+        count: revocations?.length || 0
+      });
+    } catch (error) {
+      return this.handleError(error, 'getRevocationHistory');
+    }
+  }
+
+  /**
+   * Check if a specific record share has been revoked
+   */
+  async isShareRevoked(recordId: string): Promise<ServiceResponse<boolean>> {
+    try {
+      const { data: revocation, error } = await supabase
+        .from('revoked_shares')
+        .select('id')
+        .eq('record_id', recordId)
+        .maybeSingle();
+
+      if (error) {
+        return this.handleError(error, 'isShareRevoked');
+      }
+
+      return this.createSuccessResponse(!!revocation, {
+        operation: 'isShareRevoked',
+        recordId,
+        isRevoked: !!revocation
+      });
+    } catch (error) {
+      return this.handleError(error, 'isShareRevoked');
     }
   }
 

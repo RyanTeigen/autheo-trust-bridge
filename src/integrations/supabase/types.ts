@@ -727,6 +727,38 @@ export type Database = {
           },
         ]
       }
+      revoked_shares: {
+        Row: {
+          id: string
+          reason: string | null
+          record_id: string
+          revoked_at: string
+          revoked_by: string
+        }
+        Insert: {
+          id?: string
+          reason?: string | null
+          record_id: string
+          revoked_at?: string
+          revoked_by: string
+        }
+        Update: {
+          id?: string
+          reason?: string | null
+          record_id?: string
+          revoked_at?: string
+          revoked_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revoked_shares_revoked_by_fkey"
+            columns: ["revoked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sharing_permissions: {
         Row: {
           created_at: string | null
