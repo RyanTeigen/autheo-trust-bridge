@@ -3,12 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useSharingPermissionsAPI } from '@/hooks/useSharingPermissionsAPI';
 import { useMedicalRecordsAPI } from '@/hooks/useMedicalRecordsAPI';
-import { Shield, Plus } from 'lucide-react';
+import { useMedicalRecordsSharing } from '@/hooks/useMedicalRecordsSharing';
+import { Shield, Plus, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import ShareRecordForm from './sharing/ShareRecordForm';
 import SharingPermissionCard from './sharing/SharingPermissionCard';
 import EmptySharingState from './sharing/EmptySharingState';
+import RecordShareManager from './sharing/RecordShareManager';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
@@ -34,13 +38,16 @@ interface SharingPermission {
 const RecordSharingManager: React.FC = () => {
   const [records, setRecords] = useState<DecryptedMedicalRecord[]>([]);
   const [permissions, setPermissions] = useState<SharingPermission[]>([]);
+  const [quantumShares, setQuantumShares] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRecordId, setSelectedRecordId] = useState<string>('');
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('legacy');
   const { toast } = useToast();
   
   const { getSharingPermissions, revokeSharingPermission } = useSharingPermissionsAPI();
   const { getRecords } = useMedicalRecordsAPI();
+  const { getMyShares } = useMedicalRecordsSharing();
 
   useEffect(() => {
     fetchData();
@@ -49,9 +56,10 @@ const RecordSharingManager: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [recordsResult, permissionsResult] = await Promise.all([
+      const [recordsResult, permissionsResult, quantumSharesResult] = await Promise.all([
         getRecords({ limit: 50, offset: 0 }),
-        getSharingPermissions({ limit: 50, offset: 0 })
+        getSharingPermissions({ limit: 50, offset: 0 }),
+        getMyShares()
       ]);
 
       if (recordsResult.success && recordsResult.data?.records) {
@@ -68,6 +76,10 @@ const RecordSharingManager: React.FC = () => {
 
       if (permissionsResult.success && permissionsResult.data?.permissions) {
         setPermissions(permissionsResult.data.permissions);
+      }
+
+      if (quantumSharesResult.success && quantumSharesResult.data) {
+        setQuantumShares(quantumSharesResult.data);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -181,38 +193,94 @@ const RecordSharingManager: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <ShareRecordForm
-                recordId={selectedRecordId}
-                recordTitle={selectedRecord?.data.title || `${selectedRecord?.record_type} record`}
-                onSuccess={handleShareSuccess}
-                onCancel={() => {
-                  setSelectedRecordId('');
-                  setIsShareDialogOpen(false);
-                }}
-              />
+              <div className="space-y-4">
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium mb-2">Choose Sharing Method:</h4>
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => setActiveTab('quantum')}
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Quantum-Safe Sharing (Recommended)
+                      <Badge variant="secondary" className="ml-auto">
+                        <Shield className="h-3 w-3 mr-1" />
+                        Post-Quantum
+                      </Badge>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => setActiveTab('legacy')}
+                    >
+                      Legacy Sharing
+                    </Button>
+                  </div>
+                </div>
+
+                {activeTab === 'quantum' ? (
+                  <RecordShareManager
+                    recordId={selectedRecordId}
+                    recordTitle={selectedRecord?.data.title || `${selectedRecord?.record_type} record`}
+                  />
+                ) : (
+                  <ShareRecordForm
+                    recordId={selectedRecordId}
+                    recordTitle={selectedRecord?.data.title || `${selectedRecord?.record_type} record`}
+                    onSuccess={handleShareSuccess}
+                    onCancel={() => {
+                      setSelectedRecordId('');
+                      setIsShareDialogOpen(false);
+                    }}
+                  />
+                )}
+              </div>
             )}
           </DialogContent>
         </Dialog>
       </div>
 
-      {permissions.length === 0 ? (
-        <EmptySharingState onStartSharing={() => setIsShareDialogOpen(true)} />
-      ) : (
-        <div className="grid gap-4">
-          {permissions.map((permission) => {
-            const record = records.find(r => r.id === permission.medical_record_id);
-            
-            return (
-              <SharingPermissionCard
-                key={permission.id}
-                permission={permission}
-                record={record}
-                onRevoke={handleRevokePermission}
-              />
-            );
-          })}
-        </div>
-      )}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="legacy">
+            Legacy Sharing ({permissions.length})
+          </TabsTrigger>
+          <TabsTrigger value="quantum" className="flex items-center gap-2">
+            <Zap className="h-3 w-3" />
+            Quantum-Safe ({quantumShares.length})
+            <Badge variant="secondary" className="ml-1">
+              <Shield className="h-2 w-2 mr-1" />
+              New
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="legacy" className="mt-6">
+          {permissions.length === 0 ? (
+            <EmptySharingState onStartSharing={() => setIsShareDialogOpen(true)} />
+          ) : (
+            <div className="grid gap-4">
+              {permissions.map((permission) => {
+                const record = records.find(r => r.id === permission.medical_record_id);
+                
+                return (
+                  <SharingPermissionCard
+                    key={permission.id}
+                    permission={permission}
+                    record={record}
+                    onRevoke={handleRevokePermission}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="quantum" className="mt-6">
+          <RecordShareManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

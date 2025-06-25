@@ -629,6 +629,41 @@ export type Database = {
           },
         ]
       }
+      record_shares: {
+        Row: {
+          created_at: string | null
+          id: string
+          pq_encrypted_key: string
+          record_id: string
+          shared_with_user_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          pq_encrypted_key: string
+          record_id: string
+          shared_with_user_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          pq_encrypted_key?: string
+          record_id?: string
+          shared_with_user_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "record_shares_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sharing_permissions: {
         Row: {
           created_at: string | null
