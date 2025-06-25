@@ -502,6 +502,7 @@ export type Database = {
           created_at: string | null
           encrypted_data: string
           id: string
+          iv: string | null
           patient_id: string | null
           record_type: string | null
           updated_at: string | null
@@ -511,6 +512,7 @@ export type Database = {
           created_at?: string | null
           encrypted_data: string
           id?: string
+          iv?: string | null
           patient_id?: string | null
           record_type?: string | null
           updated_at?: string | null
@@ -520,6 +522,7 @@ export type Database = {
           created_at?: string | null
           encrypted_data?: string
           id?: string
+          iv?: string | null
           patient_id?: string | null
           record_type?: string | null
           updated_at?: string | null
@@ -628,6 +631,7 @@ export type Database = {
         Row: {
           created_at: string | null
           email: string | null
+          encryption_public_key: string | null
           first_name: string | null
           id: string
           last_name: string | null
@@ -638,6 +642,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           email?: string | null
+          encryption_public_key?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
@@ -648,6 +653,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           email?: string | null
+          encryption_public_key?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null

@@ -1,30 +1,21 @@
 
 import React, { useState } from 'react';
-import MedicalRecordForm from './MedicalRecordForm';
-import EmptyRecordsState from './EmptyRecordsState';
-import MedicalRecordsControls from './MedicalRecordsControls';
-import MedicalRecordsLoadingSkeleton from './MedicalRecordsLoadingSkeleton';
-import MedicalRecordsGrid from './MedicalRecordsGrid';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Plus, Shield, Lock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useMedicalRecordsManager } from '@/hooks/useMedicalRecordsManager';
-
-interface DecryptedRecord {
-  id: string;
-  patient_id: string;
-  data: any;
-  record_type: string;
-  created_at: string;
-  updated_at: string;
-}
+import { useEncryptionSetup } from '@/hooks/useEncryptionSetup';
+import MedicalRecordForm from './MedicalRecordForm';
+import MedicalRecordsGrid from './MedicalRecordsGrid';
+import MedicalRecordsControls from './MedicalRecordsControls';
+import EmptyRecordsState from './EmptyRecordsState';
+import MedicalRecordsLoadingSkeleton from './MedicalRecordsLoadingSkeleton';
 
 const MedicalRecordsManager = () => {
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<DecryptedRecord | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'general',
-    notes: ''
-  });
+  const { toast } = useToast();
+  const { isSetup, isLoading: encryptionLoading } = useEncryptionSetup();
+  const [showForm, setShowForm] = useState(false);
   
   const {
     records,
@@ -35,105 +26,122 @@ const MedicalRecordsManager = () => {
     setFilterType,
     handleCreateRecord,
     handleUpdateRecord,
-    handleDeleteRecord
+    handleDeleteRecord,
+    fetchRecords
   } = useMedicalRecordsManager();
 
-  const onCreateRecord = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const success = await handleCreateRecord(formData);
+  const handleFormSubmit = async (data: any) => {
+    const success = await handleCreateRecord(data);
     if (success) {
-      setShowCreateForm(false);
-      setFormData({ title: '', description: '', category: 'general', notes: '' });
+      setShowForm(false);
+      toast({
+        title: "Success",
+        description: "Medical record created and encrypted successfully",
+      });
     }
   };
 
-  const onUpdateRecord = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedRecord) {
-      const success = await handleUpdateRecord(selectedRecord.id, formData);
-      if (success) {
-        setSelectedRecord(null);
-        setFormData({ title: '', description: '', category: 'general', notes: '' });
-      }
-    }
-  };
-
-  const onDeleteRecord = async () => {
-    if (selectedRecord) {
-      const success = await handleDeleteRecord(selectedRecord.id);
-      if (success) {
-        setSelectedRecord(null);
-        setFormData({ title: '', description: '', category: 'general', notes: '' });
-      }
-    }
-  };
-
-  const handleRecordSelect = (record: DecryptedRecord) => {
-    setSelectedRecord(record);
-    setFormData({
-      title: record.data.title || '',
-      description: record.data.description || '',
-      category: record.record_type || 'general', // Map record_type to category
-      notes: record.data.notes || ''
-    });
-  };
-
-  const handleCreateClick = () => {
-    setShowCreateForm(true);
-    setSelectedRecord(null);
-    setFormData({ title: '', description: '', category: 'general', notes: '' });
-  };
-
-  const handleCancel = () => {
-    setShowCreateForm(false);
-    setSelectedRecord(null);
-    setFormData({ title: '', description: '', category: 'general', notes: '' });
-  };
-
-  if (showCreateForm) {
+  // Show encryption setup loading state
+  if (encryptionLoading) {
     return (
-      <MedicalRecordForm
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={onCreateRecord}
-        onCancel={handleCancel}
-        loading={loading}
-      />
+      <Card className="bg-slate-800 border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-autheo-primary flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Setting up Encryption
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-autheo-primary"></div>
+              <span className="text-slate-300">Initializing secure encryption keys...</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
-  if (selectedRecord) {
+  // Show encryption not setup warning
+  if (!isSetup) {
     return (
-      <MedicalRecordForm
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={onUpdateRecord}
-        onCancel={handleCancel}
-        onDelete={onDeleteRecord}
-        loading={loading}
-        isEditing={true}
-      />
+      <Card className="bg-slate-800 border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Encryption Setup Required
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-slate-300 mb-4">
+              Encryption keys are required to store medical records securely.
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+            >
+              Retry Setup
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <Card className="bg-slate-800 border-slate-700">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-autheo-primary flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Medical Records Manager
+              </CardTitle>
+              <p className="text-slate-400 mt-1">
+                Secure, encrypted storage for your medical information using X25519 encryption
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowForm(true)}
+              className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Record
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Form Modal */}
+      {showForm && (
+        <MedicalRecordForm
+          onSubmit={handleFormSubmit}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      {/* Controls */}
       <MedicalRecordsControls
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        setSearchTerm={setSearchTerm}
         filterType={filterType}
-        onFilterChange={setFilterType}
-        onCreateRecord={handleCreateClick}
+        setFilterType={setFilterType}
       />
 
+      {/* Content */}
       {loading ? (
         <MedicalRecordsLoadingSkeleton />
       ) : records.length === 0 ? (
-        <EmptyRecordsState onCreateRecord={handleCreateClick} />
+        <EmptyRecordsState onCreateRecord={() => setShowForm(true)} />
       ) : (
         <MedicalRecordsGrid
           records={records}
-          onRecordSelect={handleRecordSelect}
+          onUpdate={handleUpdateRecord}
+          onDelete={handleDeleteRecord}
         />
       )}
     </div>

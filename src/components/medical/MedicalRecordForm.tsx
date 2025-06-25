@@ -1,112 +1,225 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface MedicalRecordFormData {
-  title: string;
-  description: string;
-  category: string;
-  notes: string;
-}
+import { Shield, X } from 'lucide-react';
 
 interface MedicalRecordFormProps {
-  formData: MedicalRecordFormData;
-  setFormData: React.Dispatch<React.SetStateAction<MedicalRecordFormData>>;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
-  loading: boolean;
-  isEditing?: boolean;
+  onSubmit: (data: any) => Promise<void>;
   onCancel: () => void;
-  onDelete?: () => Promise<void>;
 }
 
-const MedicalRecordForm: React.FC<MedicalRecordFormProps> = ({
-  formData,
-  setFormData,
-  onSubmit,
-  loading,
-  isEditing = false,
-  onCancel,
-  onDelete
-}) => {
+const MedicalRecordForm: React.FC<MedicalRecordFormProps> = ({ onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: 'general',
+    provider: '',
+    date: new Date().toISOString().split('T')[0],
+    notes: '',
+    medications: '',
+    allergies: '',
+    vitals: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      await onSubmit(formData);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div>
-        <label className="text-sm font-medium">Title</label>
-        <Input
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Record title"
-          required
-        />
-      </div>
-      
-      <div>
-        <label className="text-sm font-medium">Category</label>
-        <Select
-          value={formData.category}
-          onValueChange={(value) => setFormData({ ...formData, category: value })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="general">General</SelectItem>
-            <SelectItem value="physical_exam">Physical Exam</SelectItem>
-            <SelectItem value="lab_results">Lab Results</SelectItem>
-            <SelectItem value="imaging">Imaging</SelectItem>
-            <SelectItem value="prescription">Prescription</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div>
-        <label className="text-sm font-medium">Description</label>
-        <Textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Record description"
-          rows={3}
-        />
-      </div>
-      
-      <div>
-        <label className="text-sm font-medium">Additional Notes</label>
-        <Textarea
-          value={formData.notes}
-          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          placeholder="Additional notes"
-          rows={2}
-        />
-      </div>
-      
-      <div className="flex gap-2 pt-4">
-        <Button type="submit" className="flex-1" disabled={loading}>
-          {loading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Update Record' : 'Create Record')}
-        </Button>
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={onCancel}
-          className="flex-1"
-          disabled={loading}
-        >
-          Cancel
-        </Button>
-        {isEditing && onDelete && (
-          <Button 
-            type="button" 
-            variant="destructive" 
-            onClick={onDelete}
-            disabled={loading}
-          >
-            Delete
-          </Button>
-        )}
-      </div>
-    </form>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="bg-slate-800 border-slate-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <CardHeader className="border-b border-slate-700">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-autheo-primary flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Create Medical Record
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCancel}
+              className="text-slate-400 hover:text-slate-200"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="text-slate-400 text-sm">
+            This record will be encrypted with X25519 encryption before storage
+          </p>
+        </CardHeader>
+        
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title" className="text-slate-200">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Record title"
+                  required
+                  className="bg-slate-700 border-slate-600 text-slate-100"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="category" className="text-slate-200">Category</Label>
+                <Select value={formData.category} onValueChange={(value) => handleInputChange('category', value)}>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-slate-100">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="lab">Lab Results</SelectItem>
+                    <SelectItem value="imaging">Imaging</SelectItem>
+                    <SelectItem value="medication">Medication</SelectItem>
+                    <SelectItem value="surgery">Surgery</SelectItem>
+                    <SelectItem value="consultation">Consultation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="provider" className="text-slate-200">Healthcare Provider</Label>
+                <Input
+                  id="provider"
+                  value={formData.provider}
+                  onChange={(e) => handleInputChange('provider', e.target.value)}
+                  placeholder="Dr. Smith, General Hospital"
+                  className="bg-slate-700 border-slate-600 text-slate-100"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="date" className="text-slate-200">Date</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => handleInputChange('date', e.target.value)}
+                  className="bg-slate-700 border-slate-600 text-slate-100"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="description" className="text-slate-200">Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Describe the medical record details..."
+                required
+                rows={3}
+                className="bg-slate-700 border-slate-600 text-slate-100"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="notes" className="text-slate-200">Additional Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Additional notes or observations..."
+                rows={2}
+                className="bg-slate-700 border-slate-600 text-slate-100"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="medications" className="text-slate-200">Medications</Label>
+                <Textarea
+                  id="medications"
+                  value={formData.medications}
+                  onChange={(e) => handleInputChange('medications', e.target.value)}
+                  placeholder="Current medications..."
+                  rows={2}
+                  className="bg-slate-700 border-slate-600 text-slate-100"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="allergies" className="text-slate-200">Allergies</Label>
+                <Textarea
+                  id="allergies"
+                  value={formData.allergies}
+                  onChange={(e) => handleInputChange('allergies', e.target.value)}
+                  placeholder="Known allergies..."
+                  rows={2}
+                  className="bg-slate-700 border-slate-600 text-slate-100"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="vitals" className="text-slate-200">Vital Signs</Label>
+              <Input
+                id="vitals"
+                value={formData.vitals}
+                onChange={(e) => handleInputChange('vitals', e.target.value)}
+                placeholder="BP: 120/80, HR: 72, Temp: 98.6°F"
+                className="bg-slate-700 border-slate-600 text-slate-100"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-900 mr-2"></div>
+                    Encrypting...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Create Encrypted Record
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
