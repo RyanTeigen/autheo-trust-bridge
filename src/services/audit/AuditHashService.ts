@@ -35,7 +35,16 @@ export class AuditHashService {
       throw new Error(`Failed to fetch audit logs: ${error.message}`);
     }
 
-    return data || [];
+    // Transform the data to match our interface, handling the Json type from Supabase
+    return (data || []).map(log => ({
+      id: log.id,
+      user_id: log.user_id,
+      action: log.action,
+      target_type: log.target_type,
+      target_id: log.target_id,
+      timestamp: log.timestamp,
+      metadata: log.metadata as Record<string, any> | null
+    }));
   }
 
   /**
