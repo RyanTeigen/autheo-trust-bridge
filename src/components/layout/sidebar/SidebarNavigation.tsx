@@ -10,7 +10,6 @@ import {
   Shield,
   FileSearch,
   Settings,
-  Share2,
   FileText,
   Search,
   UserCheck
@@ -42,14 +41,6 @@ const SidebarNavigation: React.FC = () => {
         icon={Heart}
         title="My Health"
         description="Personal health dashboard"
-      />
-
-      {/* Shared Records - Visible to all authenticated users */}
-      <SidebarNavItem
-        to="/shared-records"
-        icon={Share2}
-        title="Shared Records"
-        description="Records shared with you"
       />
 
       {/* Provider Portal - Expandable section for providers */}

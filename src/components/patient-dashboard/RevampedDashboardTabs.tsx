@@ -7,6 +7,7 @@ import QuantumSharingTab from './QuantumSharingTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
+import SharedRecordsTab from './SharedRecordsTab';
 
 interface RevampedDashboardTabsProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -31,7 +32,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-3 lg:grid-cols-5 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-3 lg:grid-cols-6 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -45,6 +46,13 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         >
           <FileText className="h-4 w-4" />
           <span className="hidden sm:inline">Records</span>
+        </TabsTrigger>
+        <TabsTrigger 
+          value="shared-records" 
+          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
+        >
+          <Share2 className="h-4 w-4" />
+          <span className="hidden sm:inline">Shared</span>
         </TabsTrigger>
         <TabsTrigger 
           value="quantum-sharing" 
@@ -81,6 +89,10 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
           setSelectedCategory={setSelectedCategory}
           handleToggleShare={handleToggleShare}
         />
+      </TabsContent>
+      
+      <TabsContent value="shared-records">
+        <SharedRecordsTab />
       </TabsContent>
       
       <TabsContent value="quantum-sharing">
