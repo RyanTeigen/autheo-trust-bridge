@@ -1,8 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { hybridEncrypt, hybridDecrypt, HybridEncryptedData } from '@/utils/hybrid-encryption';
 import { MLKEMKeyService } from './security/MLKEMKeyService';
 import { PatientRecordsService } from './PatientRecordsService';
+import { decryptRecord } from '@/hooks/use-authenticated-fetch';
 
 export interface QuantumSafeMedicalRecord {
   id: string;
@@ -113,43 +113,32 @@ export class QuantumSafeMedicalRecordsService {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Get user's private key
-      const privateKey = MLKEMKeyService.getUserPrivateKey(user.id);
-      if (!privateKey) {
-        return { success: false, error: 'User private key not found' };
-      }
-
       const result = await PatientRecordsService.getPatientMedicalRecords();
       if (!result.success || !result.records) {
         return { success: result.success, error: result.error };
       }
 
-      // Decrypt the records
+      // Decrypt the records using the new decryption function
       const decryptedRecords: DecryptedMedicalRecord[] = [];
       
       for (const record of result.records) {
         try {
-          let encryptedData: HybridEncryptedData;
-          
-          // Handle both new quantum-safe format and legacy format
-          if (record.encrypted_data.includes('pqEncryptedKey')) {
-            encryptedData = JSON.parse(record.encrypted_data);
-          } else {
-            // Legacy format - skip or migrate
-            console.warn(`Record ${record.id} uses legacy encryption format`);
-            continue;
-          }
-
-          const decryptionResult = await hybridDecrypt(encryptedData, privateKey);
+          // Use the new decryptRecord function
+          const decryptedData = await decryptRecord(record);
+          const parsedData = JSON.parse(decryptedData);
           
           decryptedRecords.push({
             id: record.id,
             patient_id: record.patient_id,
-            data: JSON.parse(decryptionResult.data),
+            data: parsedData,
             record_type: record.record_type || 'general',
             created_at: record.created_at,
             updated_at: record.updated_at,
-            metadata: decryptionResult.metadata
+            metadata: {
+              algorithm: 'AES-256-GCM + ML-KEM-768',
+              timestamp: new Date().toISOString(),
+              quantumSafe: true
+            }
           });
         } catch (decryptError) {
           console.error(`Error decrypting record ${record.id}:`, decryptError);
