@@ -130,12 +130,12 @@ class AutheoBlockchainService {
       const gasPriceBigInt = await this.web3.eth.getGasPrice();
       const gasPrice = gasPriceBigInt.toString();
 
-      // Send transaction
+      // Send transaction - convert gas to string
       const transaction = await contract.methods
         .anchorAuditHash(auditHash, logCount, anchorTimestamp)
         .send({
           from: this.defaultAccount,
-          gas: Math.floor(gasEstimate * 1.2), // Add 20% buffer
+          gas: Math.floor(gasEstimate * 1.2).toString(), // Convert to string for Web3
           gasPrice: gasPrice
         });
 
