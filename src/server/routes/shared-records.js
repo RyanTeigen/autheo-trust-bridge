@@ -3,6 +3,7 @@ const express = require('express');
 const { supabase } = require('../../integrations/supabase/client');
 const authMiddleware = require('../middleware/auth');
 const { mlkemDecapsulate } = require('../../utils/pq-mlkem');
+const { publishAuditLogToChain } = require('../../utils/publish-audit-log');
 const crypto = require('crypto');
 
 const router = express.Router();
@@ -40,6 +41,23 @@ router.get('/', authMiddleware, async (req, res) => {
         success: false, 
         error: 'Failed to fetch shared records' 
       });
+    }
+
+    // Log access to audit trail for each record accessed
+    for (const share of sharedRecords) {
+      try {
+        // Publish audit log to blockchain
+        await publishAuditLogToChain({
+          recordId: share.record_id,
+          accessedBy: userId,
+          timestamp: new Date().toISOString(),
+          ipAddress: req.ip || undefined,
+          userAgent: req.headers['user-agent'] || undefined,
+        });
+      } catch (auditError) {
+        console.error('Failed to publish audit log to blockchain:', auditError);
+        // Don't fail the request if audit logging fails
+      }
     }
 
     // Transform the data for easier frontend consumption
@@ -119,6 +137,15 @@ router.get('/decrypted', authMiddleware, async (req, res) => {
     const decryptedRecords = await Promise.all(
       sharedRecords.map(async (share) => {
         try {
+          // Log access to audit trail and blockchain
+          await publishAuditLogToChain({
+            recordId: share.record_id,
+            accessedBy: userId,
+            timestamp: new Date().toISOString(),
+            ipAddress: req.ip || undefined,
+            userAgent: req.headers['user-agent'] || undefined,
+          });
+
           // Get provider's private key from local storage simulation
           // In production, this would be securely retrieved from the provider's secure storage
           const privateKeyB64 = req.headers['x-private-key']; // Temporary header for private key
@@ -265,6 +292,15 @@ router.get('/:shareId/decrypt', authMiddleware, async (req, res) => {
         error: 'Shared record not found or access denied' 
       });
     }
+
+    // Log access to audit trail and blockchain
+    await publishAuditLogToChain({
+      recordId: shareRecord.record_id,
+      accessedBy: userId,
+      timestamp: new Date().toISOString(),
+      ipAddress: req.ip || undefined,
+      userAgent: req.headers['user-agent'] || undefined,
+    });
 
     // Try to decrypt with provider's private key
     try {
