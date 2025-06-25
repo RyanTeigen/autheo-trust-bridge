@@ -35,32 +35,25 @@ export function AuditLogTable() {
       setLoading(true);
       setError(null);
 
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        setError('Authentication required');
-        return;
+      const { data, error: fetchError } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(100);
+
+      if (fetchError) {
+        throw fetchError;
       }
 
-      const response = await fetch('/api/logs', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Transform and type the data properly
+      const typedData: AuditLog[] = (data || []).map((log: any) => ({
+        ...log,
+        status: (log.status === 'success' || log.status === 'warning' || log.status === 'error') 
+          ? log.status as 'success' | 'warning' | 'error'
+          : 'success' as const
+      }));
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      if (result.success) {
-        setLogs(result.data);
-      } else {
-        setError(result.error || 'Failed to fetch audit logs');
-      }
+      setLogs(typedData);
     } catch (err) {
       console.error('Error fetching audit logs:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch audit logs');
