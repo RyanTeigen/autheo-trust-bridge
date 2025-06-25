@@ -11,14 +11,17 @@ import {
   Settings,
   ChevronRight,
   Share2,
-  FileText
+  FileText,
+  Search,
+  MessageCircle,
+  Calendar,
+  UserCheck
 } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -33,6 +36,7 @@ const AppSidebar: React.FC = () => {
   const { open, toggleSidebar } = useSidebar();
   const { profile } = useAuth();
   const [complianceOpen, setComplianceOpen] = useState(false);
+  const [providerPortalOpen, setProviderPortalOpen] = useState(false);
   
   const userRoles = profile?.roles || ['patient'];
   const isProvider = userRoles.includes('provider');
@@ -92,55 +96,82 @@ const AppSidebar: React.FC = () => {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              {/* Provider Portal - Only visible to providers */}
+              {/* Provider Portal - Expandable section for providers */}
               {isProvider && (
-                <>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to="/provider-portal"
-                        className={({ isActive }) =>
-                          cn(
-                            "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
-                            isActive
-                              ? "bg-slate-800 text-slate-100"
-                              : "text-slate-400"
-                          )
-                        }
-                        onClick={() => toggleSidebar()}
-                      >
-                        <Users className="h-4 w-4" />
-                        <div className="flex flex-col">
-                          <span>Provider Portal</span>
-                          <span className="text-xs text-slate-500 group-hover:text-slate-400">Healthcare provider interface</span>
-                        </div>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to="/patient-records"
-                        className={({ isActive }) =>
-                          cn(
-                            "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
-                            isActive
-                              ? "bg-slate-800 text-slate-100"
-                              : "text-slate-400"
-                          )
-                        }
-                        onClick={() => toggleSidebar()}
-                      >
-                        <FileText className="h-4 w-4" />
-                        <div className="flex flex-col">
-                          <span>Patient Records</span>
-                          <span className="text-xs text-slate-500 group-hover:text-slate-400">View patient medical records</span>
-                        </div>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </>
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    onClick={() => setProviderPortalOpen(!providerPortalOpen)}
+                    className="group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200 text-slate-400 cursor-pointer"
+                  >
+                    <Users className="h-4 w-4" />
+                    <div className="flex flex-col flex-1">
+                      <span>Provider Portal</span>
+                      <span className="text-xs text-slate-500 group-hover:text-slate-400">Healthcare provider interface</span>
+                    </div>
+                    <ChevronRight className={cn("h-4 w-4 transition-transform", providerPortalOpen && "rotate-90")} />
+                  </SidebarMenuButton>
+                  {providerPortalOpen && (
+                    <SidebarMenuSub>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink
+                            to="/provider-portal"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center space-x-2 rounded-md px-3 py-2 text-sm hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                                isActive
+                                  ? "bg-slate-800 text-slate-100"
+                                  : "text-slate-400"
+                              )
+                            }
+                            onClick={() => toggleSidebar()}
+                          >
+                            <UserCheck className="h-4 w-4" />
+                            <span>Dashboard</span>
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink
+                            to="/patient-records"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center space-x-2 rounded-md px-3 py-2 text-sm hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                                isActive
+                                  ? "bg-slate-800 text-slate-100"
+                                  : "text-slate-400"
+                              )
+                            }
+                            onClick={() => toggleSidebar()}
+                          >
+                            <Search className="h-4 w-4" />
+                            <span>Patient Records</span>
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink
+                            to="/medical-notes"
+                            className={({ isActive }) =>
+                              cn(
+                                "flex items-center space-x-2 rounded-md px-3 py-2 text-sm hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                                isActive
+                                  ? "bg-slate-800 text-slate-100"
+                                  : "text-slate-400"
+                              )
+                            }
+                            onClick={() => toggleSidebar()}
+                          >
+                            <FileText className="h-4 w-4" />
+                            <span>Medical Notes</span>
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  )}
+                </SidebarMenuItem>
               )}
 
               {/* Admin Portal - Only visible to admins */}
