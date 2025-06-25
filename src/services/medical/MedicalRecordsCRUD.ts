@@ -115,7 +115,7 @@ export class MedicalRecordsCRUD extends BaseService {
       const currentData = await MedicalRecordsEncryption.decryptMedicalRecord(
         record.encrypted_data,
         record.iv || '',
-        context.user.id
+        context.userId
       );
       const updatedData = { ...currentData, ...updateFields };
       const encryptedData = await MedicalRecordsEncryption.encryptRecordData(updatedData);
