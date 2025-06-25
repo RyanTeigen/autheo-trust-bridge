@@ -58,7 +58,7 @@ const MedicalNotesPage = () => {
   if (!isAuthenticated) {
     return (
       <div className="space-y-6">
-        <Alert variant="warning">
+        <Alert className="mb-4">
           <AlertCircle className="h-5 w-5" />
           <AlertDescription>
             You need to be logged in to access medical notes.
