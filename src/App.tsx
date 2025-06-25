@@ -60,34 +60,28 @@ const App = () => {
                       </ProtectedRoute>
                     } />
                     
-                    {/* Patient routes */}
+                    {/* Patient routes - accessible to all authenticated users (default patient role) */}
                     <Route path="/patient-dashboard" element={
                       <ProtectedRoute>
-                        <RoleBasedRoute allowedRoles={['patient']}>
-                          <MainLayout>
-                            <PatientDashboardPage />
-                          </MainLayout>
-                        </RoleBasedRoute>
+                        <MainLayout>
+                          <PatientDashboardPage />
+                        </MainLayout>
                       </ProtectedRoute>
                     } />
                     
                     <Route path="/smart-forms" element={
                       <ProtectedRoute>
-                        <RoleBasedRoute allowedRoles={['patient']}>
-                          <MainLayout>
-                            <SmartFormsPage />
-                          </MainLayout>
-                        </RoleBasedRoute>
+                        <MainLayout>
+                          <SmartFormsPage />
+                        </MainLayout>
                       </ProtectedRoute>
                     } />
                     
                     <Route path="/shared-records" element={
                       <ProtectedRoute>
-                        <RoleBasedRoute allowedRoles={['patient']}>
-                          <MainLayout>
-                            <SharedRecordsPage />
-                          </MainLayout>
-                        </RoleBasedRoute>
+                        <MainLayout>
+                          <SharedRecordsPage />
+                        </MainLayout>
                       </ProtectedRoute>
                     } />
                     
@@ -160,7 +154,7 @@ const App = () => {
                     } />
                     
                     {/* Legacy redirects */}
-                    <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                    <Route path="/dashboard" element={<Navigate to="/patient-dashboard" replace />} />
                     
                     {/* 404 route */}
                     <Route path="*" element={<NotFound />} />

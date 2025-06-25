@@ -25,10 +25,16 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AppSidebar: React.FC = () => {
   const { open, toggleSidebar } = useSidebar();
+  const { profile } = useAuth();
   const [complianceOpen, setComplianceOpen] = useState(false);
+  
+  const userRoles = profile?.roles || ['patient'];
+  const isProvider = userRoles.includes('provider');
+  const isAdmin = userRoles.includes('admin') || userRoles.includes('supervisor');
 
   return (
     <Sidebar className="w-64">
@@ -36,10 +42,11 @@ const AppSidebar: React.FC = () => {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              {/* Patient Dashboard - Always visible as default */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink
-                    to="/"
+                    to="/patient-dashboard"
                     className={({ isActive }) =>
                       cn(
                         "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
@@ -52,35 +59,38 @@ const AppSidebar: React.FC = () => {
                   >
                     <Heart className="h-4 w-4" />
                     <div className="flex flex-col">
-                      <span>My Health</span>
+                      <span>Patient Dashboard</span>
                       <span className="text-xs text-slate-500 group-hover:text-slate-400">Personal health dashboard</span>
                     </div>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink
-                    to="/provider-portal"
-                    className={({ isActive }) =>
-                      cn(
-                        "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
-                        isActive
-                          ? "bg-slate-800 text-slate-100"
-                          : "text-slate-400"
-                      )
-                    }
-                    onClick={() => toggleSidebar()}
-                  >
-                    <Users className="h-4 w-4" />
-                    <div className="flex flex-col">
-                      <span>Provider Portal</span>
-                      <span className="text-xs text-slate-500 group-hover:text-slate-400">Healthcare provider interface</span>
-                    </div>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {/* Provider Portal - Only visible to providers */}
+              {isProvider && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/provider-portal"
+                      className={({ isActive }) =>
+                        cn(
+                          "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                          isActive
+                            ? "bg-slate-800 text-slate-100"
+                            : "text-slate-400"
+                        )
+                      }
+                      onClick={() => toggleSidebar()}
+                    >
+                      <Users className="h-4 w-4" />
+                      <div className="flex flex-col">
+                        <span>Provider Portal</span>
+                        <span className="text-xs text-slate-500 group-hover:text-slate-400">Healthcare provider interface</span>
+                      </div>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
 
               {/* Compliance with nested Audit Logs */}
               <SidebarMenuItem>
