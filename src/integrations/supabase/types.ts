@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      audit_anchors: {
+        Row: {
+          anchored_at: string
+          audit_hash: string | null
+          created_at: string
+          id: string
+          log_count: number | null
+          tx_hash: string
+        }
+        Insert: {
+          anchored_at?: string
+          audit_hash?: string | null
+          created_at?: string
+          id?: string
+          log_count?: number | null
+          tx_hash: string
+        }
+        Update: {
+          anchored_at?: string
+          audit_hash?: string | null
+          created_at?: string
+          id?: string
+          log_count?: number | null
+          tx_hash?: string
+        }
+        Relationships: []
+      }
       audit_hash_anchors: {
         Row: {
           blockchain_network: string | null

@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Hash, Clock, Database, ExternalLink, Shield, Loader2 } from 'lucide-react';
 import { AuditHashService } from '@/services/audit/AuditHashService';
+import { BlockchainAnchorService } from '@/services/audit/BlockchainAnchorService';
 import { useToast } from '@/hooks/use-toast';
 
 interface HashResult {
@@ -16,7 +17,11 @@ interface HashResult {
   blockchainTxHash?: string;
 }
 
-const AuditHashManager: React.FC = () => {
+interface AuditHashManagerProps {
+  onHashAnchored?: () => void;
+}
+
+const AuditHashManager: React.FC<AuditHashManagerProps> = ({ onHashAnchored }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [hashResult, setHashResult] = useState<HashResult | null>(null);
   const [isAnchoring, setIsAnchoring] = useState(false);
@@ -62,19 +67,25 @@ const AuditHashManager: React.FC = () => {
         logs: []
       });
 
-      // In a real implementation, you would send this to your blockchain service
-      console.log('Blockchain anchoring data:', blockchainData);
-
       // Simulate blockchain transaction
       const mockTxHash = `0x${Math.random().toString(16).substr(2, 64)}`;
       
-      // Store the anchor record
-      await AuditHashService.storeHashAnchor(
-        hashResult.hash,
-        hashResult.logCount,
-        mockTxHash,
-        'autheo-testnet'
-      );
+      // Store both types of anchor records
+      await Promise.all([
+        // Store in audit_hash_anchors (existing functionality)
+        AuditHashService.storeHashAnchor(
+          hashResult.hash,
+          hashResult.logCount,
+          mockTxHash,
+          'autheo-testnet'
+        ),
+        // Store in audit_anchors (new blockchain anchor)
+        BlockchainAnchorService.storeBlockchainAnchor(
+          mockTxHash,
+          hashResult.hash,
+          hashResult.logCount
+        )
+      ]);
 
       setHashResult(prev => prev ? {
         ...prev,
@@ -86,6 +97,11 @@ const AuditHashManager: React.FC = () => {
         title: "Hash Anchored",
         description: "Audit hash successfully anchored on blockchain",
       });
+
+      // Notify parent component to refresh
+      if (onHashAnchored) {
+        onHashAnchored();
+      }
     } catch (error) {
       console.error('Error anchoring hash:', error);
       toast({
