@@ -19,10 +19,10 @@ export function ExportRecordButton({
 }: ExportRecordButtonProps) {
   const [downloading, setDownloading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, session } = useAuth();
 
   const exportRecord = async () => {
-    if (!user) {
+    if (!user || !session) {
       toast({
         title: "Authentication Required",
         description: "Please log in to export records",
@@ -43,7 +43,7 @@ export function ExportRecordButton({
         {
           method: 'GET',
           headers: {
-            'Authorization': `Bearer ${user.token || user.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
             'Content-Type': 'application/json'
           }
         }
