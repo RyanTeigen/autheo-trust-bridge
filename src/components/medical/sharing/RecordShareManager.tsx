@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,11 +20,13 @@ interface QuantumShare {
   shared_with_user_id: string;
   created_at: string;
   updated_at: string;
+  pq_encrypted_key?: string;
   medical_records?: {
     id: string;
     record_type: string;
     patient_id: string;
-    patients: {
+    created_at?: string;
+    patients?: {
       full_name?: string;
       email?: string;
       user_id?: string;
@@ -56,22 +57,24 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
     ]);
 
     if (mySharesResult.success && mySharesResult.data?.permissions) {
-      // Transform the data to match our interface
+      // Transform the data to match our interface - handle both quantum and legacy formats
       const transformedShares = mySharesResult.data.permissions.map((share: any) => ({
         id: share.id,
-        record_id: share.record_id,
-        shared_with_user_id: share.shared_with_user_id,
+        record_id: share.record_id || share.medical_record_id,
+        shared_with_user_id: share.shared_with_user_id || share.grantee_id,
         created_at: share.created_at,
-        updated_at: share.updated_at,
+        updated_at: share.updated_at || share.created_at,
+        pq_encrypted_key: share.pq_encrypted_key,
         medical_records: share.medical_records ? {
           id: share.medical_records.id,
           record_type: share.medical_records.record_type,
           patient_id: share.medical_records.patient_id,
-          patients: {
-            full_name: share.medical_records.patients?.full_name || 'Unknown',
-            email: share.medical_records.patients?.email || '',
-            user_id: share.medical_records.patients?.user_id
-          }
+          created_at: share.medical_records.created_at,
+          patients: share.medical_records.patients ? {
+            full_name: share.medical_records.patients.full_name || 'Unknown',
+            email: share.medical_records.patients.email || '',
+            user_id: share.medical_records.patients.user_id
+          } : undefined
         } : undefined
       }));
       setMyShares(transformedShares);
@@ -81,19 +84,21 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
       // Transform the data to match our interface
       const transformedShares = sharedWithMeResult.data.permissions.map((share: any) => ({
         id: share.id,
-        record_id: share.record_id,
-        shared_with_user_id: share.shared_with_user_id,
+        record_id: share.record_id || share.medical_record_id,
+        shared_with_user_id: share.shared_with_user_id || share.grantee_id,
         created_at: share.created_at,
-        updated_at: share.updated_at,
+        updated_at: share.updated_at || share.created_at,
+        pq_encrypted_key: share.pq_encrypted_key,
         medical_records: share.medical_records ? {
           id: share.medical_records.id,
           record_type: share.medical_records.record_type,
           patient_id: share.medical_records.patient_id,
-          patients: {
-            full_name: share.medical_records.patients?.full_name || 'Unknown',
-            email: share.medical_records.patients?.email || '',
-            user_id: share.medical_records.patients?.user_id
-          }
+          created_at: share.medical_records.created_at,
+          patients: share.medical_records.patients ? {
+            full_name: share.medical_records.patients.full_name || 'Unknown',
+            email: share.medical_records.patients.email || '',
+            user_id: share.medical_records.patients.user_id
+          } : undefined
         } : undefined
       }));
       setSharedWithMe(transformedShares);

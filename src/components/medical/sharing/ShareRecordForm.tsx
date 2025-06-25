@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,10 +75,10 @@ const ShareRecordForm: React.FC<ShareRecordFormProps> = ({
       } else {
         // Handle error cases with proper type checking
         let errorMessage = "Failed to share record";
+        
+        // Check if result has an error property (union type handling)
         if ('error' in result && result.error) {
-          errorMessage = result.error;
-        } else if ('data' in result && result.data && typeof result.data === 'object' && 'error' in result.data) {
-          errorMessage = (result.data as any).error;
+          errorMessage = typeof result.error === 'string' ? result.error : String(result.error);
         }
         
         toast({
@@ -89,6 +88,7 @@ const ShareRecordForm: React.FC<ShareRecordFormProps> = ({
         });
       }
     } catch (error) {
+      console.error('Unexpected error during sharing:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
