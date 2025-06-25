@@ -91,6 +91,7 @@ interface ProviderPortalProviderProps {
 }
 
 export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ children }) => {
+  // Updated default tab to match new structure
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifications, setNotifications] = useState(mockNotifications);
 
