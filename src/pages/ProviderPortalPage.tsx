@@ -9,6 +9,7 @@ import PatientsTab from '@/components/provider-portal/PatientsTab';
 import MessagingTab from '@/components/provider-portal/MessagingTab';
 import AccessRequestTab from '@/components/provider-portal/AccessRequestTab';
 import ScheduleTab from '@/components/provider-portal/ScheduleTab';
+import SharedRecordsTab from '@/components/provider-portal/SharedRecordsTab';
 import { ProviderPortalProvider, useProviderPortal } from '@/contexts/ProviderPortalContext';
 
 const ProviderPortalContent: React.FC = () => {
@@ -52,9 +53,10 @@ const ProviderPortalContent: React.FC = () => {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
+          <TabsList className="grid w-full grid-cols-6 bg-slate-800 border-slate-700">
             <TabsTrigger value="dashboard" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Dashboard</TabsTrigger>
             <TabsTrigger value="patients" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Patient Records</TabsTrigger>
+            <TabsTrigger value="shared" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Shared Records</TabsTrigger>
             <TabsTrigger value="messaging" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Messaging</TabsTrigger>
             <TabsTrigger value="access" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Request Access</TabsTrigger>
             <TabsTrigger value="schedule" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Schedule</TabsTrigger>
@@ -70,6 +72,10 @@ const ProviderPortalContent: React.FC = () => {
           
           <TabsContent value="patients" className="mt-6">
             <PatientsTab />
+          </TabsContent>
+          
+          <TabsContent value="shared" className="mt-6">
+            <SharedRecordsTab />
           </TabsContent>
           
           <TabsContent value="messaging" className="mt-6">
