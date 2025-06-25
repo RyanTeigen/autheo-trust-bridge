@@ -1,9 +1,8 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Share2, Calendar, Activity, Shield } from 'lucide-react';
+import { User, FileText, Share2, Calendar, Activity } from 'lucide-react';
 import HealthRecordsTab from './HealthRecordsTab';
-import QuantumSharingTab from './QuantumSharingTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
@@ -32,7 +31,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-3 lg:grid-cols-6 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-5 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -52,14 +51,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
         >
           <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Shared</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="quantum-sharing" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <Shield className="h-4 w-4" />
-          <span className="hidden sm:inline">Sharing</span>
+          <span className="hidden sm:inline">Shared Records</span>
         </TabsTrigger>
         <TabsTrigger 
           value="scheduling" 
@@ -93,12 +85,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       
       <TabsContent value="shared-records">
         <SharedRecordsTab />
-      </TabsContent>
-      
-      <TabsContent value="quantum-sharing">
-        <QuantumSharingTab
-          handleShareHealthInfo={handleShareHealthInfo}
-        />
       </TabsContent>
       
       <TabsContent value="scheduling">
