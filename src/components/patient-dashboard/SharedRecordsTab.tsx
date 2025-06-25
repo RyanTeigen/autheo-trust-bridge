@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Share2, Users, FileText, Lock, Zap, Eye } from 'lucide-react';
+import { Shield, Share2, Users, FileText, Lock, Zap, Eye, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import RecordShareManager from '@/components/medical/sharing/RecordShareManager';
 import { ShareManager } from '@/components/medical/sharing/ShareManager';
 import SharedRecordsContent from './SharedRecordsContent';
+import SharingManager from '@/components/patient/SharingManager';
 import { useToast } from '@/hooks/use-toast';
 import ShareHealthInfoDialog from '@/components/shared-records/ShareHealthInfoDialog';
 
@@ -122,18 +123,18 @@ const SharedRecordsTab: React.FC = () => {
             Overview
           </TabsTrigger>
           <TabsTrigger 
+            value="access-management"
+            className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary"
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Access Control
+          </TabsTrigger>
+          <TabsTrigger 
             value="quantum-sharing"
             className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary"
           >
             <Shield className="h-4 w-4 mr-2" />
             Quantum Sharing
-          </TabsTrigger>
-          <TabsTrigger 
-            value="access-management"
-            className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary"
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Access Management
           </TabsTrigger>
           <TabsTrigger 
             value="standard-sharing"
@@ -155,6 +156,20 @@ const SharedRecordsTab: React.FC = () => {
             </Alert>
             
             <SharedRecordsContent handleShareHealthInfo={handleShareHealthInfo} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="access-management">
+          <div className="space-y-6">
+            <Alert className="border-blue-500/30 bg-blue-900/20">
+              <Settings className="h-4 w-4" />
+              <AlertDescription className="text-slate-200">
+                <strong>Access Control:</strong> Manage who has access to your medical records. 
+                You can revoke access at any time to maintain complete control over your health data.
+              </AlertDescription>
+            </Alert>
+            
+            <SharingManager />
           </div>
         </TabsContent>
 
@@ -208,10 +223,6 @@ const SharedRecordsTab: React.FC = () => {
             
             <RecordShareManager />
           </div>
-        </TabsContent>
-
-        <TabsContent value="access-management">
-          <SharedRecordsContent handleShareHealthInfo={handleShareHealthInfo} />
         </TabsContent>
 
         <TabsContent value="standard-sharing">
