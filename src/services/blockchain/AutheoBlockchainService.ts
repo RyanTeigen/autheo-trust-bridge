@@ -118,12 +118,17 @@ class AutheoBlockchainService {
       const contract = new this.web3.eth.Contract(this.AUDIT_ANCHOR_ABI, this.contractAddress);
       const anchorTimestamp = timestamp || Math.floor(Date.now() / 1000);
 
-      // Estimate gas
-      const gasEstimate = await contract.methods
+      // Estimate gas - convert bigint to number
+      const gasEstimateBigInt = await contract.methods
         .anchorAuditHash(auditHash, logCount, anchorTimestamp)
         .estimateGas({ from: this.defaultAccount });
-
+      
+      const gasEstimate = Number(gasEstimateBigInt);
       console.log(`⛽ Estimated gas: ${gasEstimate}`);
+
+      // Get gas price - convert bigint to string for Web3 operations
+      const gasPriceBigInt = await this.web3.eth.getGasPrice();
+      const gasPrice = gasPriceBigInt.toString();
 
       // Send transaction
       const transaction = await contract.methods
@@ -131,7 +136,7 @@ class AutheoBlockchainService {
         .send({
           from: this.defaultAccount,
           gas: Math.floor(gasEstimate * 1.2), // Add 20% buffer
-          gasPrice: await this.web3.eth.getGasPrice()
+          gasPrice: gasPrice
         });
 
       console.log('✅ Transaction successful:', transaction.transactionHash);
@@ -139,8 +144,8 @@ class AutheoBlockchainService {
       return {
         success: true,
         transactionHash: transaction.transactionHash,
-        blockNumber: transaction.blockNumber,
-        gasUsed: transaction.gasUsed
+        blockNumber: Number(transaction.blockNumber),
+        gasUsed: Number(transaction.gasUsed)
       };
 
     } catch (error) {
@@ -166,9 +171,9 @@ class AutheoBlockchainService {
 
       return {
         hash: receipt.transactionHash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed,
-        status: receipt.status,
+        blockNumber: Number(receipt.blockNumber),
+        gasUsed: Number(receipt.gasUsed),
+        status: Boolean(receipt.status),
         timestamp: typeof block.timestamp === 'string' 
           ? parseInt(block.timestamp) 
           : Number(block.timestamp)
@@ -187,8 +192,11 @@ class AutheoBlockchainService {
     networkName: string;
     blockNumber: number;
   }> {
-    const chainId = await this.web3.eth.getChainId();
-    const blockNumber = await this.web3.eth.getBlockNumber();
+    const chainIdBigInt = await this.web3.eth.getChainId();
+    const blockNumberBigInt = await this.web3.eth.getBlockNumber();
+    
+    const chainId = Number(chainIdBigInt);
+    const blockNumber = Number(blockNumberBigInt);
     
     const networkName = chainId === 1 
       ? 'Autheo Mainnet' 
@@ -197,9 +205,9 @@ class AutheoBlockchainService {
         : `Unknown Network (${chainId})`;
 
     return {
-      chainId: Number(chainId),
+      chainId,
       networkName,
-      blockNumber: Number(blockNumber)
+      blockNumber
     };
   }
 
