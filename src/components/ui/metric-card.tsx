@@ -6,7 +6,7 @@ interface MetricCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
-  trend?: string;
+  trend?: React.ReactNode;
   description?: string;
 }
 
@@ -23,17 +23,15 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         <CardTitle className="text-sm font-medium text-slate-300">
           {title}
         </CardTitle>
-        <div className="h-4 w-4 text-autheo-primary">
-          {icon}
+        <div className="flex items-center space-x-1">
+          <div className="h-4 w-4 text-autheo-primary">
+            {icon}
+          </div>
+          {trend && trend}
         </div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-autheo-primary">{value}</div>
-        {trend && (
-          <p className="text-xs text-slate-400 mt-1">
-            {trend} from last month
-          </p>
-        )}
         {description && (
           <p className="text-xs text-slate-400 mt-1">
             {description}
