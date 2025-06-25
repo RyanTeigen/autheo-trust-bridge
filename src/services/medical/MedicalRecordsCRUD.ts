@@ -1,13 +1,12 @@
 
 import { BaseService, ServiceResponse } from '../BaseService';
-import { DecryptedMedicalRecord } from '@/types/medical';
+import { DecryptedRecord } from '@/types/medical';
 import { ValidationError, AuthorizationError, NotFoundError } from '@/utils/errorHandling';
 import { MedicalRecordsValidator } from '../validators/MedicalRecordsValidator';
 import { MedicalRecordsRepository } from '../repositories/MedicalRecordsRepository';
 import { MedicalRecordsValidation, MedicalRecordCreateInput, MedicalRecordUpdateInput } from './MedicalRecordsValidation';
 import { MedicalRecordsEncryption } from './MedicalRecordsEncryption';
 import { MedicalRecordsPatientService } from './MedicalRecordsPatientService';
-import { decrypt } from '../encryption/MedicalRecordsEncryption';
 
 interface PaginationOptions {
   limit?: number;
@@ -52,7 +51,7 @@ export class MedicalRecordsCRUD extends BaseService {
     }
   }
 
-  async getRecord(id: string): Promise<ServiceResponse<DecryptedMedicalRecord>> {
+  async getRecord(id: string): Promise<ServiceResponse<DecryptedRecord>> {
     try {
       const context = await this.validateAuthentication();
       const sanitizedId = MedicalRecordsValidator.validateId(id);
@@ -82,7 +81,7 @@ export class MedicalRecordsCRUD extends BaseService {
     }
   }
 
-  async updateRecord(id: string, data: MedicalRecordUpdateInput): Promise<ServiceResponse<DecryptedMedicalRecord>> {
+  async updateRecord(id: string, data: MedicalRecordUpdateInput): Promise<ServiceResponse<DecryptedRecord>> {
     try {
       const context = await this.validateAuthentication();
       const sanitizedId = MedicalRecordsValidator.validateId(id);
@@ -113,7 +112,11 @@ export class MedicalRecordsCRUD extends BaseService {
       }
 
       // Decrypt current data, merge with updates, then re-encrypt
-      const currentData = JSON.parse(decrypt(record.encrypted_data));
+      const currentData = await MedicalRecordsEncryption.decryptMedicalRecord(
+        record.encrypted_data,
+        record.iv || '',
+        context.user.id
+      );
       const updatedData = { ...currentData, ...updateFields };
       const encryptedData = await MedicalRecordsEncryption.encryptRecordData(updatedData);
       

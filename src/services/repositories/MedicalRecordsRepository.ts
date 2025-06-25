@@ -13,12 +13,17 @@ interface MedicalRecordFilters {
 }
 
 export class MedicalRecordsRepository {
-  static async create(patientId: string, encryptedData: string, recordType: string): Promise<{ id: string }> {
+  static async create(
+    patientId: string, 
+    encryptedData: { encrypted_data: string; iv: string }, 
+    recordType: string
+  ): Promise<{ id: string }> {
     const { data: record, error } = await supabase
       .from('medical_records')
       .insert({
         patient_id: patientId,
-        encrypted_data: encryptedData,
+        encrypted_data: encryptedData.encrypted_data,
+        iv: encryptedData.iv,
         record_type: recordType
       })
       .select()
@@ -101,11 +106,15 @@ export class MedicalRecordsRepository {
     return records as (MedicalRecord & { patients: { user_id: string } })[] || [];
   }
 
-  static async update(id: string, encryptedData: string): Promise<void> {
+  static async update(
+    id: string, 
+    encryptedData: { encrypted_data: string; iv: string }
+  ): Promise<void> {
     const { error } = await supabase
       .from('medical_records')
       .update({
-        encrypted_data: encryptedData,
+        encrypted_data: encryptedData.encrypted_data,
+        iv: encryptedData.iv,
         updated_at: new Date().toISOString()
       })
       .eq('id', id);

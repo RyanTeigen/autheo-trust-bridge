@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEnhancedMedicalRecords } from '@/hooks/useEnhancedMedicalRecords';
-import { DecryptedMedicalRecord } from '@/types/medical';
+import { DecryptedRecord } from '@/types/medical';
 import { Plus, Shield, AlertCircle } from 'lucide-react';
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import MedicalRecordForm from './MedicalRecordForm';
+import SimpleMedicalRecordForm from './SimpleMedicalRecordForm';
 import MedicalRecordCard from './MedicalRecordCard';
 import EmptyRecordsState from './EmptyRecordsState';
 
@@ -29,7 +29,7 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
   } = useEnhancedMedicalRecords();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<DecryptedMedicalRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<DecryptedRecord | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -59,7 +59,7 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
     }
   };
 
-  const handleEdit = (record: DecryptedMedicalRecord) => {
+  const handleEdit = (record: DecryptedRecord) => {
     setEditingRecord(record);
     setFormData({
       title: record.data?.title || '',
@@ -128,7 +128,7 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             
-            <MedicalRecordForm
+            <SimpleMedicalRecordForm
               formData={formData}
               setFormData={setFormData}
               onSubmit={handleSubmit}
@@ -172,7 +172,7 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
             
-            <MedicalRecordForm
+            <SimpleMedicalRecordForm
               formData={formData}
               setFormData={setFormData}
               onSubmit={handleSubmit}

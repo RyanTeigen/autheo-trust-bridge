@@ -20,6 +20,7 @@ export interface MedicalRecord {
   user_id?: string;
   patient_id: string;
   encrypted_data: string;
+  iv?: string;
   record_type?: string;
   created_at: string;
   updated_at: string;
@@ -35,13 +36,19 @@ export interface SharingPermission {
   created_at: string;
 }
 
-export interface DecryptedMedicalRecord extends Omit<MedicalRecord, 'encrypted_data'> {
-  title: string;
-  description: string;
-  recordType: string;
+export interface DecryptedRecord {
+  id: string;
+  patient_id: string;
   data: any;
-  encryption?: {
-    isQuantumSafe: boolean;
+  record_type: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: {
     algorithm: string;
+    timestamp: string;
+    encrypted: boolean;
   };
 }
+
+// Alias for backward compatibility
+export type DecryptedMedicalRecord = DecryptedRecord;

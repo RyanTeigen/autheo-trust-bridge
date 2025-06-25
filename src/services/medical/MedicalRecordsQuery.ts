@@ -1,6 +1,6 @@
 
 import { BaseService, ServiceResponse } from '../BaseService';
-import { DecryptedMedicalRecord } from '@/types/medical';
+import { DecryptedRecord } from '@/types/medical';
 import { AuthorizationError } from '@/utils/errorHandling';
 import { MedicalRecordsRepository } from '../repositories/MedicalRecordsRepository';
 import { MedicalRecordsEncryption } from './MedicalRecordsEncryption';
@@ -19,7 +19,7 @@ export class MedicalRecordsQuery extends BaseService {
   async getRecords(
     options: PaginationOptions = {},
     filters: RecordFilters = {}
-  ): Promise<ServiceResponse<{ records: DecryptedMedicalRecord[]; totalCount: number; pagination: any }>> {
+  ): Promise<ServiceResponse<{ records: DecryptedRecord[]; totalCount: number; pagination: any }>> {
     try {
       const context = await this.validateAuthentication();
       

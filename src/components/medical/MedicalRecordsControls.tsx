@@ -7,18 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface MedicalRecordsControlsProps {
   searchTerm: string;
-  onSearchChange: (value: string) => void;
+  setSearchTerm: (value: string) => void;
   filterType: string;
-  onFilterChange: (value: string) => void;
-  onCreateRecord: () => void;
+  setFilterType: (value: string) => void;
 }
 
 const MedicalRecordsControls: React.FC<MedicalRecordsControlsProps> = ({
   searchTerm,
-  onSearchChange,
+  setSearchTerm,
   filterType,
-  onFilterChange,
-  onCreateRecord
+  setFilterType,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row gap-4 justify-between">
@@ -28,11 +26,11 @@ const MedicalRecordsControls: React.FC<MedicalRecordsControlsProps> = ({
           <Input
             placeholder="Search medical records..."
             value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
-        <Select value={filterType} onValueChange={onFilterChange}>
+        <Select value={filterType} onValueChange={setFilterType}>
           <SelectTrigger className="w-[180px]">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue />
@@ -47,10 +45,6 @@ const MedicalRecordsControls: React.FC<MedicalRecordsControlsProps> = ({
           </SelectContent>
         </Select>
       </div>
-      <Button onClick={onCreateRecord}>
-        <Plus className="h-4 w-4 mr-2" />
-        Add Record
-      </Button>
     </div>
   );
 };
