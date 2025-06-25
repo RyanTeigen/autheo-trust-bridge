@@ -10,14 +10,18 @@ import { formSchema, FormValues } from './signup/schema';
 import RoleSelector from './signup/RoleSelector';
 import SignupFormFields from './signup/SignupFormFields';
 import { useWallet } from '@/hooks/use-wallet';
-import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
-import { API_BASE_URL } from '@/utils/environment';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const SignupForm: React.FC = () => {
   const { toast } = useToast();
-  const { login } = useFrontendAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = React.useState(false);
   const { wallet, isConnecting, connectMetaMask } = useWallet();
+
+  // Get the page they were trying to visit from location state
+  const from = location.state?.from || '/';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -37,71 +41,41 @@ const SignupForm: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
-    console.log('Attempting signup with:', { email: values.email, apiUrl: `${API_BASE_URL}/auth/register` });
+    console.log('Attempting signup with Supabase:', { email: values.email });
     
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-          username: values.email, // Using email as username
-          role: selectedRoles[0], // Using the first selected role
-          firstName: values.firstName,
-          lastName: values.lastName,
-        }),
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            first_name: values.firstName,
+            last_name: values.lastName,
+            roles: selectedRoles,
+          }
+        }
       });
 
-      console.log('Signup response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Signup error response:', errorText);
-        
-        let errorMessage = 'Registration failed';
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          errorMessage = `Server error (${response.status})`;
-        }
-        
-        throw new Error(errorMessage);
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
-      console.log('Signup successful, received token');
+      if (data.user) {
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email to verify your account before signing in.",
+        });
 
-      // 🔐 Store the private key securely (localStorage for development)
-      if (data.privateKey) {
-        console.log('Storing ML-KEM private key for user');
-        localStorage.setItem(`mlkem_private_key_${data.user.id}`, data.privateKey);
-        
-        toast({
-          title: "Quantum-Safe Account Created!",
-          description: "Your account has been secured with post-quantum cryptography",
-        });
-      } else {
-        toast({
-          title: "Account created successfully",
-          description: "Welcome to Autheo Health",
-        });
+        // Don't navigate immediately - wait for email verification
+        // The user will be redirected after clicking the verification link
       }
-
-      // Use the login function from FrontendAuthContext to store the token
-      login(data.token);
-
     } catch (error: any) {
       console.error("Registration error:", error);
       
       let errorMessage = "Please try again";
       
-      if (error.message === 'Failed to fetch') {
-        errorMessage = "Unable to connect to the server. Please check your internet connection and try again.";
-      } else if (error.message) {
+      if (error.message) {
         errorMessage = error.message;
       }
       
@@ -141,7 +115,7 @@ const SignupForm: React.FC = () => {
               disabled={isLoading || !isFormValid}
               variant="autheo"
             >
-              {isLoading ? "Creating Quantum-Safe Account..." : "Create Account"}
+              {isLoading ? "Creating Account..." : "Create Account"}
             </Button>
             
             {!isFormValid && formState.isDirty && (

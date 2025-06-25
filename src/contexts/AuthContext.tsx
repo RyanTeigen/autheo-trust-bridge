@@ -30,7 +30,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [authChecked, setAuthChecked] = useState<boolean>(false);
 
   useEffect(() => {
     console.log('AuthProvider: Setting up auth state listener...');
@@ -54,10 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           console.log('AuthProvider: No session, clearing profile...');
           setProfile(null);
-          // Only set loading to false if we're explicitly logging out
-          if (event === 'SIGNED_OUT') {
-            setIsLoading(false);
-          }
+          setIsLoading(false);
         }
       }
     );
@@ -69,21 +65,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session } } = await supabase.auth.getSession();
         console.log('AuthProvider: Initial auth check, session exists:', !!session);
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          console.log('AuthProvider: Found existing session, fetching profile...');
-          await fetchUserProfile(session.user.id);
-        } else {
-          console.log('AuthProvider: No existing session found');
-          setIsLoading(false);
-        }
+        // Don't set state here - let the auth state change handler do it
+        // This prevents duplicate calls
       } catch (error) {
         console.error('AuthProvider: Error initializing auth:', error);
         setIsLoading(false);
-      } finally {
-        setAuthChecked(true);
       }
     };
 
@@ -103,11 +89,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (profileError) {
-        console.log('AuthProvider: Profile not found in database, using metadata from auth');
-        // Don't throw here, continue to use user metadata
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('AuthProvider: Error fetching profile:', profileError);
       }
 
       // Get user metadata from auth.users
@@ -116,10 +101,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userMetadata = userData.user?.user_metadata;
       
       // Create a profile from either db profile or user metadata
-      // Convert the single 'role' from the database to an array of roles for our app
       const rolesArray = profileData?.role 
         ? [profileData.role] 
-        : (userMetadata?.roles || []);
+        : (userMetadata?.roles || ['patient']); // Default to patient role
         
       const newProfile = {
         id: userId,
@@ -134,31 +118,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error) {
       console.error('AuthProvider: Error fetching user profile:', error);
-      // If there's an error, we'll try to use just the user metadata
-      if (user && user.user_metadata) {
-        const fallbackProfile = {
-          id: userId,
-          email: user.email || '',
-          firstName: user.user_metadata.first_name || '',
-          lastName: user.user_metadata.last_name || '',
-          roles: user.user_metadata.roles || [],
-        };
-        console.log('AuthProvider: Using fallback profile:', fallbackProfile);
-        setProfile(fallbackProfile);
-      } else {
-        // Create a minimal profile to ensure the app doesn't crash
-        const minimalProfile = {
-          id: userId,
-          email: user?.email || '',
-          firstName: '',
-          lastName: '',
-          roles: []
-        };
-        console.log('AuthProvider: Using minimal profile:', minimalProfile);
-        setProfile(minimalProfile);
-      }
+      // Create a minimal profile to ensure the app doesn't crash
+      const minimalProfile = {
+        id: userId,
+        email: user?.email || '',
+        firstName: '',
+        lastName: '',
+        roles: ['patient'] // Default role
+      };
+      console.log('AuthProvider: Using minimal profile:', minimalProfile);
+      setProfile(minimalProfile);
     } finally {
-      // Always finish loading state after profile attempt
       console.log('AuthProvider: Profile fetch complete, setting isLoading to false');
       setIsLoading(false);
     }
@@ -176,9 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Improved role checking function
   const hasRole = (role: string): boolean => {
-    // Creator/admin access - always return true to avoid being locked out
+    // Creator/admin access in development
     if (import.meta.env.DEV) {
       return true;
     }

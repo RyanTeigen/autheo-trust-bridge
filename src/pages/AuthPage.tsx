@@ -2,20 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Key } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
-import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AuthPage = () => {
   const [activeTab, setActiveTab] = useState('login');
   const navigate = useNavigate();
   const location = useLocation();
-  const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useFrontendAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   // Get the page they were trying to visit from location state
   const from = location.state?.from || '/';

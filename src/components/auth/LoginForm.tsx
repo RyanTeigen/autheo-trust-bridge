@@ -7,11 +7,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Wallet, Key, AlertCircle } from 'lucide-react';
+import { Wallet, Key } from 'lucide-react';
 import { useWallet } from '@/hooks/use-wallet';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
-import { API_BASE_URL } from '@/utils/environment';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -22,9 +21,13 @@ type FormValues = z.infer<typeof formSchema>;
 
 const LoginForm: React.FC = () => {
   const { toast } = useToast();
-  const { login } = useFrontendAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const { wallet, isConnecting, connectMetaMask } = useWallet();
+
+  // Get the page they were trying to visit from location state
+  const from = location.state?.from || '/';
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -36,55 +39,32 @@ const LoginForm: React.FC = () => {
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
-    console.log('Attempting login with:', { email: values.email, apiUrl: `${API_BASE_URL}/auth/login` });
     
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
       });
 
-      console.log('Login response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Login error response:', errorText);
-        
-        let errorMessage = 'Login failed';
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          errorMessage = `Server error (${response.status})`;
-        }
-        
-        throw new Error(errorMessage);
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
-      console.log('Login successful, received token');
-
-      // Use the login function from FrontendAuthContext
-      login(data.token);
-
-      toast({
-        title: "Login successful",
-        description: "Welcome back to Autheo Health",
-      });
+      if (data.user) {
+        toast({
+          title: "Login successful",
+          description: "Welcome back to Autheo Health",
+        });
+        
+        // Navigate to the intended page or home
+        navigate(from, { replace: true });
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       
       let errorMessage = "Please check your credentials and try again";
       
-      if (error.message === 'Failed to fetch') {
-        errorMessage = "Unable to connect to the server. Please check your internet connection and try again.";
-      } else if (error.message) {
+      if (error.message) {
         errorMessage = error.message;
       }
       
@@ -126,13 +106,6 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Alert className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription className="text-xs">
-          Using JWT-based authentication. Make sure your backend API is running at {API_BASE_URL}
-        </AlertDescription>
-      </Alert>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
