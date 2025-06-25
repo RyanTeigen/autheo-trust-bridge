@@ -1,4 +1,3 @@
-
 import { BaseService, ServiceResponse } from '../BaseService';
 import { AuthorizationError, ValidationError, NotFoundError } from '@/utils/errorHandling';
 import { supabase } from '@/integrations/supabase/client';
@@ -57,11 +56,8 @@ export class MedicalRecordsSharing extends BaseService {
         throw new ValidationError('Recipient does not have quantum-safe encryption enabled');
       }
 
-      // Generate new AES key for this share
-      const aesKey = crypto.getRandomValues(new Uint8Array(32));
-      
-      // Encrypt the AES key with recipient's ML-KEM public key
-      const encryptedAESKey = await mlkemEncapsulate(aesKey, recipientPublicKey);
+      // Generate shared secret and encapsulated key using ML-KEM
+      const encapsulationResult = await mlkemEncapsulate(recipientPublicKey);
 
       // Create the share record
       const { data: shareRecord, error } = await supabase
@@ -69,7 +65,7 @@ export class MedicalRecordsSharing extends BaseService {
         .insert({
           record_id: input.recordId,
           shared_with_user_id: input.recipientUserId,
-          pq_encrypted_key: JSON.stringify(encryptedAESKey)
+          pq_encrypted_key: JSON.stringify(encapsulationResult)
         })
         .select()
         .single();
