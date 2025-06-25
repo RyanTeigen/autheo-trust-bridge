@@ -47,7 +47,7 @@ export class MedicalRecordsQuery extends BaseService {
         )
       ]);
 
-      const decryptedRecords = MedicalRecordsEncryption.decryptRecords(records);
+      const decryptedRecords = await MedicalRecordsEncryption.decryptRecords(records);
 
       return this.createSuccessResponse({
         records: decryptedRecords,

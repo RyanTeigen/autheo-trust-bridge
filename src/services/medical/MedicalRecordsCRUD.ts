@@ -67,7 +67,7 @@ export class MedicalRecordsCRUD extends BaseService {
         throw new AuthorizationError('Insufficient permissions to access this record');
       }
 
-      const decryptedRecord = MedicalRecordsEncryption.decryptSingleRecord(record);
+      const decryptedRecord = await MedicalRecordsEncryption.decryptSingleRecord(record);
 
       return this.createSuccessResponse(decryptedRecord, {
         operation: 'getRecord',
@@ -121,7 +121,7 @@ export class MedicalRecordsCRUD extends BaseService {
 
       // Return updated record
       const updatedRecord = await MedicalRecordsRepository.findById(sanitizedId);
-      const decryptedRecord = MedicalRecordsEncryption.decryptSingleRecord(updatedRecord);
+      const decryptedRecord = await MedicalRecordsEncryption.decryptSingleRecord(updatedRecord);
 
       return this.createSuccessResponse(decryptedRecord, {
         operation: 'updateRecord',
