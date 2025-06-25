@@ -75,13 +75,25 @@ const SignupForm: React.FC = () => {
       const data = await response.json();
       console.log('Signup successful, received token');
 
+      // 🔐 Store the private key securely (localStorage for development)
+      if (data.privateKey) {
+        console.log('Storing ML-KEM private key for user');
+        localStorage.setItem(`mlkem_private_key_${data.user.id}`, data.privateKey);
+        
+        toast({
+          title: "Quantum-Safe Account Created!",
+          description: "Your account has been secured with post-quantum cryptography",
+        });
+      } else {
+        toast({
+          title: "Account created successfully",
+          description: "Welcome to Autheo Health",
+        });
+      }
+
       // Use the login function from FrontendAuthContext to store the token
       login(data.token);
 
-      toast({
-        title: "Account created successfully",
-        description: "Welcome to Autheo Health",
-      });
     } catch (error: any) {
       console.error("Registration error:", error);
       
@@ -129,7 +141,7 @@ const SignupForm: React.FC = () => {
               disabled={isLoading || !isFormValid}
               variant="autheo"
             >
-              {isLoading ? "Creating Account..." : "Create Account"}
+              {isLoading ? "Creating Quantum-Safe Account..." : "Create Account"}
             </Button>
             
             {!isFormValid && formState.isDirty && (

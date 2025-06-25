@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
+import { MlKem768 } from 'https://esm.sh/mlkem@2.3.1'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -158,6 +159,30 @@ async function handleRegister(req: Request) {
 
     console.log('Attempting to register user:', email)
 
+    // 🔐 Generate ML-KEM key pair
+    console.log('Generating ML-KEM key pair...')
+    let publicKeyBase64: string
+    let privateKeyBase64: string
+    
+    try {
+      const kem = new MlKem768()
+      const [publicKey, privateKey] = await kem.generateKeyPair()
+      
+      publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)))
+      privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)))
+      
+      console.log('ML-KEM key pair generated successfully')
+    } catch (kemError) {
+      console.error('ML-KEM key generation failed:', kemError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to generate quantum-safe keys' }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
+    }
+
     // Create user with metadata
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
@@ -210,6 +235,24 @@ async function handleRegister(req: Request) {
       // Don't fail registration if profile creation fails
     }
 
+    // 🔐 Store the public key in the user_keys table
+    console.log('Storing ML-KEM public key in database...')
+    const { error: keyError } = await supabase
+      .from('user_keys')
+      .insert({
+        user_id: authData.user.id,
+        public_key: publicKeyBase64,
+        key_type: 'mlkem-768',
+        is_active: true
+      })
+
+    if (keyError) {
+      console.error('Key storage error:', keyError)
+      // Log error but don't fail registration - key can be regenerated later
+    } else {
+      console.log('ML-KEM public key stored successfully')
+    }
+
     // Create JWT token
     const tokenPayload = {
       userId: authData.user.id,
@@ -224,8 +267,18 @@ async function handleRegister(req: Request) {
     const token = await createJWT(tokenPayload)
     console.log('JWT token created for new user')
 
+    // 🔐 Return token + user's private key (for frontend storage)
     return new Response(
-      JSON.stringify({ token }),
+      JSON.stringify({ 
+        token,
+        user: { 
+          id: authData.user.id, 
+          email: email, 
+          role: role || 'patient' 
+        },
+        privateKey: privateKeyBase64,
+        quantumSafe: true
+      }),
       { 
         status: 201,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
