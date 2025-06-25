@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import RoleBasedRoute from "./components/auth/RoleBasedRoute";
 import AuthPage from "./pages/AuthPage";
 import Unauthorized from "./pages/Unauthorized";
 import CompliancePage from "./pages/CompliancePage";
@@ -22,6 +23,7 @@ import AdminPortalPage from "./pages/AdminPortalPage";
 import SmartFormsPage from "./pages/SmartFormsPage";
 import SharedRecordsPage from "./pages/SharedRecordsPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
+import RoleBasedDashboardRedirect from "./components/auth/RoleBasedDashboardRedirect";
 
 // Create a stable query client instance
 const queryClient = new QueryClient({
@@ -51,75 +53,87 @@ const App = () => {
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     
-                    {/* Protected routes - require authentication */}
+                    {/* Role-based dashboard redirect */}
                     <Route path="/" element={
                       <ProtectedRoute>
-                        <MainLayout>
-                          <PatientDashboardPage />
-                        </MainLayout>
+                        <RoleBasedDashboardRedirect />
                       </ProtectedRoute>
                     } />
                     
-                    {/* Dashboard route - same as root */}
-                    <Route path="/dashboard" element={
+                    {/* Patient routes */}
+                    <Route path="/patient-dashboard" element={
                       <ProtectedRoute>
-                        <MainLayout>
-                          <PatientDashboardPage />
-                        </MainLayout>
+                        <RoleBasedRoute allowedRoles={['patient']}>
+                          <MainLayout>
+                            <PatientDashboardPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
                     
                     <Route path="/smart-forms" element={
                       <ProtectedRoute>
-                        <MainLayout>
-                          <SmartFormsPage />
-                        </MainLayout>
+                        <RoleBasedRoute allowedRoles={['patient']}>
+                          <MainLayout>
+                            <SmartFormsPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
                     
                     <Route path="/shared-records" element={
                       <ProtectedRoute>
-                        <MainLayout>
-                          <SharedRecordsPage />
-                        </MainLayout>
+                        <RoleBasedRoute allowedRoles={['patient']}>
+                          <MainLayout>
+                            <SharedRecordsPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
                     
                     {/* Provider routes */}
                     <Route path="/provider-portal" element={
-                      <ProtectedRoute allowedRoles={['provider']}>
-                        <MainLayout>
-                          <ProviderPortalPage />
-                        </MainLayout>
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['provider']}>
+                          <MainLayout>
+                            <ProviderPortalPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
                     
                     <Route path="/patient-records" element={
-                      <ProtectedRoute allowedRoles={['provider']}>
-                        <MainLayout>
-                          <PatientRecordsPage />
-                        </MainLayout>
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['provider']}>
+                          <MainLayout>
+                            <PatientRecordsPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
                     
                     <Route path="/medical-notes" element={
-                      <ProtectedRoute allowedRoles={['provider']}>
-                        <MainLayout>
-                          <MedicalNotesPage />
-                        </MainLayout>
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['provider']}>
+                          <MainLayout>
+                            <MedicalNotesPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
 
                     {/* Admin routes */}
                     <Route path="/admin-portal" element={
-                      <ProtectedRoute allowedRoles={['admin', 'supervisor']}>
-                        <MainLayout>
-                          <AdminPortalPage />
-                        </MainLayout>
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['admin', 'supervisor']}>
+                          <MainLayout>
+                            <AdminPortalPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
 
-                    {/* Compliance routes - now accessible to all authenticated users */}
+                    {/* Compliance routes - accessible to all authenticated users */}
                     <Route path="/compliance" element={
                       <ProtectedRoute>
                         <MainLayout>
@@ -146,7 +160,7 @@ const App = () => {
                     } />
                     
                     {/* Legacy redirects */}
-                    <Route path="/patient-dashboard" element={<Navigate to="/" replace />} />
+                    <Route path="/dashboard" element={<Navigate to="/" replace />} />
                     
                     {/* 404 route */}
                     <Route path="*" element={<NotFound />} />

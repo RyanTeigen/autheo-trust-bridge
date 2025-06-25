@@ -3,11 +3,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Shield, Home, ArrowLeft, Lock, Stethoscope, Users } from 'lucide-react';
-import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Unauthorized: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useFrontendAuth();
+  const { profile } = useAuth();
 
   // In development mode, show Creator Access options
   if (import.meta.env.DEV) {
@@ -28,7 +28,7 @@ const Unauthorized: React.FC = () => {
           <div className="grid grid-cols-1 gap-3 mt-8">
             <Button
               variant="default"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/patient-dashboard')}
               className="bg-autheo-primary hover:bg-autheo-primary/80"
             >
               <Home className="mr-2 h-4 w-4" />
@@ -72,10 +72,11 @@ const Unauthorized: React.FC = () => {
             </Button>
           </div>
 
-          {user && (
+          {profile && (
             <div className="mt-6 p-4 bg-slate-800 rounded-lg">
               <p className="text-sm text-slate-400">Current User:</p>
-              <p className="text-slate-200">{user.username} ({user.role})</p>
+              <p className="text-slate-200">{profile.firstName} {profile.lastName}</p>
+              <p className="text-slate-400 text-sm">Roles: {profile.roles?.join(', ') || 'patient'}</p>
             </div>
           )}
         </div>
@@ -84,6 +85,19 @@ const Unauthorized: React.FC = () => {
   }
 
   // Production unauthorized page
+  const userRoles = profile?.roles || ['patient'];
+  
+  // Determine user's default dashboard
+  const getDefaultDashboard = () => {
+    if (userRoles.includes('admin') || userRoles.includes('supervisor')) {
+      return '/admin-portal';
+    }
+    if (userRoles.includes('provider')) {
+      return '/provider-portal';
+    }
+    return '/patient-dashboard';
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 py-12 bg-slate-900">
       <div className="max-w-md w-full text-center space-y-6">
@@ -97,6 +111,19 @@ const Unauthorized: React.FC = () => {
           You don't have permission to access this resource.
           Please contact your administrator if you believe this is an error.
         </p>
+
+        {profile && (
+          <div className="bg-slate-800 rounded-lg p-4 text-left">
+            <p className="text-sm text-slate-400 mb-2">Your current roles:</p>
+            <div className="flex flex-wrap gap-2">
+              {userRoles.map(role => (
+                <span key={role} className="px-2 py-1 bg-slate-700 rounded text-sm text-slate-200">
+                  {role}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8">
           <Button
@@ -110,10 +137,10 @@ const Unauthorized: React.FC = () => {
           
           <Button
             variant="default"
-            onClick={() => navigate('/')}
+            onClick={() => navigate(getDefaultDashboard())}
           >
             <Home className="mr-2 h-4 w-4" />
-            Dashboard
+            My Dashboard
           </Button>
         </div>
       </div>
