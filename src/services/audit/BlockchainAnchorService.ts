@@ -15,18 +15,44 @@ export class BlockchainAnchorService {
    * Fetch blockchain anchors from the audit_anchors table
    */
   static async fetchBlockchainAnchors(limit: number = 20): Promise<BlockchainAnchor[]> {
-    const { data, error } = await supabase
-      .from('audit_anchors')
-      .select('*')
-      .order('anchored_at', { ascending: false })
-      .limit(limit);
+    try {
+      // Try API endpoint first (for authenticated users with proper roles)
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        const response = await fetch('/api/audit/anchors', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-    if (error) {
-      console.error('Error fetching blockchain anchors:', error);
-      throw new Error(`Failed to fetch blockchain anchors: ${error.message}`);
+        if (response.ok) {
+          const result = await response.json();
+          return result.data || [];
+        }
+        
+        // If API fails, fall back to direct Supabase query
+        console.warn('API endpoint failed, falling back to direct query');
+      }
+
+      // Fallback to direct Supabase query
+      const { data, error } = await supabase
+        .from('audit_anchors')
+        .select('*')
+        .order('anchored_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching blockchain anchors:', error);
+        throw new Error(`Failed to fetch blockchain anchors: ${error.message}`);
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in fetchBlockchainAnchors:', error);
+      throw error;
     }
-
-    return data || [];
   }
 
   /**

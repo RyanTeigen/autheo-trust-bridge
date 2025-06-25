@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, Shield, Clock, Hash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ExportMetadata {
   hash: string;
@@ -16,26 +16,26 @@ const ExportAuditLogsButton: React.FC = () => {
   const [downloading, setDownloading] = useState(false);
   const [lastExport, setLastExport] = useState<ExportMetadata | null>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
 
   const downloadAuditLogs = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to export audit logs.",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setDownloading(true);
 
     try {
-      const token = await user.getIdToken();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to export audit logs.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const response = await fetch('/api/audit/export', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -79,7 +79,7 @@ const ExportAuditLogsButton: React.FC = () => {
       }
 
       toast({
-        title: "Export Successful",
+        title: "Export Successful", 
         description: `Successfully exported ${totalRecords || 'unknown'} audit log records.`,
       });
 

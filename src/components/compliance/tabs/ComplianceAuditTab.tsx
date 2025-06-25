@@ -19,6 +19,7 @@ import SmartAnchoringWidget from '../audit-trail/SmartAnchoringWidget';
 import RevokedSharesList from '../RevokedSharesList';
 import { AuditLogTable } from '../AuditLogTable';
 import ExportAuditLogsButton from '../ExportAuditLogsButton';
+import VerifyAuditAnchor from '../VerifyAuditAnchor';
 
 const ComplianceAuditTab: React.FC = () => {
   const [auditStats, setAuditStats] = useState({
@@ -105,6 +106,9 @@ const ComplianceAuditTab: React.FC = () => {
 
       {/* Smart Anchoring Widget */}
       <SmartAnchoringWidget useMainnet={false} />
+
+      {/* Audit Hash Verification */}
+      <VerifyAuditAnchor />
 
       {/* Audit Actions */}
       <Card className="bg-slate-800 border-slate-700">
