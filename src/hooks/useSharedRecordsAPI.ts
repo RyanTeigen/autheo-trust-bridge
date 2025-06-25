@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +27,20 @@ export interface DecryptedSharedRecord extends SharedRecord {
   decryptedData?: any;
   message?: string;
   error?: string;
+  record: {
+    id: string;
+    encryptedData?: string;
+    recordType: string;
+    createdAt: string;
+    updatedAt: string;
+    decryptedData?: any;
+    patient: {
+      id: string;
+      name: string;
+      email: string;
+      userId?: string;
+    };
+  };
 }
 
 export const useSharedRecordsAPI = () => {
