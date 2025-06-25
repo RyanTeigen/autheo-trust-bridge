@@ -1,13 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { encryptRecord, decryptRecord, EncryptedRecord } from '@/utils/encryption';
-import { kyberKeyGen } from '@/utils/pq-kyber';
+import { hybridEncrypt, hybridDecrypt, HybridEncryptedData } from '@/utils/hybrid-encryption';
+import { MLKEMKeyService } from './security/MLKEMKeyService';
 import { PatientRecordsService } from './PatientRecordsService';
 
 export interface QuantumSafeMedicalRecord {
   id: string;
   patient_id: string;
-  encrypted_data: EncryptedRecord;
+  encrypted_data: HybridEncryptedData;
   record_type: string;
   created_at: string;
   updated_at: string;
@@ -29,7 +29,7 @@ export interface DecryptedMedicalRecord {
 
 export class QuantumSafeMedicalRecordsService {
   /**
-   * Initialize user with quantum-safe keypair if not exists
+   * Initialize user with ML-KEM keypair if not exists
    */
   static async ensureUserKeypair(): Promise<{ publicKey: string; hasPrivateKey: boolean }> {
     try {
@@ -38,40 +38,7 @@ export class QuantumSafeMedicalRecordsService {
         throw new Error('User not authenticated');
       }
 
-      // Check if user already has a keypair
-      const { data: existingKey } = await supabase
-        .from('user_keys')
-        .select('public_key')
-        .eq('user_id', user.id)
-        .eq('key_type', 'kyber')
-        .single();
-
-      if (existingKey) {
-        return { publicKey: existingKey.public_key, hasPrivateKey: true };
-      }
-
-      // Generate new Kyber keypair
-      const keypair = await kyberKeyGen();
-      
-      // Store public key in database (private key stays client-side in secure storage)
-      const { error } = await supabase
-        .from('user_keys')
-        .insert({
-          user_id: user.id,
-          public_key: keypair.publicKey,
-          key_type: 'kyber',
-          is_active: true
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      // In a real app, securely store the private key
-      // For now, we'll use localStorage (not secure - use secure enclave/keychain in production)
-      localStorage.setItem(`kyber_private_key_${user.id}`, keypair.privateKey);
-
-      return { publicKey: keypair.publicKey, hasPrivateKey: true };
+      return await MLKEMKeyService.ensureUserKeys(user.id);
     } catch (error) {
       console.error('Error ensuring user keypair:', error);
       return { publicKey: '', hasPrivateKey: false };
@@ -88,7 +55,7 @@ export class QuantumSafeMedicalRecordsService {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Ensure user has keypair
+      // Ensure user has ML-KEM keypair
       const { publicKey, hasPrivateKey } = await this.ensureUserKeypair();
       if (!hasPrivateKey) {
         return { success: false, error: 'Failed to generate encryption keypair' };
@@ -112,7 +79,7 @@ export class QuantumSafeMedicalRecordsService {
       }
 
       // Encrypt the data using quantum-safe hybrid encryption
-      const encryptedRecord = await encryptRecord(JSON.stringify(data), publicKey);
+      const encryptedRecord = await hybridEncrypt(JSON.stringify(data), publicKey);
 
       const { data: record, error } = await supabase
         .from('medical_records')
@@ -147,7 +114,7 @@ export class QuantumSafeMedicalRecordsService {
       }
 
       // Get user's private key
-      const privateKey = localStorage.getItem(`kyber_private_key_${user.id}`);
+      const privateKey = MLKEMKeyService.getUserPrivateKey(user.id);
       if (!privateKey) {
         return { success: false, error: 'User private key not found' };
       }
@@ -162,18 +129,18 @@ export class QuantumSafeMedicalRecordsService {
       
       for (const record of result.records) {
         try {
-          let encryptedRecord: EncryptedRecord;
+          let encryptedData: HybridEncryptedData;
           
           // Handle both new quantum-safe format and legacy format
           if (record.encrypted_data.includes('pqEncryptedKey')) {
-            encryptedRecord = JSON.parse(record.encrypted_data);
+            encryptedData = JSON.parse(record.encrypted_data);
           } else {
             // Legacy format - skip or migrate
             console.warn(`Record ${record.id} uses legacy encryption format`);
             continue;
           }
 
-          const decryptionResult = await decryptRecord(encryptedRecord, privateKey);
+          const decryptionResult = await hybridDecrypt(encryptedData, privateKey);
           
           decryptedRecords.push({
             id: record.id,
@@ -208,13 +175,13 @@ export class QuantumSafeMedicalRecordsService {
       }
 
       // Get user's public key for re-encryption
-      const { publicKey } = await this.ensureUserKeypair();
+      const publicKey = await MLKEMKeyService.getUserPublicKey(user.id);
       if (!publicKey) {
         return { success: false, error: 'User public key not found' };
       }
 
       // Re-encrypt the updated data
-      const encryptedRecord = await encryptRecord(JSON.stringify(data), publicKey);
+      const encryptedRecord = await hybridEncrypt(JSON.stringify(data), publicKey);
 
       const { error } = await supabase
         .from('medical_records')

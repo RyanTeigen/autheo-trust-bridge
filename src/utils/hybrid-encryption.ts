@@ -1,6 +1,6 @@
 
 import crypto from 'crypto';
-import { kyberEncrypt, kyberDecrypt, isValidKyberPublicKey } from './pq-kyber';
+import { mlkemEncapsulate, mlkemDecapsulate, isValidMLKEMPublicKey } from './pq-mlkem';
 
 const AES_KEY_LENGTH = 32;
 
@@ -55,29 +55,29 @@ export function decryptWithAES(encryptedData: string, key: Buffer, ivHex: string
 }
 
 /**
- * Hybrid encryption: AES-256-GCM for data + Kyber for key encapsulation
+ * Hybrid encryption: AES-256-GCM for data + ML-KEM for key encapsulation
  */
 export async function hybridEncrypt(plaintext: string, recipientPublicKey: string): Promise<HybridEncryptedData> {
-  if (!recipientPublicKey || !isValidKyberPublicKey(recipientPublicKey)) {
+  if (!recipientPublicKey || !isValidMLKEMPublicKey(recipientPublicKey)) {
     throw new Error('Invalid recipient public key for hybrid encryption');
   }
 
   try {
-    // 1. Generate symmetric AES key
-    const aesKey = generateSymmetricKey();
+    // 1. Use ML-KEM to generate a shared secret (this replaces generating our own AES key)
+    const { ciphertext, sharedSecret } = await mlkemEncapsulate(recipientPublicKey);
     
-    // 2. Encrypt data with AES-256-GCM
+    // 2. Use the shared secret as our AES key (first 32 bytes)
+    const aesKey = Buffer.from(sharedSecret.substring(0, 64), 'hex'); // 32 bytes = 64 hex chars
+    
+    // 3. Encrypt data with AES-256-GCM
     const { encryptedData, iv, authTag } = encryptWithAES(plaintext, aesKey);
-    
-    // 3. Encrypt AES key with post-quantum Kyber
-    const pqEncryptedKey = await kyberEncrypt(aesKey.toString('hex'), recipientPublicKey);
 
     return {
       encryptedData,
-      pqEncryptedKey,
+      pqEncryptedKey: ciphertext, // This is the ML-KEM ciphertext
       iv,
       authTag,
-      algorithm: 'AES-256-GCM + Kyber-KEM',
+      algorithm: 'AES-256-GCM + ML-KEM-768',
       timestamp: new Date().toISOString()
     };
   } catch (error) {
@@ -87,15 +87,17 @@ export async function hybridEncrypt(plaintext: string, recipientPublicKey: strin
 }
 
 /**
- * Hybrid decryption: Kyber for key decapsulation + AES-256-GCM for data
+ * Hybrid decryption: ML-KEM for key decapsulation + AES-256-GCM for data
  */
 export async function hybridDecrypt(encrypted: HybridEncryptedData, userPrivateKey: string): Promise<HybridDecryptionResult> {
   try {
-    // 1. Decrypt AES key using post-quantum Kyber
-    const aesKeyHex = await kyberDecrypt(encrypted.pqEncryptedKey, userPrivateKey);
-    const aesKey = Buffer.from(aesKeyHex, 'hex');
+    // 1. Decrypt the shared secret using ML-KEM
+    const sharedSecret = await mlkemDecapsulate(encrypted.pqEncryptedKey, userPrivateKey);
     
-    // 2. Decrypt data with AES-256-GCM
+    // 2. Use the shared secret as our AES key (first 32 bytes)
+    const aesKey = Buffer.from(sharedSecret.substring(0, 64), 'hex'); // 32 bytes = 64 hex chars
+    
+    // 3. Decrypt data with AES-256-GCM
     const decryptedData = decryptWithAES(
       encrypted.encryptedData,
       aesKey,
@@ -106,7 +108,7 @@ export async function hybridDecrypt(encrypted: HybridEncryptedData, userPrivateK
     return {
       data: decryptedData,
       metadata: {
-        algorithm: encrypted.algorithm || 'AES-256-GCM + Kyber-KEM',
+        algorithm: encrypted.algorithm || 'AES-256-GCM + ML-KEM-768',
         timestamp: encrypted.timestamp || new Date().toISOString(),
         quantumSafe: true
       }
@@ -130,9 +132,17 @@ export function validateHybridEncryptedData(encrypted: HybridEncryptedData): { v
   if (!encrypted.algorithm) errors.push('Missing algorithm specification');
   if (!encrypted.timestamp) errors.push('Missing timestamp');
 
-  // Validate Kyber encrypted key format
-  if (encrypted.pqEncryptedKey && !encrypted.pqEncryptedKey.startsWith('kyber_enc_')) {
-    errors.push('Invalid post-quantum encrypted key format');
+  // Validate ML-KEM ciphertext format (should be base64)
+  if (encrypted.pqEncryptedKey) {
+    try {
+      const ciphertext = Buffer.from(encrypted.pqEncryptedKey, 'base64');
+      // ML-KEM-768 ciphertext is 1088 bytes
+      if (ciphertext.length !== 1088) {
+        errors.push('Invalid ML-KEM ciphertext size');
+      }
+    } catch {
+      errors.push('Invalid ML-KEM ciphertext format');
+    }
   }
 
   return {

@@ -1,6 +1,6 @@
 
 import { hybridEncrypt, hybridDecrypt, HybridEncryptedData } from '@/utils/hybrid-encryption';
-import { kyberKeyGen } from '@/utils/pq-kyber';
+import { generateMLKEMKeyPair } from '@/utils/pq-mlkem';
 import { DecryptedMedicalRecord, MedicalRecord } from '@/types/medical';
 
 export class MedicalRecordsEncryption {
@@ -10,7 +10,7 @@ export class MedicalRecordsEncryption {
   static async encryptRecordData(data: any): Promise<string> {
     try {
       // For now, use a mock public key - in production, get from user's profile
-      const mockKeyPair = await kyberKeyGen();
+      const mockKeyPair = await generateMLKEMKeyPair();
       const publicKey = mockKeyPair.publicKey;
       
       const encrypted = await hybridEncrypt(JSON.stringify(data), publicKey);
