@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { RecordSharingAuditLogger } from '@/services/audit/RecordSharingAuditLogger';
 
 interface Share {
   id: string;
@@ -105,7 +105,27 @@ export function useRecordSharing() {
     setError(null);
 
     try {
+      // Get provider name for audit logging
+      const { data: providerData } = await supabase
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', providerId)
+        .single();
+
+      const providerName = providerData 
+        ? `${providerData.first_name} ${providerData.last_name}`
+        : 'Unknown Provider';
+
       for (const recordId of recordIds) {
+        // Get record type for audit logging
+        const { data: recordData } = await supabase
+          .from('medical_records')
+          .select('record_type')
+          .eq('id', recordId)
+          .single();
+
+        const recordType = recordData?.record_type || 'Unknown';
+
         const { error } = await supabase
           .from('sharing_permissions')
           .insert({
@@ -115,8 +135,26 @@ export function useRecordSharing() {
             permission_type: 'read'
           });
         
-        if (error) throw error;
+        if (error) {
+          // Log failed share attempt
+          await RecordSharingAuditLogger.logShareAttemptFailed(
+            recordType,
+            providerName,
+            error.message
+          );
+          throw error;
+        } else {
+          // Log successful share
+          await RecordSharingAuditLogger.logRecordShared(
+            recordId,
+            recordType,
+            providerId,
+            providerName,
+            true
+          );
+        }
       }
+      
       await fetchShares();
     } catch (err: any) {
       setError(err.message);
@@ -128,12 +166,39 @@ export function useRecordSharing() {
     setLoading(true);
     setError(null);
     try {
+      // Get share details for audit logging before deletion
+      const { data: shareData } = await supabase
+        .from('sharing_permissions')
+        .select(`
+          grantee_id,
+          medical_records!inner(record_type),
+          profiles!inner(first_name, last_name)
+        `)
+        .eq('id', shareId)
+        .single();
+
+      const recordType = shareData ? (shareData.medical_records as any).record_type : 'Unknown';
+      const providerName = shareData 
+        ? `${(shareData.profiles as any).first_name} ${(shareData.profiles as any).last_name}`
+        : 'Unknown Provider';
+
       const { error } = await supabase
         .from('sharing_permissions')
         .delete()
         .eq('id', shareId);
       
-      if (error) throw error;
+      if (error) {
+        throw error;
+      } else {
+        // Log successful revocation
+        await RecordSharingAuditLogger.logRecordShareRevoked(
+          shareId,
+          recordType,
+          providerName,
+          true
+        );
+      }
+      
       await fetchShares();
     } catch (err: any) {
       setError(err.message);

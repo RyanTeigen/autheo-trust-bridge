@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useRecordSharing } from '@/hooks/useRecordSharing';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Share2, X, Shield, UserCheck } from 'lucide-react';
+import { Share2, X, Shield, UserCheck, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function ShareManager() {
@@ -40,10 +39,24 @@ export function ShareManager() {
     if (!error) {
       toast({
         title: "Records Shared Successfully",
-        description: `${selectedRecords.length} record(s) have been shared with the selected provider.`,
+        description: (
+          <div className="space-y-1">
+            <p>{selectedRecords.length} record(s) have been shared with the selected provider.</p>
+            <p className="text-xs text-slate-400 flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              Audit log entry created
+            </p>
+          </div>
+        ),
       });
       setSelectedProvider('');
       setSelectedRecords([]);
+    } else {
+      toast({
+        title: "Share Failed",
+        description: "Failed to share records. Please check the audit logs for details.",
+        variant: "destructive"
+      });
     }
   }
 
@@ -60,7 +73,21 @@ export function ShareManager() {
     if (!error) {
       toast({
         title: "Access Revoked",
-        description: "The provider's access to the record has been revoked.",
+        description: (
+          <div className="space-y-1">
+            <p>The provider's access to the record has been revoked.</p>
+            <p className="text-xs text-slate-400 flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              Audit log entry created
+            </p>
+          </div>
+        ),
+      });
+    } else {
+      toast({
+        title: "Revocation Failed",
+        description: "Failed to revoke access. Please check the audit logs for details.",
+        variant: "destructive"
       });
     }
   }
@@ -80,6 +107,14 @@ export function ShareManager() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* Audit Notice */}
+      <Alert className="bg-blue-900/20 border-blue-500/30">
+        <FileText className="h-4 w-4" />
+        <AlertDescription className="text-blue-200">
+          All sharing and revocation activities are automatically logged for compliance and security purposes.
+        </AlertDescription>
+      </Alert>
 
       {/* Currently Shared Records */}
       <Card className="bg-slate-800 border-slate-700">

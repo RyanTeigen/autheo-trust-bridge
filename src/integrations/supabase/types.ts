@@ -15,9 +15,12 @@ export type Database = {
           details: string | null
           id: string
           ip_address: string | null
+          metadata: Json | null
           resource: string
           resource_id: string | null
           status: string | null
+          target_id: string | null
+          target_type: string | null
           timestamp: string | null
           user_agent: string | null
           user_id: string | null
@@ -27,9 +30,12 @@ export type Database = {
           details?: string | null
           id?: string
           ip_address?: string | null
+          metadata?: Json | null
           resource: string
           resource_id?: string | null
           status?: string | null
+          target_id?: string | null
+          target_type?: string | null
           timestamp?: string | null
           user_agent?: string | null
           user_id?: string | null
@@ -39,9 +45,12 @@ export type Database = {
           details?: string | null
           id?: string
           ip_address?: string | null
+          metadata?: Json | null
           resource?: string
           resource_id?: string | null
           status?: string | null
+          target_id?: string | null
+          target_type?: string | null
           timestamp?: string | null
           user_agent?: string | null
           user_id?: string | null
