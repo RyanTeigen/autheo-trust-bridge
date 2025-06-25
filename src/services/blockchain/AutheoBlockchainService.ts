@@ -23,8 +23,8 @@ class AutheoBlockchainService {
   private contractAddress: string;
   private defaultAccount: string | null = null;
 
-  // Autheo Testnet configuration
-  private readonly AUTHEO_TESTNET_RPC = 'https://rpc-testnet.autheo.io';
+  // Autheo Network configuration
+  private readonly AUTHEO_TESTNET_RPC = 'https://testnet-rpc2.autheo.com';
   private readonly AUTHEO_MAINNET_RPC = 'https://rpc.autheo.io';
   
   // Smart contract ABI for audit anchoring

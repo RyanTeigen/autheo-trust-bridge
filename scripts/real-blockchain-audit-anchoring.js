@@ -16,7 +16,7 @@ const FORCE_ANCHOR = process.env.FORCE_ANCHOR === 'true';
 const USE_MAINNET = process.env.USE_MAINNET === 'true';
 
 // Blockchain configuration
-const AUTHEO_TESTNET_RPC = 'https://rpc-testnet.autheo.io';
+const AUTHEO_TESTNET_RPC = 'https://testnet-rpc2.autheo.com';
 const AUTHEO_MAINNET_RPC = 'https://rpc.autheo.io';
 const CONTRACT_ADDRESS = USE_MAINNET 
   ? '0x742d35Cc8Ba6458b4b9395Fa3a44b4b8D4E6F8Cf' // Mainnet
