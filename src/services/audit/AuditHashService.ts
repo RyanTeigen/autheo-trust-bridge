@@ -1,5 +1,4 @@
 
-import { createHash } from 'crypto';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuditLogForHashing {
@@ -48,14 +47,20 @@ export class AuditHashService {
   }
 
   /**
-   * Compute SHA256 hash of concatenated audit log entries
+   * Compute SHA256 hash using Web Crypto API (browser-compatible)
    */
-  static computeAuditHash(auditLogs: AuditLogForHashing[]): string {
+  static async computeAuditHash(auditLogs: AuditLogForHashing[]): Promise<string> {
     if (auditLogs.length === 0) {
-      return createHash('sha256').update('empty').digest('hex');
+      const encoder = new TextEncoder();
+      const data = encoder.encode('empty');
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
     }
 
-    const hash = createHash('sha256');
+    const encoder = new TextEncoder();
+    let concatenatedData = '';
     
     for (const log of auditLogs) {
       const logString = [
@@ -68,10 +73,15 @@ export class AuditHashService {
         JSON.stringify(log.metadata || {})
       ].join('|');
       
-      hash.update(logString);
+      concatenatedData += logString;
     }
     
-    return hash.digest('hex');
+    const data = encoder.encode(concatenatedData);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    
+    return Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
   }
 
   /**
@@ -79,7 +89,7 @@ export class AuditHashService {
    */
   static async generateAuditHashResult(limit: number = 100): Promise<AuditHashResult> {
     const logs = await this.fetchAuditLogsForHash(limit);
-    const hash = this.computeAuditHash(logs);
+    const hash = await this.computeAuditHash(logs);
     
     return {
       hash,
