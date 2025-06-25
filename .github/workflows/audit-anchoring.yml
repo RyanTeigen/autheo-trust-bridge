@@ -1,0 +1,133 @@
+
+name: Audit Log Anchoring
+
+on:
+  # Run every 6 hours
+  schedule:
+    - cron: '0 */6 * * *'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      log_limit:
+        description: 'Number of audit logs to process'
+        required: false
+        default: '100'
+        type: string
+      force_anchor:
+        description: 'Force anchoring even if no new logs'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  audit-anchoring:
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: production
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Run audit log anchoring
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BLOCKCHAIN_NETWORK: ${{ vars.BLOCKCHAIN_NETWORK || 'autheo-testnet' }}
+          LOG_LIMIT: ${{ github.event.inputs.log_limit || '100' }}
+          FORCE_ANCHOR: ${{ github.event.inputs.force_anchor || 'false' }}
+        run: node scripts/audit-anchoring.js
+      
+      - name: Upload anchoring report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: audit-anchoring-report-${{ github.run_number }}
+          path: audit-anchoring-report.json
+          retention-days: 30
+      
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Audit Log Anchoring Failed',
+              body: `
+                The automated audit log anchoring process failed.
+                
+                **Run Details:**
+                - Workflow Run: ${{ github.run_number }}
+                - Commit: ${{ github.sha }}
+                - Branch: ${{ github.ref_name }}
+                - Timestamp: ${{ github.event.head_commit.timestamp }}
+                
+                Please check the workflow logs for more details.
+              `,
+              labels: ['bug', 'audit', 'automation']
+            });
+
+  health-check:
+    runs-on: ubuntu-latest
+    needs: audit-anchoring
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Health check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/health-check.js
+      
+      - name: Update status badge
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const status = '${{ needs.audit-anchoring.result }}' === 'success' ? 'passing' : 'failing';
+            const color = status === 'passing' ? 'brightgreen' : 'red';
+            const badge = `https://img.shields.io/badge/audit--anchoring-${status}-${color}`;
+            
+            // Update README.md with the new badge
+            let readme = fs.readFileSync('README.md', 'utf8');
+            const badgeRegex = /!\[Audit Anchoring\]\(https:\/\/img\.shields\.io\/badge\/audit--anchoring-[^)]+\)/;
+            const newBadge = `![Audit Anchoring](${badge})`;
+            
+            if (badgeRegex.test(readme)) {
+              readme = readme.replace(badgeRegex, newBadge);
+            } else {
+              // Add badge at the top if it doesn't exist
+              readme = `${newBadge}\n\n${readme}`;
+            }
+            
+            fs.writeFileSync('README.md', readme);

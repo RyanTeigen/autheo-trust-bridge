@@ -1,0 +1,18 @@
+
+{
+  "name": "audit-anchoring-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for automated audit log anchoring",
+  "main": "audit-anchoring.js",
+  "scripts": {
+    "anchor": "node audit-anchoring.js",
+    "health-check": "node health-check.js",
+    "test": "npm run health-check && npm run anchor"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
