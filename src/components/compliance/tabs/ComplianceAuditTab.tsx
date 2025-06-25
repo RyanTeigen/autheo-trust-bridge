@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import SmartAnchoringWidget from '../audit-trail/SmartAnchoringWidget';
 import RevokedSharesList from '../RevokedSharesList';
-import AuditLogTable from '../AuditLogTable';
+import { AuditLogTable } from '../AuditLogTable';
 
 const ComplianceAuditTab: React.FC = () => {
   const [auditStats, setAuditStats] = useState({
