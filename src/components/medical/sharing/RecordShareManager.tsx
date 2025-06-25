@@ -26,8 +26,9 @@ interface QuantumShare {
     record_type: string;
     patient_id: string;
     patients: {
-      full_name: string;
-      email: string;
+      full_name?: string;
+      email?: string;
+      user_id?: string;
     };
   };
 }
@@ -55,11 +56,47 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
     ]);
 
     if (mySharesResult.success && mySharesResult.data?.permissions) {
-      setMyShares(mySharesResult.data.permissions);
+      // Transform the data to match our interface
+      const transformedShares = mySharesResult.data.permissions.map((share: any) => ({
+        id: share.id,
+        record_id: share.record_id,
+        shared_with_user_id: share.shared_with_user_id,
+        created_at: share.created_at,
+        updated_at: share.updated_at,
+        medical_records: share.medical_records ? {
+          id: share.medical_records.id,
+          record_type: share.medical_records.record_type,
+          patient_id: share.medical_records.patient_id,
+          patients: {
+            full_name: share.medical_records.patients?.full_name || 'Unknown',
+            email: share.medical_records.patients?.email || '',
+            user_id: share.medical_records.patients?.user_id
+          }
+        } : undefined
+      }));
+      setMyShares(transformedShares);
     }
 
     if (sharedWithMeResult.success && sharedWithMeResult.data?.permissions) {
-      setSharedWithMe(sharedWithMeResult.data.permissions);
+      // Transform the data to match our interface
+      const transformedShares = sharedWithMeResult.data.permissions.map((share: any) => ({
+        id: share.id,
+        record_id: share.record_id,
+        shared_with_user_id: share.shared_with_user_id,
+        created_at: share.created_at,
+        updated_at: share.updated_at,
+        medical_records: share.medical_records ? {
+          id: share.medical_records.id,
+          record_type: share.medical_records.record_type,
+          patient_id: share.medical_records.patient_id,
+          patients: {
+            full_name: share.medical_records.patients?.full_name || 'Unknown',
+            email: share.medical_records.patients?.email || '',
+            user_id: share.medical_records.patients?.user_id
+          }
+        } : undefined
+      }));
+      setSharedWithMe(transformedShares);
     }
   };
 

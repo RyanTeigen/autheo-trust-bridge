@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Heart } from 'lucide-react';
 import PageHeader from '@/components/dashboard/PageHeader';
-import DashboardTabs from '@/components/patient-dashboard/DashboardTabs';
+import RevampedDashboardTabs from '@/components/patient-dashboard/RevampedDashboardTabs';
 
 const PatientDashboardPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,12 +22,12 @@ const PatientDashboardPage = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="My Health"
-        description="Your comprehensive health dashboard with records, tracking, scheduling, and more"
+        title="My Health Dashboard"
+        description="Your comprehensive health platform with quantum-safe sharing, records management, and provider access"
         icon={<Heart className="h-8 w-8 text-autheo-primary" />}
       />
       
-      <DashboardTabs
+      <RevampedDashboardTabs
         handleToggleShare={handleToggleShare}
         handleShareHealthInfo={handleShareHealthInfo}
         searchQuery={searchQuery}

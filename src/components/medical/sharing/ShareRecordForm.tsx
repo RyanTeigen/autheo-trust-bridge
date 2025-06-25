@@ -74,8 +74,14 @@ const ShareRecordForm: React.FC<ShareRecordFormProps> = ({
         
         onSuccess?.();
       } else {
-        // Handle both direct error property and nested error
-        const errorMessage = result.error || (result as any).data?.error || "Failed to share record";
+        // Handle error cases with proper type checking
+        let errorMessage = "Failed to share record";
+        if ('error' in result && result.error) {
+          errorMessage = result.error;
+        } else if ('data' in result && result.data && typeof result.data === 'object' && 'error' in result.data) {
+          errorMessage = (result.data as any).error;
+        }
+        
         toast({
           title: "Error",
           description: errorMessage,
