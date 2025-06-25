@@ -12,23 +12,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useFrontendAuth } from '@/contexts/FrontendAuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, Settings, User, Shield, Stethoscope, Wallet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 const UserProfileMenu: React.FC = () => {
-  const { user, logout } = useFrontendAuth();
+  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   
   const getInitials = () => {
-    if (user?.username) {
-      return user.username.charAt(0).toUpperCase();
+    if (profile?.firstName && profile?.lastName) {
+      return (profile.firstName.charAt(0) + profile.lastName.charAt(0)).toUpperCase();
+    }
+    if (profile?.firstName) {
+      return profile.firstName.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
     }
     return 'U';
   };
 
   const handleSignOut = async () => {
-    logout();
+    await signOut();
     navigate('/auth');
   };
 
@@ -40,9 +46,13 @@ const UserProfileMenu: React.FC = () => {
     { role: 'supervisor', label: 'Admin Portal', icon: Shield, path: '/admin-portal' },
   ];
 
+  const userRoles = profile?.roles || ['patient'];
   const visiblePortals = availablePortals.filter(portal => 
-    portal.role === user?.role || portal.role === 'patient' // Always show patient portal
+    userRoles.includes(portal.role) || portal.role === 'patient' // Always show patient portal
   );
+
+  const displayName = profile?.firstName || user?.email || 'User';
+  const primaryRole = userRoles[0] || 'patient';
 
   return (
     <DropdownMenu>
@@ -59,11 +69,11 @@ const UserProfileMenu: React.FC = () => {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">
-              {user?.username}
+              {displayName}
             </p>
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[0.65rem] h-4 px-1 py-0">
-                {user?.role}
+                {primaryRole}
               </Badge>
             </div>
           </div>
