@@ -23,7 +23,7 @@ const PatientDashboardPage = () => {
     <div className="space-y-6">
       <PageHeader
         title="My Health Dashboard"
-        description="Your comprehensive health platform with quantum-safe sharing, records management, and provider access"
+        description="Your personal health management platform with quantum-safe sharing and comprehensive health tracking"
         icon={<Heart className="h-8 w-8 text-autheo-primary" />}
       />
       

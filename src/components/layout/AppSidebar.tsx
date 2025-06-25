@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -60,7 +61,7 @@ const AppSidebar: React.FC = () => {
                   >
                     <Heart className="h-4 w-4" />
                     <div className="flex flex-col">
-                      <span>Patient Dashboard</span>
+                      <span>My Health</span>
                       <span className="text-xs text-slate-500 group-hover:text-slate-400">Personal health dashboard</span>
                     </div>
                   </NavLink>
@@ -85,7 +86,7 @@ const AppSidebar: React.FC = () => {
                     <Share2 className="h-4 w-4" />
                     <div className="flex flex-col">
                       <span>Shared Records</span>
-                      <span className="text-xs text-slate-500 group-hover:text-slate-400">Quantum-safe record sharing</span>
+                      <span className="text-xs text-slate-500 group-hover:text-slate-400">Records shared with you</span>
                     </div>
                   </NavLink>
                 </SidebarMenuButton>
