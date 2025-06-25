@@ -16,6 +16,7 @@ import RealTimeComplianceMonitor from '@/components/compliance/RealTimeComplianc
 import RiskAssessmentEngine from '@/components/compliance/risk-assessment/RiskAssessmentEngine';
 import BlockchainAuditTrail from '@/components/compliance/audit-trail/BlockchainAuditTrail';
 import QuantumSecurityDashboard from '@/components/security/QuantumSecurityDashboard';
+import { AuditLogTable } from '@/components/compliance/AuditLogTable';
 
 const CompliancePage = () => {
   const { toast } = useToast();
@@ -102,6 +103,11 @@ const CompliancePage = () => {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Audit Logs Table - New primary component for compliance monitoring */}
+        <div className="mb-6">
+          <AuditLogTable />
+        </div>
 
         {/* Quantum Security Dashboard - New primary security component */}
         <div className="mb-6">
