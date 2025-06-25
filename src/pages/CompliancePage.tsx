@@ -2,53 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import CompliancePageHeader from '@/components/compliance/CompliancePageHeader';
-import DesktopComplianceView from '@/components/compliance/DesktopComplianceView';
-import MobileComplianceView from '@/components/compliance/MobileComplianceView';
-import RealTimeComplianceMonitor from '@/components/compliance/RealTimeComplianceMonitor';
-import RiskAssessmentEngine from '@/components/compliance/risk-assessment/RiskAssessmentEngine';
-import BlockchainAuditTrail from '@/components/compliance/audit-trail/BlockchainAuditTrail';
-import QuantumSecurityDashboard from '@/components/security/QuantumSecurityDashboard';
-import { AuditLogTable } from '@/components/compliance/AuditLogTable';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import ComplianceOverviewTab from '@/components/compliance/tabs/ComplianceOverviewTab';
+import ComplianceMonitoringTab from '@/components/compliance/tabs/ComplianceMonitoringTab';
+import ComplianceAuditTab from '@/components/compliance/tabs/ComplianceAuditTab';
+import ComplianceToolsTab from '@/components/compliance/tabs/ComplianceToolsTab';
+import ComplianceReportsTab from '@/components/compliance/tabs/ComplianceReportsTab';
 
 const CompliancePage = () => {
   const { toast } = useToast();
-  const [complianceScore, setComplianceScore] = useState(92);
-  const [showMobileView, setShowMobileView] = useState(false);
   const { profile } = useAuth();
   
   // Check if user has compliance role
   const hasComplianceRole = profile?.roles?.includes('compliance') || profile?.roles?.includes('admin');
-  
-  // Sample trend data for the compliance trend chart
-  const trendData = [
-    { date: 'Jan', overall: 84, privacyRule: 90, securityRule: 80, breachNotification: 95, administrative: 75, physical: 70 },
-    { date: 'Feb', overall: 86, privacyRule: 92, securityRule: 82, breachNotification: 95, administrative: 78, physical: 74 },
-    { date: 'Mar', overall: 88, privacyRule: 94, securityRule: 86, breachNotification: 98, administrative: 80, physical: 75 },
-    { date: 'Apr', overall: 90, privacyRule: 96, securityRule: 90, breachNotification: 100, administrative: 80, physical: 75 },
-    { date: 'May', overall: 92, privacyRule: 100, securityRule: 94, breachNotification: 100, administrative: 83, physical: 78 },
-  ];
-  
-  // Sample data for the radar chart with previous scores
-  const radarData = [
-    { subject: 'Privacy', score: 100, fullMark: 100, previousScore: 95 },
-    { subject: 'Security', score: 94, fullMark: 100, previousScore: 88 },
-    { subject: 'Breach', score: 100, fullMark: 100, previousScore: 100 },
-    { subject: 'Admin', score: 83, fullMark: 100, previousScore: 75 },
-    { subject: 'Physical', score: 78, fullMark: 100, previousScore: 70 },
-  ];
-  
-  // Desktop/mobile responsive detection
-  useEffect(() => {
-    const checkForMobile = () => {
-      setShowMobileView(window.innerWidth < 768);
-    };
-    
-    checkForMobile();
-    window.addEventListener('resize', checkForMobile);
-    
-    return () => window.removeEventListener('resize', checkForMobile);
-  }, []);
   
   const runAudit = () => {
     toast({
@@ -57,49 +25,85 @@ const CompliancePage = () => {
     });
   };
   
-  const handleScoreCalculated = (score: number) => {
-    setComplianceScore(score);
-  };
-  
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
-        <CompliancePageHeader
-          showMobileView={showMobileView}
-          onToggleView={() => setShowMobileView(!showMobileView)}
-          onRunAudit={runAudit}
-          hasComplianceRole={hasComplianceRole}
-        />
+        {/* Header */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-start flex-wrap gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight mb-2 text-slate-100">HIPAA Compliance Dashboard</h1>
+              <p className="text-slate-300">
+                Monitor, manage, and maintain your organization's compliance status
+              </p>
+            </div>
+          </div>
 
-        {/* Audit Logs Table - New primary component for compliance monitoring */}
-        <div className="mb-6">
-          <AuditLogTable />
+          {!hasComplianceRole && (
+            <Alert className="mb-4 bg-amber-900/20 border-amber-500/30 text-amber-200">
+              <AlertTriangle className="h-5 w-5" />
+              <AlertDescription>
+                You are accessing this page with creator privileges. Normally, this page is restricted to users with compliance or admin roles.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
-        {/* Quantum Security Dashboard - New primary security component */}
-        <div className="mb-6">
-          <QuantumSecurityDashboard />
-        </div>
-        
-        {/* Real-Time Compliance Monitor - Primary component for live monitoring */}
-        <RealTimeComplianceMonitor className="mb-6" />
-        
-        {/* AI Risk Assessment Engine - For risk analysis */}
-        <RiskAssessmentEngine className="mb-6" />
-        
-        {/* Blockchain Audit Trail - For immutable audit records */}
-        <BlockchainAuditTrail className="mb-6" />
+        {/* Main Tabbed Interface */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
+            <TabsTrigger 
+              value="overview" 
+              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              value="monitoring" 
+              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+            >
+              Monitoring
+            </TabsTrigger>
+            <TabsTrigger 
+              value="audit" 
+              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+            >
+              Audit
+            </TabsTrigger>
+            <TabsTrigger 
+              value="tools" 
+              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+            >
+              Tools
+            </TabsTrigger>
+            <TabsTrigger 
+              value="reports" 
+              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+            >
+              Reports
+            </TabsTrigger>
+          </TabsList>
 
-        {!showMobileView ? (
-          <DesktopComplianceView
-            trendData={trendData}
-            radarData={radarData}
-            complianceScore={complianceScore}
-            onScoreCalculated={handleScoreCalculated}
-          />
-        ) : (
-          <MobileComplianceView complianceScore={complianceScore} />
-        )}
+          <TabsContent value="overview" className="mt-6">
+            <ComplianceOverviewTab onRunAudit={runAudit} />
+          </TabsContent>
+
+          <TabsContent value="monitoring" className="mt-6">
+            <ComplianceMonitoringTab />
+          </TabsContent>
+
+          <TabsContent value="audit" className="mt-6">
+            <ComplianceAuditTab />
+          </TabsContent>
+
+          <TabsContent value="tools" className="mt-6">
+            <ComplianceToolsTab />
+          </TabsContent>
+
+          <TabsContent value="reports" className="mt-6">
+            <ComplianceReportsTab />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
