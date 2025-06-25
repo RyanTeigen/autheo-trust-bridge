@@ -9,7 +9,9 @@ import {
   Shield,
   FileSearch,
   Settings,
-  ChevronRight
+  ChevronRight,
+  Share2,
+  FileText
 } from 'lucide-react';
 import {
   Sidebar,
@@ -66,12 +68,87 @@ const AppSidebar: React.FC = () => {
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
+              {/* Shared Records - Visible to all authenticated users */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink
+                    to="/shared-records"
+                    className={({ isActive }) =>
+                      cn(
+                        "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                        isActive
+                          ? "bg-slate-800 text-slate-100"
+                          : "text-slate-400"
+                      )
+                    }
+                    onClick={() => toggleSidebar()}
+                  >
+                    <Share2 className="h-4 w-4" />
+                    <div className="flex flex-col">
+                      <span>Shared Records</span>
+                      <span className="text-xs text-slate-500 group-hover:text-slate-400">Quantum-safe record sharing</span>
+                    </div>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               {/* Provider Portal - Only visible to providers */}
               {isProvider && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/provider-portal"
+                        className={({ isActive }) =>
+                          cn(
+                            "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                            isActive
+                              ? "bg-slate-800 text-slate-100"
+                              : "text-slate-400"
+                          )
+                        }
+                        onClick={() => toggleSidebar()}
+                      >
+                        <Users className="h-4 w-4" />
+                        <div className="flex flex-col">
+                          <span>Provider Portal</span>
+                          <span className="text-xs text-slate-500 group-hover:text-slate-400">Healthcare provider interface</span>
+                        </div>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to="/patient-records"
+                        className={({ isActive }) =>
+                          cn(
+                            "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                            isActive
+                              ? "bg-slate-800 text-slate-100"
+                              : "text-slate-400"
+                          )
+                        }
+                        onClick={() => toggleSidebar()}
+                      >
+                        <FileText className="h-4 w-4" />
+                        <div className="flex flex-col">
+                          <span>Patient Records</span>
+                          <span className="text-xs text-slate-500 group-hover:text-slate-400">View patient medical records</span>
+                        </div>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+
+              {/* Admin Portal - Only visible to admins */}
+              {isAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink
-                      to="/provider-portal"
+                      to="/admin-portal"
                       className={({ isActive }) =>
                         cn(
                           "group flex items-center space-x-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
@@ -84,8 +161,8 @@ const AppSidebar: React.FC = () => {
                     >
                       <Users className="h-4 w-4" />
                       <div className="flex flex-col">
-                        <span>Provider Portal</span>
-                        <span className="text-xs text-slate-500 group-hover:text-slate-400">Healthcare provider interface</span>
+                        <span>Admin Portal</span>
+                        <span className="text-xs text-slate-500 group-hover:text-slate-400">Administrative interface</span>
                       </div>
                     </NavLink>
                   </SidebarMenuButton>
@@ -178,4 +255,4 @@ const AppSidebar: React.FC = () => {
   );
 };
 
-export default AppSidebar;
+export default AppSidebarr;

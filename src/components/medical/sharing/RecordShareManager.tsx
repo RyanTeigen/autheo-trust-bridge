@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Share2, Shield, Trash2, Users } from 'lucide-react';
-import { useMedicalRecordsSharing } from '@/hooks/useMedicalRecordsSharing';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { useMedicalRecordsSharing } from '@/hooks/useMedicalRecordsSharing';
+import { Shield, Share2, Trash2, Eye, Clock, User } from 'lucide-react';
 
 interface RecordShareManagerProps {
   recordId?: string;
@@ -16,60 +16,51 @@ interface RecordShareManagerProps {
 }
 
 const RecordShareManager: React.FC<RecordShareManagerProps> = ({ 
-  recordId, 
-  recordTitle 
+  recordId: propRecordId, 
+  recordTitle: propRecordTitle 
 }) => {
-  const [recipientUserId, setRecipientUserId] = useState('');
-  const [sharedWithMe, setSharedWithMe] = useState([]);
-  const [myShares, setMyShares] = useState([]);
   const { toast } = useToast();
+  const { shareRecord, getSharedWithMe, getMyShares, revokeShare, loading } = useMedicalRecordsSharing();
   
-  const {
-    loading,
-    shareRecord,
-    getSharedWithMe,
-    getMyShares,
-    revokeShare
-  } = useMedicalRecordsSharing();
+  const [recipientUserId, setRecipientUserId] = useState('');
+  const [myShares, setMyShares] = useState([]);
+  const [sharedWithMe, setSharedWithMe] = useState([]);
+  const [activeTab, setActiveTab] = useState<'share' | 'my-shares' | 'shared-with-me'>('share');
 
   useEffect(() => {
-    loadShares();
+    fetchShares();
   }, []);
 
-  const loadShares = async () => {
-    try {
-      const [sharedResult, mySharesResult] = await Promise.all([
-        getSharedWithMe(),
-        getMyShares()
-      ]);
+  const fetchShares = async () => {
+    const [mySharesResult, sharedWithMeResult] = await Promise.all([
+      getMyShares(),
+      getSharedWithMe()
+    ]);
 
-      if (sharedResult.success) {
-        setSharedWithMe(sharedResult.data || []);
-      }
+    if (mySharesResult.success) {
+      setMyShares(mySharesResult.data || []);
+    }
 
-      if (mySharesResult.success) {
-        setMyShares(mySharesResult.data || []);
-      }
-    } catch (error) {
-      console.error('Error loading shares:', error);
+    if (sharedWithMeResult.success) {
+      setSharedWithMe(sharedWithMeResult.data || []);
     }
   };
 
-  const handleShareRecord = async () => {
-    if (!recordId || !recipientUserId.trim()) {
+  const handleShare = async () => {
+    if (!propRecordId || !recipientUserId) {
       toast({
-        title: "Invalid Input",
-        description: "Please provide a valid recipient user ID",
+        title: "Error",
+        description: "Please provide both record ID and recipient user ID",
         variant: "destructive",
       });
       return;
     }
 
-    const result = await shareRecord(recordId, recipientUserId.trim());
+    const result = await shareRecord(propRecordId, recipientUserId);
     
     if (result.success) {
       setRecipientUserId('');
-      loadShares();
+      fetchShares();
     }
   };
 
@@ -77,144 +68,174 @@ const RecordShareManager: React.FC<RecordShareManagerProps> = ({
     const result = await revokeShare(shareId);
     
     if (result.success) {
-      loadShares();
+      fetchShares();
     }
   };
 
-  if (recordId) {
-    // Single record sharing mode
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  if (!propRecordId) {
     return (
-      <Card className="w-full">
+      <div className="space-y-6">
+        <Card className="bg-slate-800 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-autheo-primary flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              Quantum-Safe Record Sharing
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setActiveTab('my-shares')}
+                className={`justify-start ${activeTab === 'my-shares' ? 'bg-autheo-primary/20 border-autheo-primary' : ''}`}
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                My Shares ({myShares.length})
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => setActiveTab('shared-with-me')}
+                className={`justify-start ${activeTab === 'shared-with-me' ? 'bg-autheo-primary/20 border-autheo-primary' : ''}`}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Shared with Me ({sharedWithMe.length})
+              </Button>
+            </div>
+
+            {activeTab === 'my-shares' && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-slate-200">Records I've Shared</h3>
+                {myShares.length === 0 ? (
+                  <Alert>
+                    <Shield className="h-4 w-4" />
+                    <AlertDescription>
+                      You haven't shared any records yet. Use the sharing feature in individual record views to start sharing.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="space-y-2">
+                    {myShares.map((share: any) => (
+                      <div key={share.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-200">Record ID: {share.record_id}</p>
+                          <p className="text-xs text-slate-400">
+                            <Clock className="h-3 w-3 inline mr-1" />
+                            Shared: {formatDate(share.created_at)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">
+                            <Shield className="h-3 w-3 mr-1" />
+                            Quantum-Safe
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleRevokeShare(share.id)}
+                            disabled={loading}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'shared-with-me' && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-slate-200">Records Shared with Me</h3>
+                {sharedWithMe.length === 0 ? (
+                  <Alert>
+                    <User className="h-4 w-4" />
+                    <AlertDescription>
+                      No records have been shared with you yet.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <div className="space-y-2">
+                    {sharedWithMe.map((share: any) => (
+                      <div key={share.id} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-200">Record ID: {share.record_id}</p>
+                          <p className="text-xs text-slate-400">
+                            <Clock className="h-3 w-3 inline mr-1" />
+                            Shared: {formatDate(share.created_at)}
+                          </p>
+                        </div>
+                        <Badge variant="secondary">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Quantum-Safe
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card className="bg-slate-800 border-slate-700">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Share2 className="h-5 w-5" />
-            Share Record: {recordTitle}
+          <CardTitle className="text-autheo-primary flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Share Record: {propRecordTitle}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+          <Alert>
+            <Shield className="h-4 w-4" />
+            <AlertDescription>
+              This uses post-quantum encryption to ensure your medical records remain secure even against future quantum computers.
+            </AlertDescription>
+          </Alert>
+
+          <div className="space-y-3">
             <Label htmlFor="recipient">Recipient User ID</Label>
             <Input
               id="recipient"
               value={recipientUserId}
               onChange={(e) => setRecipientUserId(e.target.value)}
-              placeholder="Enter user ID to share with"
+              placeholder="Enter the user ID of the person you want to share with"
+              className="bg-slate-700 border-slate-600 text-slate-100"
             />
+            <p className="text-xs text-slate-400">
+              The recipient must have quantum-safe encryption enabled in their account.
+            </p>
           </div>
-          
-          <Button 
-            onClick={handleShareRecord}
-            disabled={loading || !recipientUserId.trim()}
-            className="w-full"
-          >
-            <Shield className="h-4 w-4 mr-2" />
-            Share with Quantum-Safe Encryption
-          </Button>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handleShare}
+              disabled={loading || !recipientUserId}
+              className="bg-autheo-primary hover:bg-autheo-primary/90 text-autheo-dark"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              {loading ? 'Sharing...' : 'Share Record'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setRecipientUserId('')}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+          </div>
         </CardContent>
       </Card>
-    );
-  }
-
-  // Full sharing management mode
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Record Sharing</h2>
-        <Badge variant="secondary" className="flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          Quantum-Safe
-        </Badge>
-      </div>
-
-      <Tabs defaultValue="shared-with-me" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="shared-with-me">
-            <Users className="h-4 w-4 mr-2" />
-            Shared With Me
-          </TabsTrigger>
-          <TabsTrigger value="my-shares">
-            <Share2 className="h-4 w-4 mr-2" />
-            My Shares
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="shared-with-me" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Records Shared With Me</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {sharedWithMe.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  No records have been shared with you yet.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {sharedWithMe.map((share: any) => (
-                    <div key={share.id} className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <p className="font-medium">Record ID: {share.record_id}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Shared on: {new Date(share.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Badge variant="secondary">
-                        <Shield className="h-3 w-3 mr-1" />
-                        Encrypted
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="my-shares" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Records I've Shared</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {myShares.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">
-                  You haven't shared any records yet.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {myShares.map((share: any) => (
-                    <div key={share.id} className="flex items-center justify-between p-3 border rounded">
-                      <div>
-                        <p className="font-medium">Record ID: {share.record_id}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Shared with: {share.shared_with_user_id}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Shared on: {new Date(share.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Quantum-Safe
-                        </Badge>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleRevokeShare(share.id)}
-                          disabled={loading}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };
