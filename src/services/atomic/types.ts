@@ -29,3 +29,20 @@ export interface AtomicServiceResult<T> {
   data?: T;
   error?: string;
 }
+
+export interface AtomicDecompositionResult {
+  success: boolean;
+  atomicValues?: AtomicValue[];
+  error?: string;
+}
+
+export interface HomomorphicAnalyticsData {
+  dataType: string;
+  count: number;
+  averageValue?: number;
+  trends?: {
+    period: string;
+    value: number;
+  }[];
+  metadata?: Record<string, any>;
+}

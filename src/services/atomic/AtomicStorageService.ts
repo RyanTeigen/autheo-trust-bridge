@@ -148,7 +148,7 @@ export class AtomicStorageService {
         return { 
           success: true, 
           data: (data || []).map(point => ({
-            ...point,
+            ...this.convertToAtomicDataPoint(point),
             decrypted_value: '[ENCRYPTION_NOT_READY]'
           }))
         };
@@ -170,13 +170,13 @@ export class AtomicStorageService {
             const decryptedResult = await this.fieldEncryption.decryptField(encryptionResult);
             
             return {
-              ...point,
+              ...this.convertToAtomicDataPoint(point),
               decrypted_value: decryptedResult.isValid ? decryptedResult.decryptedData : '[DECRYPTION_FAILED]'
             };
           } catch (decryptError) {
             console.error('Decryption error for point:', point.id, decryptError);
             return {
-              ...point,
+              ...this.convertToAtomicDataPoint(point),
               decrypted_value: '[DECRYPTION_ERROR]'
             };
           }
@@ -210,7 +210,10 @@ export class AtomicStorageService {
         return { success: false, error: error.message };
       }
 
-      return { success: true, data: data || [] };
+      return { 
+        success: true, 
+        data: (data || []).map(point => this.convertToAtomicDataPoint(point))
+      };
     } catch (error) {
       console.error('Failed to get atomic values by type:', error);
       return { 
@@ -218,5 +221,22 @@ export class AtomicStorageService {
         error: error instanceof Error ? error.message : 'Unknown error' 
       };
     }
+  }
+
+  /**
+   * Convert Supabase result to AtomicDataPoint type
+   */
+  private convertToAtomicDataPoint(point: any): AtomicDataPoint {
+    return {
+      id: point.id,
+      owner_id: point.owner_id,
+      record_id: point.record_id,
+      data_type: point.data_type,
+      enc_value: point.enc_value,
+      unit: point.unit || undefined,
+      metadata: (point.metadata && typeof point.metadata === 'object') ? point.metadata as Record<string, any> : undefined,
+      created_at: point.created_at || '',
+      updated_at: point.updated_at || ''
+    };
   }
 }
