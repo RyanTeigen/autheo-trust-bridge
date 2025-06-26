@@ -44,6 +44,50 @@ export type Database = {
           },
         ]
       }
+      atomic_data_points: {
+        Row: {
+          created_at: string | null
+          data_type: string
+          enc_value: string
+          id: string
+          metadata: Json | null
+          owner_id: string
+          record_id: string
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_type: string
+          enc_value: string
+          id?: string
+          metadata?: Json | null
+          owner_id: string
+          record_id: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_type?: string
+          enc_value?: string
+          id?: string
+          metadata?: Json | null
+          owner_id?: string
+          record_id?: string
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "atomic_data_points_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_anchors: {
         Row: {
           anchored_at: string
