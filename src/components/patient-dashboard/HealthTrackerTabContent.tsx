@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
 import FitnessDeviceIntegration from '@/components/fitness/FitnessDeviceIntegration';
 import FitnessDataDisplay from '@/components/fitness/FitnessDataDisplay';
+import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Scale, Heart, Clock, Utensils, Smartphone } from 'lucide-react';
+import { Activity, Scale, Heart, Clock, Utensils, Smartphone, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,21 +24,28 @@ const HealthTrackerTabContent: React.FC = () => {
     <div className="space-y-6">
       <Card className="bg-slate-800/50 border-slate-700 p-4">
         <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-sm text-autheo-primary">Connected to Health Overview</CardTitle>
+          <CardTitle className="text-sm text-autheo-primary flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Connected to Health Overview
+          </CardTitle>
         </CardHeader>
         <CardContent className="px-0 pb-0">
           <p className="text-sm text-slate-300">
             Your tracker data is integrated with your health overview dashboard. 
-            All metrics you track here will be reflected in your health overview.
+            All metrics you track here are the same data shown in your overview tab.
           </p>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="metrics" className="w-full">
+      <Tabs defaultValue="vitals" className="w-full">
         <TabsList className="w-full justify-start overflow-auto">
+          <TabsTrigger value="vitals" className="flex items-center gap-2">
+            <Heart className="h-4 w-4" />
+            Vital Signs
+          </TabsTrigger>
           <TabsTrigger value="metrics" className="flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Metrics
+            Health Metrics
           </TabsTrigger>
           <TabsTrigger value="devices" className="flex items-center gap-2">
             <Smartphone className="h-4 w-4" />
@@ -51,11 +59,44 @@ const HealthTrackerTabContent: React.FC = () => {
             <Utensils className="h-4 w-4" />
             Nutrition
           </TabsTrigger>
-          <TabsTrigger value="vitals" className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            Vitals
-          </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="vitals" className="space-y-4 mt-4">
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-slate-200 mb-2">Your Vital Signs Trends</h3>
+            <p className="text-sm text-slate-400">
+              These are the same vital signs displayed in your health overview, with detailed trend analysis and clinical context.
+            </p>
+          </div>
+          
+          <VitalsMetrics />
+          
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-autheo-primary">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-slate-700 hover:bg-slate-700/50"
+                  onClick={() => handleAddData("vital signs")}
+                >
+                  <Heart className="h-4 w-4 mr-2 text-red-400" />
+                  Record New Vitals
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-slate-700 hover:bg-slate-700/50"
+                  onClick={() => handleAddData("blood pressure")}
+                >
+                  <Activity className="h-4 w-4 mr-2 text-blue-400" />
+                  Add Blood Pressure
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="metrics" className="space-y-4 mt-4">
           <HealthMetricsCharts />
@@ -150,18 +191,6 @@ const HealthTrackerTabContent: React.FC = () => {
             <CardContent>
               <p className="mb-4 text-muted-foreground">This feature is coming soon. You'll be able to log your meals, track calories, and analyze your nutrition.</p>
               <Button onClick={() => handleAddData("nutrition data")}>Notify When Available</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="vitals" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vitals Monitoring</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-muted-foreground">This feature is coming soon. You'll be able to track blood pressure, temperature, oxygen levels, and other vital signs.</p>
-              <Button onClick={() => handleAddData("vitals")}>Notify When Available</Button>
             </CardContent>
           </Card>
         </TabsContent>
