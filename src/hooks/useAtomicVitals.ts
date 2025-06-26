@@ -4,7 +4,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { decryptWithKey } from '@/utils/atomicDecryption';
 import { getVitalColor } from '@/components/patient/vital-signs/VitalIcon';
-import { VitalIcon } from '@/components/patient/vital-signs/VitalIcon';
 
 interface AtomicDataPoint {
   id: string;
@@ -19,7 +18,6 @@ interface DecryptedVital {
   value: string;
   unit?: string;
   dataType: string;
-  icon: React.ReactNode;
   color: string;
 }
 
@@ -89,7 +87,6 @@ export const useAtomicVitals = () => {
         value: decryptWithKey(vital.enc_value, encryptionKey),
         unit: vital.unit,
         dataType: vital.data_type,
-        icon: <VitalIcon dataType={vital.data_type} />,
         color: getVitalColor(vital.data_type)
       }));
 
