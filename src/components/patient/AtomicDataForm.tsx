@@ -44,16 +44,24 @@ const AtomicDataForm: React.FC<AtomicDataFormProps> = ({ recordId }) => {
       }), {});
 
     if (Object.keys(filteredVitals).length === 0) {
+      console.log('No valid vitals to submit');
       return;
     }
 
     console.log('Submitting vitals for record:', recordId, filteredVitals);
     
-    const result = await insertVitalSigns(recordId, filteredVitals);
-    
-    if (result.success) {
-      // Clear form on success
-      setVitals({});
+    try {
+      const result = await insertVitalSigns(recordId, filteredVitals);
+      
+      if (result.success) {
+        // Clear form on success
+        setVitals({});
+        console.log('Vitals submitted successfully');
+      } else {
+        console.error('Failed to submit vitals:', result.error);
+      }
+    } catch (error) {
+      console.error('Error submitting vitals:', error);
     }
   };
 

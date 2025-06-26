@@ -14,17 +14,31 @@ export class AtomicStorageService {
     atomicValue: AtomicValue
   ): Promise<AtomicStoreResult> {
     try {
+      console.log('Starting atomic value storage process...');
+      
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.error('User not authenticated');
         return { success: false, error: 'User not authenticated' };
       }
 
+      console.log('User authenticated, preparing encryption...');
+
+      // Ensure encryption is ready
+      if (!this.fieldEncryption.isReady()) {
+        console.log('Encryption not ready, initializing...');
+        await this.fieldEncryption.initialize();
+      }
+
       // Encrypt the value
+      console.log('Encrypting atomic value...');
       const encryptedResult = await this.fieldEncryption.encryptField(
         String(atomicValue.value),
         'sensitive'
       );
+
+      console.log('Encryption completed, storing in database...');
 
       const { data, error } = await supabase
         .from('atomic_data_points')
@@ -43,16 +57,17 @@ export class AtomicStorageService {
         .single();
 
       if (error) {
-        console.error('Error storing atomic data point:', error);
+        console.error('Database error storing atomic data point:', error);
         return { success: false, error: error.message };
       }
 
+      console.log('Atomic data point stored successfully:', data.id);
       return { success: true, id: data.id };
     } catch (error) {
       console.error('Failed to store atomic value:', error);
       return { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error' 
+        error: error instanceof Error ? error.message : 'Unknown error during atomic value storage' 
       };
     }
   }
@@ -62,6 +77,8 @@ export class AtomicStorageService {
    */
   async getAtomicValuesForRecord(recordId: string): Promise<AtomicServiceResult<(AtomicDataPoint & { decrypted_value?: string })[]>> {
     try {
+      console.log('Fetching atomic data points for record:', recordId);
+      
       const { data, error } = await supabase
         .from('atomic_data_points')
         .select('*')
@@ -71,6 +88,14 @@ export class AtomicStorageService {
       if (error) {
         console.error('Error fetching atomic data points:', error);
         return { success: false, error: error.message };
+      }
+
+      console.log(`Found ${data?.length || 0} atomic data points`);
+
+      // Ensure encryption is ready for decryption
+      if (!this.fieldEncryption.isReady()) {
+        console.log('Encryption not ready for decryption, initializing...');
+        await this.fieldEncryption.initialize();
       }
 
       // Decrypt each value

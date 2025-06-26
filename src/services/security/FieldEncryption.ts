@@ -9,6 +9,7 @@ import { ChecksumGenerator } from './checksumUtils';
 export class FieldEncryption {
   private static instance: FieldEncryption;
   private encryptionKey?: CryptoKey;
+  private isInitialized = false;
 
   public static getInstance(): FieldEncryption {
     if (!FieldEncryption.instance) {
@@ -18,27 +19,40 @@ export class FieldEncryption {
   }
 
   private constructor() {
-    this.initializeEncryption();
+    // Initialize asynchronously
+    this.initializeEncryption().catch(error => {
+      console.error('Failed to initialize encryption in constructor:', error);
+    });
   }
 
   private async initializeEncryption(): Promise<void> {
     try {
+      console.log('Initializing field encryption...');
       this.encryptionKey = await EncryptionKeyManager.generateOrRetrieveKey();
+      this.isInitialized = true;
+      console.log('Field encryption initialized successfully');
     } catch (error) {
+      console.error('Field encryption initialization failed:', error);
       const appError = new ValidationError('Encryption initialization failed', { originalError: error });
       logError(appError);
+      this.isInitialized = false;
       throw appError;
+    }
+  }
+
+  private async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized || !this.encryptionKey) {
+      console.log('Encryption not initialized, initializing now...');
+      await this.initializeEncryption();
     }
   }
 
   public async encryptField(data: string, fieldType: FieldType = 'sensitive'): Promise<EncryptionResult> {
     try {
-      if (!this.encryptionKey) {
-        await this.initializeEncryption();
-      }
+      await this.ensureInitialized();
 
       if (!this.encryptionKey) {
-        throw new ValidationError('Encryption key not available');
+        throw new ValidationError('Encryption key not available after initialization');
       }
 
       // Validate input data - use proper Zod schema
@@ -67,12 +81,10 @@ export class FieldEncryption {
 
   public async decryptField(encryptedResult: EncryptionResult): Promise<DecryptionResult> {
     try {
-      if (!this.encryptionKey) {
-        await this.initializeEncryption();
-      }
+      await this.ensureInitialized();
 
       if (!this.encryptionKey) {
-        throw new ValidationError('Encryption key not available');
+        throw new ValidationError('Encryption key not available after initialization');
       }
 
       // Verify checksum first
@@ -134,6 +146,16 @@ export class FieldEncryption {
     }
     
     return result;
+  }
+
+  // Public method to check if encryption is ready
+  public isReady(): boolean {
+    return this.isInitialized && !!this.encryptionKey;
+  }
+
+  // Public method to manually initialize if needed
+  public async initialize(): Promise<void> {
+    await this.initializeEncryption();
   }
 }
 
