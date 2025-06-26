@@ -114,10 +114,52 @@ export const useAtomicDataAPI = () => {
     }
   };
 
+  const insertGlucoseData = async (
+    recordId: string,
+    glucoseData: {
+      glucose?: number;
+      hba1c?: number;
+      meal_timing?: string;
+      test_type?: string;
+      [key: string]: string | number | undefined;
+    }
+  ): Promise<AtomicDataInsertResponse> => {
+    setLoading(true);
+    try {
+      // Filter out undefined values
+      const fields = Object.entries(glucoseData)
+        .filter(([_, value]) => value !== undefined)
+        .reduce((acc, [key, value]) => ({
+          ...acc,
+          [key]: value
+        }), {});
+
+      const result = await atomicDataAPIService.insertAtomicData(recordId, fields);
+      
+      if (result.success) {
+        toast({
+          title: "Glucose Data Recorded",
+          description: "Successfully recorded glucose/diabetes data as atomic data points",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to record glucose data",
+          variant: "destructive",
+        });
+      }
+      
+      return result;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     insertAtomicData,
     insertVitalSigns,
-    insertLabResults
+    insertLabResults,
+    insertGlucoseData
   };
 };

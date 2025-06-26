@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,7 +38,7 @@ const GlucoseForm: React.FC<GlucoseFormProps> = ({ onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('glucose');
   const { toast } = useToast();
-  const { insertVitalSigns } = useAtomicDataAPI();
+  const { insertGlucoseData } = useAtomicDataAPI();
 
   // Glucose form
   const glucoseForm = useForm<GlucoseFormData>({
@@ -102,8 +101,9 @@ const GlucoseForm: React.FC<GlucoseFormProps> = ({ onSuccess }) => {
     try {
       const recordId = crypto.randomUUID();
       
-      const result = await insertVitalSigns(recordId, {
-        glucose: data.glucose
+      const result = await insertGlucoseData(recordId, {
+        glucose: data.glucose,
+        meal_timing: data.mealTiming
       });
 
       if (result.success) {
@@ -130,8 +130,9 @@ const GlucoseForm: React.FC<GlucoseFormProps> = ({ onSuccess }) => {
     try {
       const recordId = crypto.randomUUID();
       
-      const result = await insertVitalSigns(recordId, {
-        hba1c: data.hba1c
+      const result = await insertGlucoseData(recordId, {
+        hba1c: data.hba1c,
+        test_type: data.testType
       });
 
       if (result.success) {
