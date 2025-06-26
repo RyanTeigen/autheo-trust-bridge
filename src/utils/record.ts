@@ -30,6 +30,7 @@ export async function getOrCreateMedicalRecord(userId: string): Promise<string |
       const { data: newPatient, error: patientCreateError } = await supabase
         .from('patients')
         .insert({
+          id: crypto.randomUUID(), // Generate UUID for the required id field
           user_id: userId,
           full_name: 'New Patient', // Default name
           created_at: new Date().toISOString(),
