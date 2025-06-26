@@ -1,165 +1,74 @@
 
 import { useState } from 'react';
-import { atomicDataAPIService, AtomicDataFields, AtomicDataInsertResponse } from '@/services/atomic/AtomicDataAPIService';
-import { useToast } from '@/hooks/use-toast';
+import { AtomicStorageService } from '../services/atomic/AtomicStorageService';
+import { AtomicValue } from '../services/atomic/types';
+
+const atomicStorage = new AtomicStorageService();
 
 export const useAtomicDataAPI = () => {
   const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
-  const insertAtomicData = async (
-    recordId: string, 
-    fields: AtomicDataFields
-  ): Promise<AtomicDataInsertResponse> => {
+  const insertVitalSigns = async (recordId: string, vitals: Record<string, number>) => {
     setLoading(true);
+    
     try {
-      console.log('Inserting atomic data via API:', { recordId, fields });
+      const results = [];
       
-      const result = await atomicDataAPIService.insertAtomicData(recordId, fields);
-      
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: result.message || `Successfully inserted ${result.inserted_count} atomic data points`,
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to insert atomic data",
-          variant: "destructive",
-        });
+      // Convert each vital sign to an atomic value and store it
+      for (const [key, value] of Object.entries(vitals)) {
+        const atomicValue: AtomicValue = {
+          data_type: key,
+          value: value,
+          unit: getUnitForVitalType(key),
+          metadata: {
+            source: 'manual_entry',
+            recorded_at: new Date().toISOString()
+          }
+        };
+        
+        const result = await atomicStorage.storeAtomicValue(recordId, atomicValue);
+        results.push(result);
       }
       
-      return result;
+      // Check if all insertions were successful
+      const allSuccessful = results.every(result => result.success);
+      
+      if (allSuccessful) {
+        return { success: true };
+      } else {
+        const failedResults = results.filter(result => !result.success);
+        return { 
+          success: false, 
+          error: `Some vitals failed to save: ${failedResults.map(r => r.error).join(', ')}` 
+        };
+      }
     } catch (error) {
-      console.error('Error in useAtomicDataAPI:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast({
-        title: "Error",
-        description: `Failed to insert atomic data: ${errorMessage}`,
-        variant: "destructive",
-      });
-      
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const insertVitalSigns = async (
-    recordId: string,
-    vitals: {
-      systolic_bp?: number;
-      diastolic_bp?: number;
-      heart_rate?: number;
-      temperature?: number;
-      respiratory_rate?: number;
-      oxygen_saturation?: number;
-    }
-  ): Promise<AtomicDataInsertResponse> => {
-    setLoading(true);
-    try {
-      const result = await atomicDataAPIService.insertVitalSigns(recordId, vitals);
-      
-      if (result.success) {
-        toast({
-          title: "Vital Signs Recorded",
-          description: "Successfully recorded vital signs as atomic data points",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to record vital signs",
-          variant: "destructive",
-        });
-      }
-      
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const insertLabResults = async (
-    recordId: string,
-    labResults: {
-      glucose?: number;
-      cholesterol?: number;
-      hemoglobin?: number;
-      white_blood_cell_count?: number;
-      creatinine?: number;
-      [key: string]: string | number | undefined;
-    }
-  ): Promise<AtomicDataInsertResponse> => {
-    setLoading(true);
-    try {
-      const result = await atomicDataAPIService.insertLabResults(recordId, labResults);
-      
-      if (result.success) {
-        toast({
-          title: "Lab Results Recorded",
-          description: "Successfully recorded lab results as atomic data points",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to record lab results",
-          variant: "destructive",
-        });
-      }
-      
-      return result;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const insertGlucoseData = async (
-    recordId: string,
-    glucoseData: {
-      glucose?: number;
-      hba1c?: number;
-      meal_timing?: string;
-      test_type?: string;
-      [key: string]: string | number | undefined;
-    }
-  ): Promise<AtomicDataInsertResponse> => {
-    setLoading(true);
-    try {
-      // Filter out undefined values
-      const fields = Object.entries(glucoseData)
-        .filter(([_, value]) => value !== undefined)
-        .reduce((acc, [key, value]) => ({
-          ...acc,
-          [key]: value
-        }), {});
-
-      const result = await atomicDataAPIService.insertAtomicData(recordId, fields);
-      
-      if (result.success) {
-        toast({
-          title: "Glucose Data Recorded",
-          description: "Successfully recorded glucose/diabetes data as atomic data points",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to record glucose data",
-          variant: "destructive",
-        });
-      }
-      
-      return result;
+      console.error('Error inserting vital signs:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+      };
     } finally {
       setLoading(false);
     }
   };
 
   return {
-    loading,
-    insertAtomicData,
     insertVitalSigns,
-    insertLabResults,
-    insertGlucoseData
+    loading
   };
 };
+
+// Helper function to get appropriate units for different vital types
+function getUnitForVitalType(vitalType: string): string {
+  const unitMap: Record<string, string> = {
+    'systolic_bp': 'mmHg',
+    'diastolic_bp': 'mmHg',
+    'heart_rate': 'bpm',
+    'temperature': '°F',
+    'respiratory_rate': 'breaths/min',
+    'oxygen_saturation': '%'
+  };
+  
+  return unitMap[vitalType] || '';
+}

@@ -1,4 +1,11 @@
 
+export interface AtomicValue {
+  data_type: string;
+  value: number | string;
+  unit?: string;
+  metadata?: Record<string, any>;
+}
+
 export interface AtomicDataPoint {
   id: string;
   owner_id: string;
@@ -6,22 +13,9 @@ export interface AtomicDataPoint {
   data_type: string;
   enc_value: string;
   unit?: string;
-  metadata?: any;
+  metadata?: Record<string, any>;
   created_at: string;
   updated_at: string;
-}
-
-export interface AtomicValue {
-  data_type: string;
-  value: string | number;
-  unit?: string;
-  metadata?: any;
-}
-
-export interface AtomicServiceResult<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string;
 }
 
 export interface AtomicStoreResult {
@@ -30,15 +24,8 @@ export interface AtomicStoreResult {
   error?: string;
 }
 
-export interface AtomicDecompositionResult {
+export interface AtomicServiceResult<T> {
   success: boolean;
-  atomicCount?: number;
+  data?: T;
   error?: string;
-}
-
-export interface HomomorphicAnalyticsData {
-  dataType: string;
-  encryptedValues: string[];
-  metadata: any[];
-  count: number;
 }
