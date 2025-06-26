@@ -132,6 +132,8 @@ const VitalsMetrics: React.FC = () => {
               color="#10B981"
               unit=" mg/dL"
               height={200}
+              vitalType="glucose"
+              showClinicalRanges={true}
             />
           )}
           
@@ -142,6 +144,8 @@ const VitalsMetrics: React.FC = () => {
               color="#EF4444"
               unit=" bpm"
               height={200}
+              vitalType="heart_rate"
+              showClinicalRanges={true}
             />
           )}
           
@@ -152,6 +156,8 @@ const VitalsMetrics: React.FC = () => {
               color="#3B82F6"
               unit=" mmHg"
               height={200}
+              vitalType="systolic_bp"
+              showClinicalRanges={true}
             />
           )}
           
@@ -162,6 +168,8 @@ const VitalsMetrics: React.FC = () => {
               color="#8B5CF6"
               unit=" mmHg"
               height={200}
+              vitalType="diastolic_bp"
+              showClinicalRanges={true}
             />
           )}
         </div>

@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CLINICAL_REFERENCES } from '@/utils/clinicalReferences';
 
 interface LineGraphData {
   label: string;
@@ -14,6 +15,8 @@ interface LineGraphProps {
   color?: string;
   unit?: string;
   height?: number;
+  vitalType?: string;
+  showClinicalRanges?: boolean;
 }
 
 const LineGraph: React.FC<LineGraphProps> = ({ 
@@ -21,8 +24,12 @@ const LineGraph: React.FC<LineGraphProps> = ({
   data, 
   color = "#5EEBC4",
   unit = "",
-  height = 200 
+  height = 200,
+  vitalType,
+  showClinicalRanges = true
 }) => {
+  const reference = vitalType ? CLINICAL_REFERENCES[vitalType] : null;
+  
   return (
     <Card className="bg-slate-800 border-slate-700">
       <CardHeader className="pb-2">
@@ -42,6 +49,29 @@ const LineGraph: React.FC<LineGraphProps> = ({
                 tick={{ fill: '#94a3b8', fontSize: 12 }}
                 stroke="#475569"
               />
+              
+              {/* Clinical Reference Lines */}
+              {showClinicalRanges && reference && (
+                <>
+                  <ReferenceLine 
+                    y={reference.normal.max} 
+                    stroke="#10B981" 
+                    strokeDasharray="2 2" 
+                    strokeOpacity={0.6}
+                    label={{ value: "Normal Max", position: "topRight", fontSize: 10, fill: "#10B981" }}
+                  />
+                  {reference.borderline && (
+                    <ReferenceLine 
+                      y={reference.borderline.max} 
+                      stroke="#F59E0B" 
+                      strokeDasharray="2 2" 
+                      strokeOpacity={0.6}
+                      label={{ value: "Alert", position: "topRight", fontSize: 10, fill: "#F59E0B" }}
+                    />
+                  )}
+                </>
+              )}
+              
               <Tooltip
                 contentStyle={{
                   backgroundColor: '#1e293b',
@@ -49,7 +79,13 @@ const LineGraph: React.FC<LineGraphProps> = ({
                   borderRadius: '6px',
                   color: '#f1f5f9'
                 }}
-                formatter={(value: number) => [`${value}${unit}`, title]}
+                formatter={(value: number) => {
+                  const status = reference ? 
+                    (value >= reference.normal.min && value <= reference.normal.max ? ' (Normal)' :
+                     reference.borderline && value >= reference.borderline.min && value <= reference.borderline.max ? ' (Elevated)' :
+                     value >= reference.high.min ? ' (High)' : ' (Low)') : '';
+                  return [`${value}${unit}${status}`, title];
+                }}
                 labelStyle={{ color: '#94a3b8' }}
               />
               <Line 
