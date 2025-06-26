@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
@@ -6,7 +7,7 @@ import FitnessDataDisplay from '@/components/fitness/FitnessDataDisplay';
 import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
 import VitalSignsInputDialog from '@/components/vitals/VitalSignsInputDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Scale, Heart, Clock, Utensils, Smartphone, TrendingUp, Plus } from 'lucide-react';
+import { Activity, Scale, Heart, Clock, Utensils, Smartphone, TrendingUp, Plus, TestTube, Droplets } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -154,7 +155,7 @@ const HealthTrackerTabContent: React.FC = () => {
                     variant="outline" 
                     className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
                   >
-                    <Activity className="h-6 w-6 text-blue-400" />
+                    <Droplets className="h-6 w-6 text-blue-400" />
                     <div className="text-center">
                       <div className="font-medium">Oxygen Saturation</div>
                       <div className="text-xs text-slate-400">Record O2 levels</div>
@@ -162,15 +163,18 @@ const HealthTrackerTabContent: React.FC = () => {
                   </Button>
                 </VitalSignsInputDialog>
 
-                <VitalSignsInputDialog onSuccess={handleVitalsSuccess}>
+                <VitalSignsInputDialog 
+                  defaultTab="glucose"
+                  onSuccess={handleVitalsSuccess}
+                >
                   <Button 
                     variant="outline" 
                     className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
                   >
-                    <Plus className="h-6 w-6 text-autheo-primary" />
+                    <TestTube className="h-6 w-6 text-green-400" />
                     <div className="text-center">
-                      <div className="font-medium">All Vitals</div>
-                      <div className="text-xs text-slate-400">Record multiple</div>
+                      <div className="font-medium">Glucose & HbA1c</div>
+                      <div className="text-xs text-slate-400">Diabetes tracking</div>
                     </div>
                   </Button>
                 </VitalSignsInputDialog>

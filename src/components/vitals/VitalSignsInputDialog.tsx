@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Activity, Thermometer, Wind, Droplets } from 'lucide-react';
+import { Heart, Activity, Thermometer, Wind, Droplets, TestTube } from 'lucide-react';
 import BloodPressureForm from './forms/BloodPressureForm';
 import HeartRateForm from './forms/HeartRateForm';
 import TemperatureForm from './forms/TemperatureForm';
 import RespiratoryRateForm from './forms/RespiratoryRateForm';
 import OxygenSaturationForm from './forms/OxygenSaturationForm';
+import GlucoseForm from './forms/GlucoseForm';
 
 interface VitalSignsInputDialogProps {
   children: React.ReactNode;
@@ -36,7 +37,7 @@ const VitalSignsInputDialog: React.FC<VitalSignsInputDialogProps> = ({
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-autheo-primary">
             <Heart className="h-5 w-5" />
@@ -45,7 +46,7 @@ const VitalSignsInputDialog: React.FC<VitalSignsInputDialogProps> = ({
         </DialogHeader>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="blood-pressure" className="text-xs">
               <Activity className="h-3 w-3 mr-1" />
               BP
@@ -65,6 +66,10 @@ const VitalSignsInputDialog: React.FC<VitalSignsInputDialogProps> = ({
             <TabsTrigger value="oxygen" className="text-xs">
               <Droplets className="h-3 w-3 mr-1" />
               O2
+            </TabsTrigger>
+            <TabsTrigger value="glucose" className="text-xs">
+              <TestTube className="h-3 w-3 mr-1" />
+              Glucose
             </TabsTrigger>
           </TabsList>
           
@@ -86,6 +91,10 @@ const VitalSignsInputDialog: React.FC<VitalSignsInputDialogProps> = ({
           
           <TabsContent value="oxygen">
             <OxygenSaturationForm onSuccess={handleSuccess} />
+          </TabsContent>
+          
+          <TabsContent value="glucose">
+            <GlucoseForm onSuccess={handleSuccess} />
           </TabsContent>
         </Tabs>
       </DialogContent>
