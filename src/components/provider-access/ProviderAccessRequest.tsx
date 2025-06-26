@@ -1,301 +1,168 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Shield, Search, Loader2, CheckCircle, Clock, XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import PatientSearch, { PatientInfo } from './request/PatientSearch';
-import PatientInfoDisplay from './request/PatientInfoDisplay';
-import AccessRequestForm from './request/AccessRequestForm';
-
-interface AccessRequest {
-  id: string;
-  patientName: string;
-  patientId: string;
-  requestDate: string;
-  status: 'pending' | 'approved' | 'rejected' | 'expired';
-  accessLevel: string;
-  reason: string;
-  expirationDate?: string;
-}
+import { Button } from '@/components/ui/button';
+import { useAccessRequestAPI } from '@/hooks/useAccessRequestAPI';
+import { useToast } from '@/hooks/use-toast';
+import RequestAccessForm from './request/RequestAccessForm';
+import { FileText, Clock, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
 
 interface ProviderAccessRequestProps {
   isEnhanced?: boolean;
 }
 
-const mockRequestHistory: AccessRequest[] = [
-  { 
-    id: 'R1', 
-    patientName: 'John Doe', 
-    patientId: 'P12345', 
-    requestDate: '2025-05-15', 
-    status: 'approved', 
-    accessLevel: 'Full Access',
-    reason: 'Primary care physician follow-up',
-    expirationDate: '2025-06-15'
-  },
-  { 
-    id: 'R2', 
-    patientName: 'Jane Smith', 
-    patientId: 'P23456', 
-    requestDate: '2025-05-14', 
-    status: 'pending', 
-    accessLevel: 'Limited Access',
-    reason: 'Specialist consultation'
-  },
-  { 
-    id: 'R3', 
-    patientName: 'Robert Johnson', 
-    patientId: 'P34567', 
-    requestDate: '2025-05-10', 
-    status: 'rejected', 
-    accessLevel: 'Full Access',
-    reason: 'Lab results review'
-  },
-];
-
 const ProviderAccessRequest: React.FC<ProviderAccessRequestProps> = ({ isEnhanced = false }) => {
-  const [patientId, setPatientId] = useState('');
-  const [patientInfo, setPatientInfo] = useState<PatientInfo | null>(null);
-  const [activeTab, setActiveTab] = useState('new');
-  const [requestHistory, setRequestHistory] = useState<AccessRequest[]>(mockRequestHistory);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleRequestComplete = () => {
-    // Reset form
-    setPatientId('');
-    setPatientInfo(null);
-  };
-  
-  const handleCancelRequest = (requestId: string) => {
-    setRequestHistory(prev => prev.filter(request => request.id !== requestId));
-  };
-  
-  const handleRetryRequest = (requestId: string) => {
-    // Simulate retrying a request
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setRequestHistory(prev => prev.map(request => 
-        request.id === requestId ? { ...request, status: 'pending', requestDate: new Date().toISOString().split('T')[0] } : request
-      ));
-      setIsSubmitting(false);
-    }, 1500);
-  };
-  
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'pending':
-        return <Badge variant="outline" className="bg-amber-900/20 text-amber-400 border-amber-700/30 flex items-center"><Clock className="h-3 w-3 mr-1" /> Pending</Badge>;
-      case 'approved':
-        return <Badge variant="outline" className="bg-green-900/20 text-green-400 border-green-700/30 flex items-center"><CheckCircle className="h-3 w-3 mr-1" /> Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="outline" className="bg-red-900/20 text-red-400 border-red-700/30 flex items-center"><XCircle className="h-3 w-3 mr-1" /> Rejected</Badge>;
-      case 'expired':
-        return <Badge variant="outline" className="bg-slate-700/40 text-slate-400 border-slate-600/50 flex items-center"><Clock className="h-3 w-3 mr-1" /> Expired</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  const [accessRequests, setAccessRequests] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { getMyAccessRequests } = useAccessRequestAPI();
+  const { toast } = useToast();
+
+  const fetchAccessRequests = async () => {
+    try {
+      setIsLoading(true);
+      const result = await getMyAccessRequests();
+      
+      if (result.success) {
+        setAccessRequests(result.data || []);
+      } else {
+        toast({
+          title: "Failed to Load Requests",
+          description: result.error || "Could not load your access requests",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching access requests:', error);
+      toast({
+        title: "Network Error",
+        description: "Unable to load access requests. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Use basic version if not enhanced
-  if (!isEnhanced) {
-    return (
-      <Card className="bg-slate-800 border-slate-700 text-slate-100">
-        <CardHeader className="border-b border-slate-700 bg-slate-700/30">
-          <CardTitle className="text-autheo-primary">Request Patient Access</CardTitle>
-          <CardDescription className="text-slate-300">
-            Request permission to view a patient's health records
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-6 space-y-4">
-          <div className="space-y-4">
-            {!patientInfo ? (
-              <PatientSearch 
-                patientId={patientId}
-                setPatientId={setPatientId}
-                setPatientInfo={setPatientInfo}
-              />
-            ) : (
-              <>
-                <PatientInfoDisplay patientInfo={patientInfo} />
-                <AccessRequestForm 
-                  patientInfo={patientInfo}
-                  onRequestComplete={handleRequestComplete}
-                />
-              </>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="bg-slate-700/30 border-t border-slate-700 px-6 py-4 text-xs text-slate-400">
-          <div className="flex items-center">
-            <Shield className="h-4 w-4 mr-1.5 text-autheo-primary" /> 
-            All access requests are cryptographically signed and recorded on the blockchain
-          </div>
-        </CardFooter>
-      </Card>
-    );
-  }
+  useEffect(() => {
+    fetchAccessRequests();
+  }, []);
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case 'expired':
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Clock className="h-4 w-4 text-yellow-500" />;
+    }
+  };
+
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (status) {
+      case 'active':
+        return 'default';
+      case 'expired':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
 
   return (
-    <Card className="bg-slate-800 border-slate-700 text-slate-100">
-      <CardHeader className="border-b border-slate-700 bg-slate-700/30">
-        <CardTitle className="text-autheo-primary">Request Patient Access</CardTitle>
-        <CardDescription className="text-slate-300">
-          Request permission to view a patient's health records with detailed tracking and verification
-        </CardDescription>
-      </CardHeader>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="px-6 pt-6">
-          <TabsList className="bg-slate-700/50 w-full grid grid-cols-3">
-            <TabsTrigger value="new" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">
-              New Request
-            </TabsTrigger>
-            <TabsTrigger value="pending" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">
-              Pending
-            </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">
-              History
-            </TabsTrigger>
-          </TabsList>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-100 mb-2">Provider Access Requests</h2>
+        <p className="text-slate-400">
+          Request access to patient medical records and manage your existing requests.
+        </p>
+      </div>
+
+      <Alert className="border-blue-500/30 bg-blue-900/20">
+        <FileText className="h-4 w-4" />
+        <AlertDescription className="text-slate-200">
+          <strong>Patient Privacy Notice:</strong> All access requests are subject to patient approval. 
+          Patients maintain full control over their medical data and can revoke access at any time.
+        </AlertDescription>
+      </Alert>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Request Form */}
+        <div>
+          <RequestAccessForm />
         </div>
-        
-        <CardContent className="p-6">
-          <TabsContent value="new" className="mt-0 space-y-4">
-            {!patientInfo ? (
-              <PatientSearch 
-                patientId={patientId}
-                setPatientId={setPatientId}
-                setPatientInfo={setPatientInfo}
-              />
+
+        {/* My Access Requests */}
+        <Card className="bg-slate-800 border-slate-700">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-slate-100">My Access Requests</CardTitle>
+              <CardDescription className="text-slate-400">
+                Track the status of your patient access requests
+              </CardDescription>
+            </div>
+            <Button
+              onClick={fetchAccessRequests}
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+              className="border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-4 bg-slate-700 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-slate-700 rounded w-1/2"></div>
+                  </div>
+                ))}
+              </div>
+            ) : accessRequests.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No access requests yet</p>
+                <p className="text-sm">Send your first request using the form on the left</p>
+              </div>
             ) : (
-              <>
-                <PatientInfoDisplay patientInfo={patientInfo} />
-                <AccessRequestForm 
-                  patientInfo={patientInfo}
-                  onRequestComplete={handleRequestComplete}
-                />
-              </>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="pending" className="mt-0">
-            {requestHistory.filter(req => req.status === 'pending').length > 0 ? (
-              <div className="space-y-4">
-                {requestHistory
-                  .filter(req => req.status === 'pending')
-                  .map((request) => (
-                    <div key={request.id} className="p-4 border border-slate-700 rounded-md bg-slate-700/30">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium text-slate-200">{request.patientName}</h3>
-                          <p className="text-sm text-slate-400">Patient ID: {request.patientId}</p>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Requested on {new Date(request.requestDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          {getStatusBadge(request.status)}
-                          <Badge variant="outline" className="bg-slate-700/40 text-slate-300">
-                            {request.accessLevel}
-                          </Badge>
-                        </div>
+              <div className="space-y-3">
+                {accessRequests.map((request) => (
+                  <div
+                    key={request.id}
+                    className="p-3 bg-slate-700 rounded-lg border border-slate-600"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(request.status)}
+                        <span className="font-medium text-slate-200">
+                          {request.patientName || request.patientEmail}
+                        </span>
                       </div>
-                      <div className="mt-3 p-2 bg-slate-800/70 rounded text-sm text-slate-300 border border-slate-700/50">
-                        <p><span className="text-autheo-primary">Reason:</span> {request.reason}</p>
-                      </div>
-                      <div className="mt-3 flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="border-slate-700"
-                          onClick={() => handleCancelRequest(request.id)}
-                        >
-                          Cancel Request
-                        </Button>
-                      </div>
+                      <Badge variant={getStatusVariant(request.status)}>
+                        {request.status}
+                      </Badge>
                     </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="text-center py-10 text-slate-400">
-                No pending access requests
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="history" className="mt-0">
-            {requestHistory.filter(req => req.status !== 'pending').length > 0 ? (
-              <div className="space-y-4">
-                {requestHistory
-                  .filter(req => req.status !== 'pending')
-                  .map((request) => (
-                    <div key={request.id} className="p-4 border border-slate-700 rounded-md bg-slate-700/30">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-medium text-slate-200">{request.patientName}</h3>
-                          <p className="text-sm text-slate-400">Patient ID: {request.patientId}</p>
-                          <p className="text-xs text-slate-500 mt-1">
-                            Requested on {new Date(request.requestDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          {getStatusBadge(request.status)}
-                          <Badge variant="outline" className="bg-slate-700/40 text-slate-300">
-                            {request.accessLevel}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="mt-3 p-2 bg-slate-800/70 rounded text-sm text-slate-300 border border-slate-700/50">
-                        <p><span className="text-autheo-primary">Reason:</span> {request.reason}</p>
-                        {request.expirationDate && (
-                          <p className="mt-1"><span className="text-autheo-primary">Expires:</span> {new Date(request.expirationDate).toLocaleDateString()}</p>
-                        )}
-                      </div>
-                      <div className="mt-3 flex justify-end gap-2">
-                        {request.status === 'approved' && (
-                          <Button 
-                            size="sm" 
-                            className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
-                          >
-                            Access Records
-                          </Button>
-                        )}
-                        {request.status === 'rejected' && (
-                          <Button 
-                            size="sm"
-                            variant="outline"
-                            className="border-slate-700"
-                            disabled={isSubmitting}
-                            onClick={() => handleRetryRequest(request.id)}
-                          >
-                            {isSubmitting && <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />}
-                            {isSubmitting ? 'Processing...' : 'Retry Request'}
-                          </Button>
-                        )}
-                      </div>
+                    <div className="text-sm text-slate-400 space-y-1">
+                      <div>Email: {request.patientEmail}</div>
+                      <div>Record Type: {request.recordType}</div>
+                      <div>Requested: {new Date(request.requestedAt).toLocaleDateString()}</div>
+                      {request.expiresAt && (
+                        <div>Expires: {new Date(request.expiresAt).toLocaleDateString()}</div>
+                      )}
                     </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="text-center py-10 text-slate-400">
-                No request history found
+                  </div>
+                ))}
               </div>
             )}
-          </TabsContent>
-        </CardContent>
-      </Tabs>
-      
-      <CardFooter className="bg-slate-700/30 border-t border-slate-700 px-6 py-4 text-xs text-slate-400">
-        <div className="flex items-center">
-          <Shield className="h-4 w-4 mr-1.5 text-autheo-primary" /> 
-          All access requests are cryptographically signed and recorded for auditability
-        </div>
-      </CardFooter>
-    </Card>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
