@@ -26,6 +26,9 @@ const SidebarNavigation: React.FC = () => {
   console.log('Sidebar Navigation - User roles:', userRoles);
   console.log('Sidebar Navigation - Is provider:', isProvider);
 
+  // Allow provider access in development mode for debugging
+  const showProviderPortal = isProvider || import.meta.env.DEV;
+
   const providerPortalItems = [
     { to: '/provider-portal', icon: UserCheck, title: 'Dashboard' },
     { to: '/patient-records', icon: Search, title: 'Patient Records' },
@@ -48,7 +51,7 @@ const SidebarNavigation: React.FC = () => {
       />
 
       {/* Provider Portal - Show as direct link and expandable section for providers */}
-      {isProvider && (
+      {showProviderPortal && (
         <>
           <SidebarNavItem
             to="/provider-portal"
