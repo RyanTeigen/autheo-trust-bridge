@@ -58,7 +58,7 @@ const LineGraph: React.FC<LineGraphProps> = ({
                     stroke="#10B981" 
                     strokeDasharray="2 2" 
                     strokeOpacity={0.6}
-                    label={{ value: "Normal Max", position: "topRight", fontSize: 10, fill: "#10B981" }}
+                    label={{ value: "Normal Max", position: "topLeft", fontSize: 10, fill: "#10B981" }}
                   />
                   {reference.borderline && (
                     <ReferenceLine 
@@ -66,7 +66,7 @@ const LineGraph: React.FC<LineGraphProps> = ({
                       stroke="#F59E0B" 
                       strokeDasharray="2 2" 
                       strokeOpacity={0.6}
-                      label={{ value: "Alert", position: "topRight", fontSize: 10, fill: "#F59E0B" }}
+                      label={{ value: "Alert", position: "topLeft", fontSize: 10, fill: "#F59E0B" }}
                     />
                   )}
                 </>
