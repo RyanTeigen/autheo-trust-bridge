@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { FieldEncryption } from '@/services/security/FieldEncryption';
 
@@ -32,6 +31,12 @@ export class AtomicDataService {
     atomicValue: AtomicValue
   ): Promise<{ success: boolean; id?: string; error?: string }> {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { success: false, error: 'User not authenticated' };
+      }
+
       // Encrypt the value
       const encryptedResult = await this.fieldEncryption.encryptField(
         String(atomicValue.value),
@@ -41,6 +46,7 @@ export class AtomicDataService {
       const { data, error } = await supabase
         .from('atomic_data_points')
         .insert({
+          owner_id: user.id,
           record_id: recordId,
           data_type: atomicValue.data_type,
           enc_value: encryptedResult.encryptedData,
@@ -92,9 +98,13 @@ export class AtomicDataService {
       const decryptedData = await Promise.all(
         (data || []).map(async (point) => {
           try {
+            // Safely access encryption_metadata with type checking
+            const metadata = point.metadata as any;
+            const encryptionMetadata = metadata?.encryption_metadata || {};
+
             const encryptionResult = {
               encryptedData: point.enc_value,
-              metadata: point.metadata?.encryption_metadata || {}
+              metadata: encryptionMetadata
             };
 
             const decryptedResult = await this.fieldEncryption.decryptField(encryptionResult);
