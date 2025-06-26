@@ -6,6 +6,7 @@ import EnhancedQuickActions from './EnhancedQuickActions';
 import ConsolidatedHealthOverview from './ConsolidatedHealthOverview';
 import AppointmentsCard from './AppointmentsCard';
 import MedicationRemindersCard from './MedicationRemindersCard';
+import AtomicVitalsCard from '@/components/patient/AtomicVitalsCard';
 
 interface PersonalizedDashboardProps {
   patientName?: string;
@@ -69,6 +70,9 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
       
       {/* Enhanced quick actions */}
       <EnhancedQuickActions className="bg-slate-800 border-slate-700" />
+      
+      {/* Atomic Vitals Card - New addition */}
+      <AtomicVitalsCard />
       
       {/* Consolidated health overview (combines metrics and records) */}
       <ConsolidatedHealthOverview />
