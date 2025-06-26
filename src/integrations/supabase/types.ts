@@ -859,6 +859,9 @@ export type Database = {
           medical_record_id: string | null
           patient_id: string | null
           permission_type: string
+          responded_at: string | null
+          status: string
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
@@ -868,6 +871,9 @@ export type Database = {
           medical_record_id?: string | null
           patient_id?: string | null
           permission_type: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
@@ -877,6 +883,9 @@ export type Database = {
           medical_record_id?: string | null
           patient_id?: string | null
           permission_type?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
