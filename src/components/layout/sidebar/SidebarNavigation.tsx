@@ -50,23 +50,15 @@ const SidebarNavigation: React.FC = () => {
         description="Personal health dashboard"
       />
 
-      {/* Provider Portal - Show as direct link and expandable section for providers */}
+      {/* Provider Portal - Show as expandable section with all provider tools */}
       {showProviderPortal && (
-        <>
-          <SidebarNavItem
-            to="/provider-portal"
-            icon={Stethoscope}
-            title="Provider Portal"
-            description="Healthcare provider interface"
-          />
-          <ExpandableSidebarSection
-            title="Provider Tools"
-            description="Provider-specific tools"
-            icon={Users}
-            subItems={providerPortalItems.slice(1)} // Exclude dashboard since it's already shown above
-            defaultOpen={true}
-          />
-        </>
+        <ExpandableSidebarSection
+          title="Provider Portal"
+          description="Healthcare provider interface"
+          icon={Stethoscope}
+          subItems={providerPortalItems}
+          defaultOpen={true}
+        />
       )}
 
       {/* Admin Portal - Only visible to admins */}
