@@ -8,7 +8,8 @@ export function getOrCreateAESKey(): string {
   let key = localStorage.getItem(LOCAL_AES_KEY_NAME);
   if (!key) {
     // Generate 256-bit hex key (32 bytes)
-    key = crypto.randomUUID().replace(/-/g, '').slice(0, 32);
+    const keyBytes = crypto.getRandomValues(new Uint8Array(32));
+    key = Array.from(keyBytes).map(b => b.toString(16).padStart(2, '0')).join('');
     localStorage.setItem(LOCAL_AES_KEY_NAME, key);
   }
   return key;
@@ -34,14 +35,14 @@ export async function ensureUserKeys(userId: string): Promise<{ publicKey: strin
       return { publicKey, privateKey: existingPrivateKey };
     }
 
-    // Generate new key pair (simplified for now - in production would use proper key generation)
-    const privateKey = crypto.randomUUID() + crypto.randomUUID();
+    // For self-encryption, we'll use the AES key as the "private key"
+    const aesKey = getOrCreateAESKey();
     const publicKey = `pk_${userId.substring(0, 8)}_${Date.now().toString(36)}`;
     
-    // Store private key locally
-    localStorage.setItem(LOCAL_PRIVATE_KEY_NAME, privateKey);
+    // Store the AES key as our "private key" for now
+    localStorage.setItem(LOCAL_PRIVATE_KEY_NAME, aesKey);
     
-    return { publicKey, privateKey };
+    return { publicKey, privateKey: aesKey };
   } catch (error) {
     console.error('Error ensuring user keys:', error);
     throw new Error('Failed to ensure user encryption keys');
@@ -50,7 +51,7 @@ export async function ensureUserKeys(userId: string): Promise<{ publicKey: strin
 
 export async function loadPrivateKeyFromLocal(): Promise<string | null> {
   try {
-    return localStorage.getItem(LOCAL_PRIVATE_KEY_NAME);
+    return localStorage.getItem(LOCAL_PRIVATE_KEY_NAME) || getOrCreateAESKey();
   } catch (error) {
     console.error('Error loading private key from local storage:', error);
     return null;
