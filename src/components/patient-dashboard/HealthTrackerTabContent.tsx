@@ -1,12 +1,12 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
 import FitnessDeviceIntegration from '@/components/fitness/FitnessDeviceIntegration';
 import FitnessDataDisplay from '@/components/fitness/FitnessDataDisplay';
 import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
+import VitalSignsInputDialog from '@/components/vitals/VitalSignsInputDialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Scale, Heart, Clock, Utensils, Smartphone, TrendingUp } from 'lucide-react';
+import { Activity, Scale, Heart, Clock, Utensils, Smartphone, TrendingUp, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -18,6 +18,11 @@ const HealthTrackerTabContent: React.FC = () => {
       title: "Coming soon",
       description: `The ability to add ${dataType} data will be available soon.`,
     });
+  };
+
+  const handleVitalsSuccess = () => {
+    // This will trigger a refresh of the vitals data
+    window.location.reload();
   };
 
   return (
@@ -73,26 +78,102 @@ const HealthTrackerTabContent: React.FC = () => {
           
           <Card className="bg-slate-800 border-slate-700">
             <CardHeader>
-              <CardTitle className="text-autheo-primary">Quick Actions</CardTitle>
+              <CardTitle className="text-autheo-primary">Record New Vital Signs</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full border-slate-700 hover:bg-slate-700/50"
-                  onClick={() => handleAddData("vital signs")}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <VitalSignsInputDialog 
+                  defaultTab="blood-pressure"
+                  onSuccess={handleVitalsSuccess}
                 >
-                  <Heart className="h-4 w-4 mr-2 text-red-400" />
-                  Record New Vitals
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full border-slate-700 hover:bg-slate-700/50"
-                  onClick={() => handleAddData("blood pressure")}
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
+                  >
+                    <Activity className="h-6 w-6 text-blue-400" />
+                    <div className="text-center">
+                      <div className="font-medium">Blood Pressure</div>
+                      <div className="text-xs text-slate-400">Record BP reading</div>
+                    </div>
+                  </Button>
+                </VitalSignsInputDialog>
+
+                <VitalSignsInputDialog 
+                  defaultTab="heart-rate"
+                  onSuccess={handleVitalsSuccess}
                 >
-                  <Activity className="h-4 w-4 mr-2 text-blue-400" />
-                  Add Blood Pressure
-                </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
+                  >
+                    <Heart className="h-6 w-6 text-red-400" />
+                    <div className="text-center">
+                      <div className="font-medium">Heart Rate</div>
+                      <div className="text-xs text-slate-400">Record pulse rate</div>
+                    </div>
+                  </Button>
+                </VitalSignsInputDialog>
+
+                <VitalSignsInputDialog 
+                  defaultTab="temperature"
+                  onSuccess={handleVitalsSuccess}
+                >
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
+                  >
+                    <Activity className="h-6 w-6 text-orange-400" />
+                    <div className="text-center">
+                      <div className="font-medium">Temperature</div>
+                      <div className="text-xs text-slate-400">Record body temp</div>
+                    </div>
+                  </Button>
+                </VitalSignsInputDialog>
+
+                <VitalSignsInputDialog 
+                  defaultTab="respiratory"
+                  onSuccess={handleVitalsSuccess}
+                >
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
+                  >
+                    <Activity className="h-6 w-6 text-teal-400" />
+                    <div className="text-center">
+                      <div className="font-medium">Respiratory Rate</div>
+                      <div className="text-xs text-slate-400">Record breathing rate</div>
+                    </div>
+                  </Button>
+                </VitalSignsInputDialog>
+
+                <VitalSignsInputDialog 
+                  defaultTab="oxygen"
+                  onSuccess={handleVitalsSuccess}
+                >
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
+                  >
+                    <Activity className="h-6 w-6 text-blue-400" />
+                    <div className="text-center">
+                      <div className="font-medium">Oxygen Saturation</div>
+                      <div className="text-xs text-slate-400">Record O2 levels</div>
+                    </div>
+                  </Button>
+                </VitalSignsInputDialog>
+
+                <VitalSignsInputDialog onSuccess={handleVitalsSuccess}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
+                  >
+                    <Plus className="h-6 w-6 text-autheo-primary" />
+                    <div className="text-center">
+                      <div className="font-medium">All Vitals</div>
+                      <div className="text-xs text-slate-400">Record multiple</div>
+                    </div>
+                  </Button>
+                </VitalSignsInputDialog>
               </div>
             </CardContent>
           </Card>
