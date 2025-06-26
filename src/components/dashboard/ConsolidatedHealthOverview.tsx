@@ -6,7 +6,7 @@ import AtomicVitalsCard from '@/components/patient/AtomicVitalsCard';
 import VitalsGraphs from '@/components/patient/vital-signs/VitalsGraphs';
 
 const ConsolidatedHealthOverview: React.FC = () => {
-  const { healthRecords, summary } = useHealthRecords();
+  const { healthRecords, healthMetrics } = useHealthRecords();
   
   // Mock compliance score for now
   const complianceScore = 92;
@@ -16,7 +16,7 @@ const ConsolidatedHealthOverview: React.FC = () => {
       {/* Health metrics and atomic vitals */}
       <div className="lg:col-span-2 space-y-6">
         <HealthMetricsCard 
-          metrics={summary.metrics} 
+          metrics={healthMetrics} 
           healthRecords={healthRecords}
           complianceScore={complianceScore}
         />
