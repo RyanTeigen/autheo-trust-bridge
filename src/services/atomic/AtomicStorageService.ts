@@ -23,12 +23,45 @@ export class AtomicStorageService {
         return { success: false, error: 'User not authenticated' };
       }
 
-      console.log('User authenticated, preparing encryption...');
+      console.log('User authenticated, ensuring encryption is ready...');
 
-      // Ensure encryption is ready
-      if (!this.fieldEncryption.isReady()) {
-        console.log('Encryption not ready, initializing...');
-        await this.fieldEncryption.initialize();
+      // Ensure encryption is properly initialized with retries
+      let initAttempts = 0;
+      const maxAttempts = 3;
+      
+      while (initAttempts < maxAttempts) {
+        try {
+          if (!this.fieldEncryption.isReady()) {
+            console.log(`Encryption not ready, initializing... (attempt ${initAttempts + 1})`);
+            await this.fieldEncryption.initialize();
+          }
+          
+          if (this.fieldEncryption.isReady()) {
+            console.log('Encryption is now ready');
+            break;
+          }
+          
+          initAttempts++;
+          if (initAttempts >= maxAttempts) {
+            throw new Error(`Failed to initialize encryption after ${maxAttempts} attempts`);
+          }
+          
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (initError) {
+          console.error(`Encryption initialization attempt ${initAttempts + 1} failed:`, initError);
+          initAttempts++;
+          
+          if (initAttempts >= maxAttempts) {
+            return { 
+              success: false, 
+              error: `Encryption initialization failed after ${maxAttempts} attempts: ${initError instanceof Error ? initError.message : 'Unknown error'}` 
+            };
+          }
+          
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
 
       // Encrypt the value
@@ -92,10 +125,33 @@ export class AtomicStorageService {
 
       console.log(`Found ${data?.length || 0} atomic data points`);
 
-      // Ensure encryption is ready for decryption
+      // Ensure encryption is ready for decryption with retries
+      let initAttempts = 0;
+      const maxAttempts = 3;
+      
+      while (initAttempts < maxAttempts && !this.fieldEncryption.isReady()) {
+        try {
+          console.log(`Encryption not ready for decryption, initializing... (attempt ${initAttempts + 1})`);
+          await this.fieldEncryption.initialize();
+          initAttempts++;
+        } catch (initError) {
+          console.error(`Decryption initialization attempt ${initAttempts + 1} failed:`, initError);
+          initAttempts++;
+          if (initAttempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+
       if (!this.fieldEncryption.isReady()) {
-        console.log('Encryption not ready for decryption, initializing...');
-        await this.fieldEncryption.initialize();
+        console.warn('Encryption not ready for decryption, returning encrypted data');
+        return { 
+          success: true, 
+          data: (data || []).map(point => ({
+            ...point,
+            decrypted_value: '[ENCRYPTION_NOT_READY]'
+          }))
+        };
       }
 
       // Decrypt each value
@@ -115,13 +171,13 @@ export class AtomicStorageService {
             
             return {
               ...point,
-              decrypted_value: decryptedResult.isValid ? decryptedResult.decryptedData : '[DECRYPTION FAILED]'
+              decrypted_value: decryptedResult.isValid ? decryptedResult.decryptedData : '[DECRYPTION_FAILED]'
             };
           } catch (decryptError) {
             console.error('Decryption error for point:', point.id, decryptError);
             return {
               ...point,
-              decrypted_value: '[DECRYPTION ERROR]'
+              decrypted_value: '[DECRYPTION_ERROR]'
             };
           }
         })

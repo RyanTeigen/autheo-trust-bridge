@@ -10,6 +10,7 @@ export class FieldEncryption {
   private static instance: FieldEncryption;
   private encryptionKey?: CryptoKey;
   private isInitialized = false;
+  private initializationPromise?: Promise<void>;
 
   public static getInstance(): FieldEncryption {
     if (!FieldEncryption.instance) {
@@ -19,15 +20,27 @@ export class FieldEncryption {
   }
 
   private constructor() {
-    // Initialize asynchronously
-    this.initializeEncryption().catch(error => {
-      console.error('Failed to initialize encryption in constructor:', error);
-    });
+    // Don't initialize in constructor to avoid async issues
   }
 
   private async initializeEncryption(): Promise<void> {
+    // Return existing promise if already initializing
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    // If already initialized, return immediately
+    if (this.isInitialized && this.encryptionKey) {
+      return Promise.resolve();
+    }
+
+    this.initializationPromise = this._performInitialization();
+    return this.initializationPromise;
+  }
+
+  private async _performInitialization(): Promise<void> {
     try {
-      console.log('Initializing field encryption...');
+      console.log('Starting field encryption initialization...');
       this.encryptionKey = await EncryptionKeyManager.generateOrRetrieveKey();
       this.isInitialized = true;
       console.log('Field encryption initialized successfully');
@@ -36,6 +49,9 @@ export class FieldEncryption {
       const appError = new ValidationError('Encryption initialization failed', { originalError: error });
       logError(appError);
       this.isInitialized = false;
+      this.encryptionKey = undefined;
+      // Clear the promise so it can be retried
+      this.initializationPromise = undefined;
       throw appError;
     }
   }
@@ -156,6 +172,14 @@ export class FieldEncryption {
   // Public method to manually initialize if needed
   public async initialize(): Promise<void> {
     await this.initializeEncryption();
+  }
+
+  // Reset the encryption system (useful for testing or recovery)
+  public reset(): void {
+    this.isInitialized = false;
+    this.encryptionKey = undefined;
+    this.initializationPromise = undefined;
+    console.log('Encryption system reset');
   }
 }
 

@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAtomicDataAPI } from '@/hooks/useAtomicDataAPI';
-import { Activity, Heart, Thermometer, Droplets } from 'lucide-react';
+import { Activity, Heart, Thermometer, Droplets, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface AtomicDataFormProps {
   recordId: string;
@@ -23,6 +24,7 @@ interface VitalSigns {
 const AtomicDataForm: React.FC<AtomicDataFormProps> = ({ recordId }) => {
   const { insertVitalSigns, loading } = useAtomicDataAPI();
   const [vitals, setVitals] = useState<VitalSigns>({});
+  const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (field: keyof VitalSigns, value: string) => {
     const numericValue = value === '' ? undefined : parseFloat(value);
@@ -30,10 +32,15 @@ const AtomicDataForm: React.FC<AtomicDataFormProps> = ({ recordId }) => {
       ...prev,
       [field]: numericValue
     }));
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     // Filter out undefined values
     const filteredVitals = Object.entries(vitals)
@@ -44,7 +51,7 @@ const AtomicDataForm: React.FC<AtomicDataFormProps> = ({ recordId }) => {
       }), {});
 
     if (Object.keys(filteredVitals).length === 0) {
-      console.log('No valid vitals to submit');
+      setError('Please enter at least one vital sign measurement');
       return;
     }
 
@@ -59,9 +66,12 @@ const AtomicDataForm: React.FC<AtomicDataFormProps> = ({ recordId }) => {
         console.log('Vitals submitted successfully');
       } else {
         console.error('Failed to submit vitals:', result.error);
+        setError(result.error || 'Failed to record vital signs. Please try again.');
       }
     } catch (error) {
       console.error('Error submitting vitals:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      setError(`Failed to record vital signs: ${errorMessage}`);
     }
   };
 
@@ -74,6 +84,13 @@ const AtomicDataForm: React.FC<AtomicDataFormProps> = ({ recordId }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Blood Pressure */}
           <div className="grid grid-cols-2 gap-4">
