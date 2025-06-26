@@ -30,7 +30,8 @@ export class AtomicDecomposerService {
 
       return { 
         success: true, 
-        atomicValues 
+        atomicValues,
+        atomicCount: atomicValues.length
       };
     } catch (error) {
       console.error('Failed to decompose medical data:', error);

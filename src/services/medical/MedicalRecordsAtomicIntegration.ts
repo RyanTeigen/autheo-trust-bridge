@@ -30,7 +30,7 @@ export class MedicalRecordsAtomicIntegration {
       if (typeof medicalData === 'object' && medicalData !== null) {
         const result = await atomicDataService.decomposeToAtomicValues(recordId, medicalData);
         
-        if (result.success) {
+        if (result.success && result.atomicCount !== undefined) {
           console.log(`Successfully decomposed record ${recordId} into ${result.atomicCount} atomic values`);
           return { success: true, atomicCount: result.atomicCount };
         } else {
@@ -117,7 +117,24 @@ export class MedicalRecordsAtomicIntegration {
     error?: string;
   }> {
     try {
-      return await atomicDataService.getHomomorphicAnalyticsData(dataType);
+      const result = await atomicDataService.getHomomorphicAnalyticsData(dataType);
+      
+      if (result.success && result.data) {
+        return {
+          success: true,
+          data: {
+            dataType: result.data.dataType,
+            encryptedValues: result.data.encryptedValues || [],
+            metadata: result.data.metadata || [],
+            count: result.data.count
+          }
+        };
+      } else {
+        return { 
+          success: false, 
+          error: result.error || 'Failed to get homomorphic analytics data'
+        };
+      }
     } catch (error) {
       console.error('Error getting homomorphic analytics data:', error);
       return { 

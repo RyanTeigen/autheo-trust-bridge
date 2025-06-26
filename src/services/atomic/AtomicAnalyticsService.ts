@@ -15,11 +15,9 @@ export class AtomicAnalyticsService {
         dataType,
         count: 0,
         averageValue: undefined,
+        encryptedValues: [], // Empty array for now
+        metadata: [], // Empty array for now
         trends: [],
-        metadata: {
-          computed_at: new Date().toISOString(),
-          method: 'homomorphic_encryption'
-        }
       };
 
       return { success: true, data: analyticsData };

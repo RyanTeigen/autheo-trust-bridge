@@ -33,6 +33,7 @@ export interface AtomicServiceResult<T> {
 export interface AtomicDecompositionResult {
   success: boolean;
   atomicValues?: AtomicValue[];
+  atomicCount?: number;
   error?: string;
 }
 
@@ -40,9 +41,10 @@ export interface HomomorphicAnalyticsData {
   dataType: string;
   count: number;
   averageValue?: number;
+  encryptedValues?: string[];
+  metadata?: any[];
   trends?: {
     period: string;
     value: number;
   }[];
-  metadata?: Record<string, any>;
 }
