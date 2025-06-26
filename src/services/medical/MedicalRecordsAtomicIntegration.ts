@@ -117,21 +117,7 @@ export class MedicalRecordsAtomicIntegration {
     error?: string;
   }> {
     try {
-      const result = await atomicDataService.getAtomicValuesByType(dataType, 1000);
-      
-      if (result.success && result.data) {
-        return {
-          success: true,
-          data: {
-            dataType,
-            encryptedValues: result.data.map(point => point.enc_value),
-            metadata: result.data.map(point => point.metadata),
-            count: result.data.length
-          }
-        };
-      } else {
-        return { success: false, error: result.error };
-      }
+      return await atomicDataService.getHomomorphicAnalyticsData(dataType);
     } catch (error) {
       console.error('Error getting homomorphic analytics data:', error);
       return { 
