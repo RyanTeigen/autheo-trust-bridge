@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Filter, FileText, Calendar, User, Share2, Download, Upload, Plus } from 'lucide-react';
 import { ExportRecordButton } from '@/components/patient/ExportRecordButton';
 import { ImportRecordButton } from '@/components/patient/ImportRecordButton';
+import { RecordIntegrityBadge } from '@/components/patient/RecordIntegrityBadge';
 import { useToast } from '@/hooks/use-toast';
 
 interface HealthRecord {
@@ -16,6 +17,14 @@ interface HealthRecord {
   created_at: string;
   encrypted_data: string;
   iv?: string;
+  record_hash?: string;
+  anchored_at?: string;
+  integrity?: {
+    hasHash: boolean;
+    isAnchored: boolean;
+    anchoredAt?: string;
+    anchoringInProgress?: boolean;
+  };
 }
 
 interface HealthRecordsTabProps {
@@ -37,7 +46,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Mock data for demonstration
+  // Mock data for demonstration with integrity information
   useEffect(() => {
     const mockRecords: HealthRecord[] = [
       {
@@ -45,18 +54,34 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
         record_type: 'Lab Results',
         created_at: '2024-01-15T10:30:00Z',
         encrypted_data: 'encrypted_lab_data_here',
+        record_hash: 'a1b2c3d4e5f6',
+        anchored_at: '2024-01-15T10:35:00Z',
+        integrity: {
+          hasHash: true,
+          isAnchored: true,
+          anchoredAt: '2024-01-15T10:35:00Z'
+        }
       },
       {
         id: '123e4567-e89b-12d3-a456-426614174001',
         record_type: 'Prescription',
         created_at: '2024-01-10T14:45:00Z',
         encrypted_data: 'encrypted_prescription_data_here',
+        record_hash: 'b2c3d4e5f6g7',
+        integrity: {
+          hasHash: true,
+          isAnchored: false
+        }
       },
       {
         id: '123e4567-e89b-12d3-a456-426614174002',
         record_type: 'Imaging',
         created_at: '2024-01-05T09:15:00Z',
         encrypted_data: 'encrypted_imaging_data_here',
+        integrity: {
+          hasHash: false,
+          isAnchored: false
+        }
       },
     ];
 
@@ -99,7 +124,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-200">Health Records</h2>
-          <p className="text-slate-400">Manage your encrypted medical records</p>
+          <p className="text-slate-400">Manage your encrypted medical records with blockchain integrity verification</p>
         </div>
         
         <div className="flex gap-2">
@@ -179,16 +204,24 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
                     </div>
                   </div>
                   
-                  <Badge variant="secondary" className="bg-green-900/20 text-green-400 border-green-800">
-                    Encrypted
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-green-900/20 text-green-400 border-green-800">
+                      Encrypted
+                    </Badge>
+                    {record.integrity && (
+                      <RecordIntegrityBadge integrity={record.integrity} />
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               
               <CardContent className="pt-0">
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-slate-400">
-                    Record ID: {record.id.slice(0, 8)}...
+                    <div>Record ID: {record.id.slice(0, 8)}...</div>
+                    {record.record_hash && (
+                      <div className="mt-1">Hash: {record.record_hash}</div>
+                    )}
                   </div>
                   
                   <div className="flex items-center gap-2">

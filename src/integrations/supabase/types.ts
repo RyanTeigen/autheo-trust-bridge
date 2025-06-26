@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      anchored_hashes: {
+        Row: {
+          anchor_tx_url: string | null
+          anchored_at: string
+          created_at: string
+          id: string
+          record_hash: string
+          record_id: string
+        }
+        Insert: {
+          anchor_tx_url?: string | null
+          anchored_at?: string
+          created_at?: string
+          id?: string
+          record_hash: string
+          record_id: string
+        }
+        Update: {
+          anchor_tx_url?: string | null
+          anchored_at?: string
+          created_at?: string
+          id?: string
+          record_hash?: string
+          record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anchored_hashes_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_anchors: {
         Row: {
           anchored_at: string
@@ -499,31 +534,37 @@ export type Database = {
       }
       medical_records: {
         Row: {
+          anchored_at: string | null
           created_at: string | null
           encrypted_data: string
           id: string
           iv: string | null
           patient_id: string | null
+          record_hash: string | null
           record_type: string | null
           updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          anchored_at?: string | null
           created_at?: string | null
           encrypted_data: string
           id?: string
           iv?: string | null
           patient_id?: string | null
+          record_hash?: string | null
           record_type?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          anchored_at?: string | null
           created_at?: string | null
           encrypted_data?: string
           id?: string
           iv?: string | null
           patient_id?: string | null
+          record_hash?: string | null
           record_type?: string | null
           updated_at?: string | null
           user_id?: string | null
