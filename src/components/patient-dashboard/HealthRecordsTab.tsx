@@ -5,8 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, FileText, Calendar, User, Share2, Download } from 'lucide-react';
+import { Search, Filter, FileText, Calendar, User, Share2, Download, Upload, Plus } from 'lucide-react';
 import { ExportRecordButton } from '@/components/patient/ExportRecordButton';
+import { ImportRecordButton } from '@/components/patient/ImportRecordButton';
 import { useToast } from '@/hooks/use-toast';
 
 interface HealthRecord {
@@ -71,6 +72,15 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
     return matchesSearch && matchesCategory;
   });
 
+  const handleImportSuccess = () => {
+    // Refresh records list or handle successful import
+    toast({
+      title: "Record Imported",
+      description: "Your medical record has been successfully imported and added to your collection.",
+    });
+    // In a real implementation, you would refetch the records here
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -85,6 +95,21 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Header with Import/Export Actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-200">Health Records</h2>
+          <p className="text-slate-400">Manage your encrypted medical records</p>
+        </div>
+        
+        <div className="flex gap-2">
+          <ImportRecordButton 
+            onImportSuccess={handleImportSuccess}
+            className="text-slate-300 border-slate-600 hover:bg-slate-700"
+          />
+        </div>
+      </div>
+
       {/* Search and Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -108,6 +133,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
             <SelectItem value="prescription">Prescriptions</SelectItem>
             <SelectItem value="imaging">Imaging</SelectItem>
             <SelectItem value="visit">Visit Notes</SelectItem>
+            <SelectItem value="imported">Imported Records</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -119,12 +145,18 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
             <CardContent className="p-8 text-center">
               <FileText className="h-16 w-16 mx-auto mb-4 text-slate-400 opacity-50" />
               <h3 className="text-lg font-medium text-slate-300 mb-2">No Records Found</h3>
-              <p className="text-slate-400">
+              <p className="text-slate-400 mb-4">
                 {searchQuery || selectedCategory !== 'all' 
                   ? 'Try adjusting your search or filter criteria'
                   : 'Your health records will appear here once they are added'
                 }
               </p>
+              <div className="flex justify-center gap-2">
+                <ImportRecordButton 
+                  onImportSuccess={handleImportSuccess}
+                  className="text-slate-300 border-slate-600 hover:bg-slate-700"
+                />
+              </div>
             </CardContent>
           </Card>
         ) : (
