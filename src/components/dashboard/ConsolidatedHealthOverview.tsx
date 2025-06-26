@@ -3,7 +3,7 @@ import React from 'react';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import HealthMetricsCard from './HealthMetricsCard';
 import AtomicVitalsCard from '@/components/patient/AtomicVitalsCard';
-import VitalsGraphs from '@/components/patient/vital-signs/VitalsGraphs';
+import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
 
 const ConsolidatedHealthOverview: React.FC = () => {
   const { healthRecords, healthMetrics } = useHealthRecords();
@@ -13,14 +13,14 @@ const ConsolidatedHealthOverview: React.FC = () => {
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Health metrics and atomic vitals */}
+      {/* Health metrics and vitals graphs */}
       <div className="lg:col-span-2 space-y-6">
         <HealthMetricsCard 
           metrics={healthMetrics} 
           healthRecords={healthRecords}
           complianceScore={complianceScore}
         />
-        <VitalsGraphs />
+        <VitalsMetrics />
       </div>
       
       {/* Atomic vitals card */}
