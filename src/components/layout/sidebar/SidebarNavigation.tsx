@@ -12,7 +12,8 @@ import {
   Settings,
   FileText,
   Search,
-  UserCheck
+  UserCheck,
+  Stethoscope
 } from 'lucide-react';
 
 const SidebarNavigation: React.FC = () => {
@@ -21,6 +22,9 @@ const SidebarNavigation: React.FC = () => {
   const userRoles = profile?.roles || ['patient'];
   const isProvider = userRoles.includes('provider');
   const isAdmin = userRoles.includes('admin') || userRoles.includes('supervisor');
+
+  console.log('Sidebar Navigation - User roles:', userRoles);
+  console.log('Sidebar Navigation - Is provider:', isProvider);
 
   const providerPortalItems = [
     { to: '/provider-portal', icon: UserCheck, title: 'Dashboard' },
@@ -43,14 +47,23 @@ const SidebarNavigation: React.FC = () => {
         description="Personal health dashboard"
       />
 
-      {/* Provider Portal - Expandable section for providers */}
+      {/* Provider Portal - Show as direct link and expandable section for providers */}
       {isProvider && (
-        <ExpandableSidebarSection
-          title="Provider Portal"
-          description="Healthcare provider interface"
-          icon={Users}
-          subItems={providerPortalItems}
-        />
+        <>
+          <SidebarNavItem
+            to="/provider-portal"
+            icon={Stethoscope}
+            title="Provider Portal"
+            description="Healthcare provider interface"
+          />
+          <ExpandableSidebarSection
+            title="Provider Tools"
+            description="Provider-specific tools"
+            icon={Users}
+            subItems={providerPortalItems.slice(1)} // Exclude dashboard since it's already shown above
+            defaultOpen={true}
+          />
+        </>
       )}
 
       {/* Admin Portal - Only visible to admins */}
