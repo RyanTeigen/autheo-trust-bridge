@@ -24,20 +24,34 @@ export const usePendingAccessRequests = () => {
     try {
       setLoading(true);
       
-      // Get current patient
+      // Get current patient using the fixed RLS policies
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('User not authenticated');
+        console.error('User not authenticated');
+        setRequests([]);
+        return;
       }
 
+      // Get patient record - this should work with the fixed RLS policies
       const { data: patient, error: patientError } = await supabase
         .from('patients')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (patientError || !patient) {
+      if (patientError) {
         console.error('Patient lookup error:', patientError);
+        toast({
+          title: "Error",
+          description: "Failed to load patient information",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!patient) {
+        console.log('No patient record found');
+        setRequests([]);
         return;
       }
 
@@ -76,11 +90,11 @@ export const usePendingAccessRequests = () => {
             .from('profiles')
             .select('first_name, last_name, email')
             .eq('id', request.grantee_id)
-            .single();
+            .maybeSingle();
 
           return {
             ...request,
-            provider_name: profile ? `${profile.first_name} ${profile.last_name}`.trim() : 'Unknown Provider',
+            provider_name: profile ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Unknown Provider' : 'Unknown Provider',
             provider_email: profile?.email || 'Unknown',
             record_type: (request as any).medical_records?.record_type || 'Unknown'
           };
