@@ -27,9 +27,13 @@ export async function getOrCreateMedicalRecord(userId: string): Promise<string |
       // Create patient record - the fixed RLS policies now allow this properly
       console.log('Creating new patient record for user:', userId);
       
+      // Generate a proper UUID for the patient
+      const newPatientId = crypto.randomUUID();
+      
       const { data: newPatient, error: patientCreateError } = await supabase
         .from('patients')
         .insert({
+          id: newPatientId,
           user_id: userId,
           full_name: 'New Patient', // Default name
           created_at: new Date().toISOString(),
