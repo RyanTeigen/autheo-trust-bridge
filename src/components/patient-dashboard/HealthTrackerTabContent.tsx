@@ -1,285 +1,143 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
-import FitnessDeviceIntegration from '@/components/fitness/FitnessDeviceIntegration';
-import FitnessDataDisplay from '@/components/fitness/FitnessDataDisplay';
-import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
-import VitalSignsInputDialog from '@/components/vitals/VitalSignsInputDialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Activity, Scale, Heart, Clock, Utensils, Smartphone, TrendingUp, Plus, TestTube, Droplets } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { Activity, Heart, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import VitalSignsTracker from '@/components/healthcare/VitalSignsTracker';
+import AtomicDataForm from '@/components/patient/AtomicDataForm';
+import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
+import { useAuth } from '@/contexts/AuthContext';
+import { getOrCreateMedicalRecord } from '@/utils/record';
 
 const HealthTrackerTabContent: React.FC = () => {
-  const { toast } = useToast();
+  const { user } = useAuth();
+  const [recordId, setRecordId] = useState<string | null>(null);
+  const [recordLoading, setRecordLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddData = (dataType: string) => {
-    toast({
-      title: "Coming soon",
-      description: `The ability to add ${dataType} data will be available soon.`,
-    });
+  const fetchOrCreateRecord = async () => {
+    if (!user?.id) {
+      setRecordLoading(false);
+      setError('Please log in to access your medical records.');
+      return;
+    }
+    
+    console.log('Fetching or creating medical record for user:', user.id);
+    setError(null);
+    setRecordLoading(true);
+    
+    try {
+      const id = await getOrCreateMedicalRecord(user.id);
+      
+      if (id) {
+        setRecordId(id);
+        console.log('Successfully loaded medical record:', id);
+      } else {
+        setError('Failed to load or create medical record. This might be due to database permissions. Please try refreshing the page or contact support if the issue persists.');
+      }
+    } catch (err) {
+      console.error('Error in fetchOrCreateRecord:', err);
+      setError('An unexpected error occurred while loading your medical record. Please try again.');
+    } finally {
+      setRecordLoading(false);
+    }
   };
 
-  const handleVitalsSuccess = () => {
-    // This will trigger a refresh of the vitals data
-    window.location.reload();
+  useEffect(() => {
+    fetchOrCreateRecord();
+  }, [user]);
+
+  const handleRetry = () => {
+    fetchOrCreateRecord();
   };
+
+  if (!user) {
+    return (
+      <Card className="bg-slate-800 border-slate-700">
+        <CardContent className="p-6">
+          <Alert className="border-amber-500/30 bg-amber-900/20">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-slate-200">
+              Please log in to access your health tracker.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <Card className="bg-slate-800/50 border-slate-700 p-4">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-sm text-autheo-primary flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Connected to Health Overview
+      <Card className="bg-slate-800 border-slate-700">
+        <CardHeader className="border-b border-slate-700">
+          <CardTitle className="text-autheo-primary flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Health Tracker
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-0 pb-0">
-          <p className="text-sm text-slate-300">
-            Your tracker data is integrated with your health overview dashboard. 
-            All metrics you track here are the same data shown in your overview tab.
+        <CardContent className="p-6">
+          <p className="text-slate-300 mb-4">
+            Track your vital signs, view health metrics, and monitor your health trends over time.
           </p>
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="vitals" className="w-full">
-        <TabsList className="w-full justify-start overflow-auto">
-          <TabsTrigger value="vitals" className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            Vital Signs
-          </TabsTrigger>
-          <TabsTrigger value="metrics" className="flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Health Metrics
-          </TabsTrigger>
-          <TabsTrigger value="devices" className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4" />
-            Fitness Devices
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Activity
-          </TabsTrigger>
-          <TabsTrigger value="nutrition" className="flex items-center gap-2">
-            <Utensils className="h-4 w-4" />
-            Nutrition
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="vitals" className="space-y-4 mt-4">
-          <div className="mb-4">
-            <h3 className="text-lg font-medium text-slate-200 mb-2">Your Vital Signs Trends</h3>
-            <p className="text-sm text-slate-400">
-              These are the same vital signs displayed in your health overview, with detailed trend analysis and clinical context.
-            </p>
-          </div>
-          
-          <VitalsMetrics />
-          
+      {/* Vital Signs Input Section */}
+      <div className="mb-6">
+        {recordLoading ? (
           <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-autheo-primary">Record New Vital Signs</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <VitalSignsInputDialog 
-                  defaultTab="blood-pressure"
-                  onSuccess={handleVitalsSuccess}
-                >
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
-                  >
-                    <Activity className="h-6 w-6 text-blue-400" />
-                    <div className="text-center">
-                      <div className="font-medium">Blood Pressure</div>
-                      <div className="text-xs text-slate-400">Record BP reading</div>
-                    </div>
-                  </Button>
-                </VitalSignsInputDialog>
-
-                <VitalSignsInputDialog 
-                  defaultTab="heart-rate"
-                  onSuccess={handleVitalsSuccess}
-                >
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
-                  >
-                    <Heart className="h-6 w-6 text-red-400" />
-                    <div className="text-center">
-                      <div className="font-medium">Heart Rate</div>
-                      <div className="text-xs text-slate-400">Record pulse rate</div>
-                    </div>
-                  </Button>
-                </VitalSignsInputDialog>
-
-                <VitalSignsInputDialog 
-                  defaultTab="temperature"
-                  onSuccess={handleVitalsSuccess}
-                >
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
-                  >
-                    <Activity className="h-6 w-6 text-orange-400" />
-                    <div className="text-center">
-                      <div className="font-medium">Temperature</div>
-                      <div className="text-xs text-slate-400">Record body temp</div>
-                    </div>
-                  </Button>
-                </VitalSignsInputDialog>
-
-                <VitalSignsInputDialog 
-                  defaultTab="respiratory"
-                  onSuccess={handleVitalsSuccess}
-                >
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
-                  >
-                    <Activity className="h-6 w-6 text-teal-400" />
-                    <div className="text-center">
-                      <div className="font-medium">Respiratory Rate</div>
-                      <div className="text-xs text-slate-400">Record breathing rate</div>
-                    </div>
-                  </Button>
-                </VitalSignsInputDialog>
-
-                <VitalSignsInputDialog 
-                  defaultTab="oxygen"
-                  onSuccess={handleVitalsSuccess}
-                >
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
-                  >
-                    <Droplets className="h-6 w-6 text-blue-400" />
-                    <div className="text-center">
-                      <div className="font-medium">Oxygen Saturation</div>
-                      <div className="text-xs text-slate-400">Record O2 levels</div>
-                    </div>
-                  </Button>
-                </VitalSignsInputDialog>
-
-                <VitalSignsInputDialog 
-                  defaultTab="glucose"
-                  onSuccess={handleVitalsSuccess}
-                >
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-slate-700 hover:bg-slate-700/50 h-auto p-4 flex flex-col items-center gap-2"
-                  >
-                    <TestTube className="h-6 w-6 text-green-400" />
-                    <div className="text-center">
-                      <div className="font-medium">Glucose & HbA1c</div>
-                      <div className="text-xs text-slate-400">Diabetes tracking</div>
-                    </div>
-                  </Button>
-                </VitalSignsInputDialog>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-autheo-primary"></div>
+                <p className="text-center text-slate-300">Loading your medical record...</p>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="metrics" className="space-y-4 mt-4">
-          <HealthMetricsCharts />
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Scale className="h-4 w-4 mr-2 text-autheo-primary" />
-                  Weight Tracking
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Log your weight measurements to track changes over time.</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => handleAddData("weight")}
-                >
-                  Add Weight Entry
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Activity className="h-4 w-4 mr-2 text-autheo-primary" />
-                  Activity Log
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Record your physical activities and exercises.</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => handleAddData("activity")}
-                >
-                  Log Activity
-                </Button>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Heart className="h-4 w-4 mr-2 text-autheo-primary" />
-                  Heart Rate
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">Monitor your heart rate and cardiovascular health.</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full"
-                  onClick={() => handleAddData("heart rate")}
-                >
-                  Add Heart Rate
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
+        ) : error ? (
+          <Alert className="border-red-500/30 bg-red-900/20">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-slate-200 flex items-center justify-between">
+              <span>{error}</span>
+              <Button 
+                onClick={handleRetry}
+                variant="outline"
+                size="sm"
+                className="ml-4"
+              >
+                Try Again
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : recordId ? (
+          <AtomicDataForm recordId={recordId} />
+        ) : (
+          <Card className="bg-slate-800 border-slate-700">
+            <CardContent className="p-6">
+              <Alert className="border-amber-500/30 bg-amber-900/20">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-slate-200 flex items-center justify-between">
+                  <span>No medical record found. Click to create one.</span>
+                  <Button 
+                    onClick={handleRetry}
+                    variant="outline"
+                    size="sm"
+                    className="ml-4"
+                  >
+                    Create Record
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-        <TabsContent value="devices" className="mt-4">
-          <div className="space-y-6">
-            <FitnessDeviceIntegration />
-            <FitnessDataDisplay />
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="activity" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Activity Tracking</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-muted-foreground">Connect your fitness devices to automatically sync your activity data, or manually log your exercises and workouts.</p>
-              <Button onClick={() => handleAddData("activity data")}>Add Manual Entry</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="nutrition" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Nutrition Tracking</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-muted-foreground">This feature is coming soon. You'll be able to log your meals, track calories, and analyze your nutrition.</p>
-              <Button onClick={() => handleAddData("nutrition data")}>Notify When Available</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Health Metrics and Charts */}
+      <VitalsMetrics />
+
+      {/* Legacy Vital Signs Tracker */}
+      <VitalSignsTracker />
     </div>
   );
 };
