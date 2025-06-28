@@ -24,7 +24,7 @@ export const usePendingAccessRequests = () => {
     try {
       setLoading(true);
       
-      // Get current patient using the fixed RLS policies
+      // Get current user - this should work with the fixed RLS policies
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('User not authenticated');
