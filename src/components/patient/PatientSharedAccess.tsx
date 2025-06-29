@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Users } from 'lucide-react';
 import { useRevokeAccessRequest } from '@/hooks/useRevokeAccessRequest';
 import { usePendingAccessRequests } from '@/hooks/usePendingAccessRequests';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SharedAccess {
   id: string;
