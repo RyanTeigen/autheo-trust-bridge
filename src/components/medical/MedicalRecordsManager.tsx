@@ -8,7 +8,7 @@ import { useMedicalRecordsManager } from '@/hooks/useMedicalRecordsManager';
 import { useEncryptionSetup } from '@/hooks/useEncryptionSetup';
 import MedicalRecordForm from './MedicalRecordForm';
 import MedicalRecordsGrid from './MedicalRecordsGrid';
-import MedicalRecordsControls from './MedicalRecordsControls';
+import { MedicalRecordsControls } from './MedicalRecordsControls';
 import EmptyRecordsState from './EmptyRecordsState';
 import MedicalRecordsLoadingSkeleton from './MedicalRecordsLoadingSkeleton';
 

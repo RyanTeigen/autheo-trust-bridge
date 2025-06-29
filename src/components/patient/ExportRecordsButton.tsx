@@ -26,7 +26,7 @@ export function ExportRecordsButton({ patientId: propPatientId, className }: Exp
   const [patientId, setPatientId] = useState(propPatientId || user?.id || '');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  const [format, setFormat] = useState<'csv' | 'json'>('csv');
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv');
 
   const handleExport = async () => {
     if (!patientId) {
@@ -53,7 +53,7 @@ export function ExportRecordsButton({ patientId: propPatientId, className }: Exp
       // Build query parameters
       const params = new URLSearchParams({
         patientId,
-        format
+        format: exportFormat
       });
 
       if (startDate) {
@@ -78,7 +78,7 @@ export function ExportRecordsButton({ patientId: propPatientId, className }: Exp
       // Handle file download
       const contentDisposition = response.headers.get('Content-Disposition');
       const filename = contentDisposition?.match(/filename="(.+)"/)?.[1] || 
-                      `medical-records-${patientId.slice(0, 8)}.${format}`;
+                      `medical-records-${patientId.slice(0, 8)}.${exportFormat}`;
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -92,7 +92,7 @@ export function ExportRecordsButton({ patientId: propPatientId, className }: Exp
 
       toast({
         title: "Export Successful",
-        description: `Medical records have been exported as ${format.toUpperCase()}`,
+        description: `Medical records have been exported as ${exportFormat.toUpperCase()}`,
       });
 
       setOpen(false);
@@ -189,7 +189,7 @@ export function ExportRecordsButton({ patientId: propPatientId, className }: Exp
 
           <div className="space-y-2">
             <Label>Export Format</Label>
-            <Select value={format} onValueChange={(value: 'csv' | 'json') => setFormat(value)}>
+            <Select value={exportFormat} onValueChange={(value: 'csv' | 'json') => setExportFormat(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
