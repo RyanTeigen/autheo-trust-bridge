@@ -1,79 +1,74 @@
 
+import { SecurityMiddleware, validateResourceAccess } from '@/utils/security';
 import { supabase } from '@/integrations/supabase/client';
-import { AppError, AuthenticationError, AuthorizationError, NotFoundError, handleSupabaseError } from '@/utils/errorHandling';
-import { requireAuthentication, validateResourceAccess } from '@/utils/security';
 
-export interface ServiceResponse<T = any> {
+export interface ServiceResponse<T> {
   success: boolean;
-  data?: T;
+  data: T;
   error?: string;
   statusCode?: number;
-  context?: Record<string, any>;
-}
-
-export interface SecurityContext {
-  userId: string;
-  userRole: string;
-  sessionValid: boolean;
-  permissions: string[];
+  metadata?: Record<string, any>;
 }
 
 export abstract class BaseService {
-  protected async validateAuthentication(): Promise<SecurityContext> {
-    try {
-      return await requireAuthentication();
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      throw new AuthenticationError('Authentication validation failed');
-    }
+  protected async validateAuthentication() {
+    return SecurityMiddleware.getInstance().validateSession();
   }
 
-  protected async validateOwnership(resourceOwnerId: string, context: SecurityContext): Promise<boolean> {
-    return validateResourceAccess(context.userId, resourceOwnerId, context.userRole);
-  }
-
-  protected async validatePermission(permission: string, context: SecurityContext): Promise<boolean> {
+  protected async validatePermission(permission: string, context: any): Promise<boolean> {
     return context.permissions.includes(permission);
   }
 
-  protected handleError(error: any, operation: string): ServiceResponse {
-    console.error(`Error in ${operation}:`, error);
-    
-    if (error instanceof AppError) {
-      return {
-        success: false,
-        error: error.message,
-        statusCode: error.statusCode,
-        context: { operation, ...error.context }
-      };
+  protected async validateOwnership(resourceId: string, context: any): Promise<boolean> {
+    // For patients table, check if the resource belongs to the user
+    const { data, error } = await supabase
+      .from('patients')
+      .select('user_id')
+      .eq('id', resourceId)
+      .maybeSingle();
+
+    if (error || !data) {
+      return false;
     }
 
-    const appError = handleSupabaseError(error);
-    return {
-      success: false,
-      error: appError.message,
-      statusCode: appError.statusCode,
-      context: { operation }
-    };
+    return data.user_id === context.userId;
   }
 
-  protected createSuccessResponse<T>(data: T, context?: Record<string, any>): ServiceResponse<T> {
+  protected createSuccessResponse<T>(data: T, metadata?: Record<string, any>): ServiceResponse<T> {
     return {
       success: true,
       data,
-      statusCode: 200,
-      context
+      metadata
     };
   }
 
-  protected createErrorResponse(error: string, statusCode: number = 500, context?: Record<string, any>): ServiceResponse {
+  protected handleError(error: any, operation: string): ServiceResponse<any> {
+    console.error(`${operation} error:`, error);
+    
+    // Handle specific Supabase errors
+    if (error.code === 'PGRST116') {
+      return {
+        success: false,
+        data: null,
+        error: 'Resource not found',
+        statusCode: 404
+      };
+    }
+
+    if (error.code === '23505') {
+      return {
+        success: false,
+        data: null,
+        error: 'Resource already exists',
+        statusCode: 409
+      };
+    }
+
     return {
       success: false,
-      error,
-      statusCode,
-      context
+      data: null,
+      error: error.message || 'An unexpected error occurred',
+      statusCode: 500
     };
   }
 }

@@ -1,11 +1,11 @@
 
 import { ValidationError } from '@/utils/errorHandling';
 
-interface PatientCreateInput {
+export interface PatientCreateInput {
   full_name: string;
-  date_of_birth?: string;
   email?: string;
   phone?: string;
+  date_of_birth?: string;
   address?: string;
   mrn?: string;
   allergies?: string[];
@@ -13,11 +13,11 @@ interface PatientCreateInput {
   insurance_info?: any;
 }
 
-interface PatientUpdateInput {
+export interface PatientUpdateInput {
   full_name?: string;
-  date_of_birth?: string;
   email?: string;
   phone?: string;
+  date_of_birth?: string;
   address?: string;
   mrn?: string;
   allergies?: string[];
@@ -26,26 +26,40 @@ interface PatientUpdateInput {
 }
 
 export class PatientValidation {
-  static validatePatientInput(data: PatientCreateInput | PatientUpdateInput, isCreate: boolean = false): void {
-    if (isCreate) {
-      const createData = data as PatientCreateInput;
-      if (!createData.full_name || typeof createData.full_name !== 'string' || createData.full_name.trim().length === 0) {
-        throw new ValidationError('Full name is required and must be a non-empty string');
-      }
+  static validatePatientInput(data: PatientCreateInput | PatientUpdateInput, isCreate: boolean = false) {
+    if (isCreate && !data.full_name) {
+      throw new ValidationError('Full name is required');
     }
 
-    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    if (data.email && !this.isValidEmail(data.email)) {
       throw new ValidationError('Invalid email format');
     }
 
-    if (data.date_of_birth && !/^\d{4}-\d{2}-\d{2}$/.test(data.date_of_birth)) {
-      throw new ValidationError('Date of birth must be in YYYY-MM-DD format');
+    if (data.phone && !this.isValidPhone(data.phone)) {
+      throw new ValidationError('Invalid phone format');
     }
 
-    if (data.phone && !/^[\+]?[1-9][\d]{0,15}$/.test(data.phone.replace(/[\s\-\(\)]/g, ''))) {
-      throw new ValidationError('Invalid phone number format');
+    if (data.date_of_birth && !this.isValidDate(data.date_of_birth)) {
+      throw new ValidationError('Invalid date of birth');
+    }
+
+    if (data.allergies && !Array.isArray(data.allergies)) {
+      throw new ValidationError('Allergies must be an array');
     }
   }
-}
 
-export type { PatientCreateInput, PatientUpdateInput };
+  private static isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  private static isValidPhone(phone: string): boolean {
+    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  }
+
+  private static isValidDate(dateString: string): boolean {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()) && date <= new Date();
+  }
+}

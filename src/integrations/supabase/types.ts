@@ -1147,6 +1147,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       update_wallet_address: {
         Args: { user_id: string; wallet: string }
         Returns: undefined
