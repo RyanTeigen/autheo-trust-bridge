@@ -1,52 +1,68 @@
 
 import React from 'react';
-import { Plus, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Filter, Plus } from 'lucide-react';
+import { ExportRecordsButton } from '@/components/patient/ExportRecordsButton';
 
 interface MedicalRecordsControlsProps {
   searchTerm: string;
-  setSearchTerm: (value: string) => void;
-  filterType: string;
-  setFilterType: (value: string) => void;
+  onSearchChange: (value: string) => void;
+  recordType: string;
+  onRecordTypeChange: (value: string) => void;
+  onCreateNew: () => void;
+  showCreateButton?: boolean;
 }
 
-const MedicalRecordsControls: React.FC<MedicalRecordsControlsProps> = ({
+export function MedicalRecordsControls({
   searchTerm,
-  setSearchTerm,
-  filterType,
-  setFilterType,
-}) => {
+  onSearchChange,
+  recordType,
+  onRecordTypeChange,
+  onCreateNew,
+  showCreateButton = true
+}: MedicalRecordsControlsProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-4 justify-between">
-      <div className="flex flex-1 gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search medical records..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[180px]">
+    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Input
+          placeholder="Search medical records..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+      
+      <div className="flex gap-2">
+        <Select value={recordType} onValueChange={onRecordTypeChange}>
+          <SelectTrigger className="w-48">
             <Filter className="h-4 w-4 mr-2" />
-            <SelectValue />
+            <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-            <SelectItem value="physical_exam">Physical Exam</SelectItem>
-            <SelectItem value="lab_results">Lab Results</SelectItem>
-            <SelectItem value="imaging">Imaging</SelectItem>
-            <SelectItem value="prescription">Prescription</SelectItem>
+            <SelectItem value="blood_pressure">Blood Pressure</SelectItem>
+            <SelectItem value="heart_rate">Heart Rate</SelectItem>
+            <SelectItem value="temperature">Temperature</SelectItem>
+            <SelectItem value="weight">Weight</SelectItem>
+            <SelectItem value="height">Height</SelectItem>
+            <SelectItem value="allergy">Allergy</SelectItem>
+            <SelectItem value="medication">Medication</SelectItem>
+            <SelectItem value="note">Clinical Note</SelectItem>
           </SelectContent>
         </Select>
+
+        <ExportRecordsButton />
+
+        {showCreateButton && (
+          <Button onClick={onCreateNew}>
+            <Plus className="h-4 w-4 mr-2" />
+            New Record
+          </Button>
+        )}
       </div>
     </div>
   );
-};
-
-export default MedicalRecordsControls;
+}

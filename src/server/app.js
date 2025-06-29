@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const sharingPermissionsRoutes = require('./routes/sharing-permissions');
 const accessRequestRoutes = require('./routes/access-requests');
+const recordsExportRoutes = require('./routes/records-export');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 // Routes
 app.use('/api/sharing-permissions', sharingPermissionsRoutes);
 app.use('/api/access', accessRequestRoutes);
+app.use('/api/records', recordsExportRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
