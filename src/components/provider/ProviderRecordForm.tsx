@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,6 +8,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
+import { enhancedMedicalRecordsService } from '@/services/EnhancedMedicalRecordsService';
+import { ExportRecordsButton } from '@/components/patient/ExportRecordsButton';
 
 export default function ProviderRecordForm() {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ export default function ProviderRecordForm() {
     timestamp: new Date().toISOString().slice(0, 16),
   });
   const [loading, setLoading] = useState(false);
+  const [createdRecordId, setCreatedRecordId] = useState<string | null>(null);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -48,36 +50,6 @@ export default function ProviderRecordForm() {
     setLoading(true);
     
     try {
-      // First, try to find the patient by ID or email
-      let patientQuery = supabase
-        .from('patients')
-        .select('id, user_id')
-        .eq('id', form.patientId);
-
-      // If it looks like an email, search by email instead
-      if (form.patientId.includes('@')) {
-        patientQuery = supabase
-          .from('patients')
-          .select('id, user_id')
-          .eq('email', form.patientId);
-      }
-
-      const { data: patient, error: patientError } = await patientQuery.maybeSingle();
-
-      if (patientError) {
-        throw new Error('Error finding patient: ' + patientError.message);
-      }
-
-      if (!patient) {
-        toast({
-          title: "Error",
-          description: "Patient not found",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
       // Create the medical record data
       const recordData = {
         title: `${form.type.replace('_', ' ')} Record`,
@@ -89,32 +61,14 @@ export default function ProviderRecordForm() {
         recorded_at: form.timestamp,
       };
 
-      // Use the medical records API
-      const response = await fetch('/api/medical-records', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(recordData),
-      });
-
-      const result = await response.json();
+      // Use the enhanced medical records service
+      const result = await enhancedMedicalRecordsService.createRecord(recordData, form.type);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to create medical record');
       }
 
-      // Log the action for audit purposes
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'CREATE_RECORD',
-        resource: 'medical_record',
-        resource_id: result.data.id,
-        status: 'success',
-        details: `Created ${form.type} record for patient ${patient.id}`,
-        timestamp: new Date().toISOString(),
-      });
+      setCreatedRecordId(result.data.id);
 
       toast({
         title: "Success",
@@ -214,13 +168,22 @@ export default function ProviderRecordForm() {
             </div>
           </div>
 
-          <Button 
-            disabled={loading || !form.patientId || !form.value} 
-            onClick={handleSubmit}
-            className="w-full bg-autheo-primary hover:bg-autheo-primary/90"
-          >
-            {loading ? 'Creating Record...' : 'Create Medical Record'}
-          </Button>
+          <div className="flex gap-4">
+            <Button 
+              disabled={loading || !form.patientId || !form.value} 
+              onClick={handleSubmit}
+              className="flex-1 bg-autheo-primary hover:bg-autheo-primary/90"
+            >
+              {loading ? 'Creating Record...' : 'Create Medical Record'}
+            </Button>
+
+            {createdRecordId && (
+              <ExportRecordsButton 
+                patientId={form.patientId}
+                className="bg-slate-700 hover:bg-slate-600 border-slate-600"
+              />
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
