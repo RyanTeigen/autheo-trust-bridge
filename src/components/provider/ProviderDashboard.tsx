@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import Badge from '@/components/emr/Badge';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Stethoscope, Users as UserIcon, BarChart3 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import ProviderRecordForm from '@/components/provider/ProviderRecordForm';
 
 interface Appointment {
   id: string;
@@ -38,6 +38,9 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
 }) => {
   return (
     <div className="space-y-6">
+      {/* Medical Record Creation Form */}
+      <ProviderRecordForm />
+      
       <Card className="bg-slate-800 border-slate-700">
         <CardHeader className="border-b border-slate-700 bg-slate-700/30">
           <div className="flex items-start justify-between">
