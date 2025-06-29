@@ -127,9 +127,11 @@ const MedicalRecordsManager = () => {
       {/* Controls */}
       <MedicalRecordsControls
         searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filterType={filterType}
-        setFilterType={setFilterType}
+        onSearchChange={setSearchTerm}
+        recordType={filterType}
+        onRecordTypeChange={setFilterType}
+        onCreateNew={() => setShowForm(true)}
+        showCreateButton={false}
       />
 
       {/* Content */}
