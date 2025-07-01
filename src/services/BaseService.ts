@@ -42,6 +42,15 @@ export abstract class BaseService {
     };
   }
 
+  protected createErrorResponse<T>(error: string, statusCode: number = 500, data: T = null as T): ServiceResponse<T> {
+    return {
+      success: false,
+      data,
+      error,
+      statusCode
+    };
+  }
+
   protected handleError(error: any, operation: string): ServiceResponse<any> {
     console.error(`${operation} error:`, error);
     
