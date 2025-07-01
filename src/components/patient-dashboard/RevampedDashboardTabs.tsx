@@ -1,22 +1,39 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Share2, Calendar, Activity } from 'lucide-react';
-import HealthRecordsTab from './HealthRecordsTab';
-import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
-import SchedulingTabContent from './SchedulingTabContent';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  Activity, 
+  Share,
+  Calendar,
+  Wallet,
+  Plus,
+  Search,
+  Filter,
+  Bell,
+  Settings,
+  Download
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import DashboardTabContent from './DashboardTabContent';
+import PatientRecordsTab from './PatientRecordsTab';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
-import SharedRecordsTab from './SharedRecordsTab';
+import SharedRecordsContent from './SharedRecordsContent';
+import SchedulingTabContent from './SchedulingTabContent';
+import SmartWalletTab from './SmartWalletTab';
 
 interface RevampedDashboardTabsProps {
   handleToggleShare: (id: string, shared: boolean) => void;
   handleShareHealthInfo: () => void;
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   selectedCategory: string;
-  setSelectedCategory: (category: string) => void;
+  setSelectedCategory: React.Dispatch<React.SetStateAction<string>>;
   activeSection: string;
-  setActiveSection: (section: string) => void;
+  setActiveSection: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
@@ -27,72 +44,74 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
   selectedCategory,
   setSelectedCategory,
   activeSection,
-  setActiveSection,
+  setActiveSection
 }) => {
+  const { user } = useAuth();
+
+  const sections = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'records', label: 'My Records', icon: FileText },
+    { id: 'health-tracker', label: 'Health Tracker', icon: Activity },
+    { id: 'shared-records', label: 'Shared Records', icon: Share },
+    { id: 'scheduling', label: 'Scheduling', icon: Calendar },
+    { id: 'smart-wallet', label: 'Smart Wallet', icon: Wallet }
+  ];
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'dashboard':
+        return <DashboardTabContent />;
+      case 'records':
+        return <PatientRecordsTab />;
+      case 'health-tracker':
+        return <HealthTrackerTabContent />;
+      case 'shared-records':
+        return (
+          <SharedRecordsContent
+            handleToggleShare={handleToggleShare}
+            handleShareHealthInfo={handleShareHealthInfo}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+        );
+      case 'scheduling':
+        return <SchedulingTabContent />;
+      case 'smart-wallet':
+        return <SmartWalletTab />;
+      default:
+        return <DashboardTabContent />;
+    }
+  };
+
   return (
-    <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-5 w-full">
-        <TabsTrigger 
-          value="dashboard" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <User className="h-4 w-4" />
-          <span className="hidden sm:inline">Overview</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="records" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">Records</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="shared-records" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Shared Records</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="scheduling" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <Calendar className="h-4 w-4" />
-          <span className="hidden sm:inline">Schedule</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="health-tracker" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <Activity className="h-4 w-4" />
-          <span className="hidden sm:inline">Tracker</span>
-        </TabsTrigger>
+    <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full space-y-4">
+      <TabsList>
+        {sections.map((section) => (
+          <TabsTrigger key={section.id} value={section.id} className="relative">
+            <section.icon className="h-4 w-4 mr-2" />
+            {section.label}
+          </TabsTrigger>
+        ))}
       </TabsList>
-      
-      <TabsContent value="dashboard">
-        <PersonalizedDashboard />
+      <TabsContent value="dashboard" className="space-y-4">
+        {renderContent()}
       </TabsContent>
-      
-      <TabsContent value="records">
-        <HealthRecordsTab
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          handleToggleShare={handleToggleShare}
-        />
+      <TabsContent value="records" className="space-y-4">
+        {renderContent()}
       </TabsContent>
-      
-      <TabsContent value="shared-records">
-        <SharedRecordsTab />
+      <TabsContent value="health-tracker" className="space-y-4">
+        {renderContent()}
       </TabsContent>
-      
-      <TabsContent value="scheduling">
-        <SchedulingTabContent />
+      <TabsContent value="shared-records" className="space-y-4">
+        {renderContent()}
       </TabsContent>
-      
-      <TabsContent value="health-tracker">
-        <HealthTrackerTabContent />
+      <TabsContent value="scheduling" className="space-y-4">
+        {renderContent()}
+      </TabsContent>
+      <TabsContent value="smart-wallet" className="space-y-4">
+        {renderContent()}
       </TabsContent>
     </Tabs>
   );

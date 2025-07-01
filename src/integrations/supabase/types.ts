@@ -1147,6 +1147,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_patient_records: {
+        Args: { current_user_id: string }
+        Returns: {
+          id: string
+          patient_id: string
+          record_type: string
+          encrypted_data: string
+          iv: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
       get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
