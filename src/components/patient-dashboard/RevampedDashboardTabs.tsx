@@ -68,18 +68,18 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       case 'shared-records':
         return (
           <SharedRecordsContent
-            handleToggleShare={handleToggleShare}
             handleShareHealthInfo={handleShareHealthInfo}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
           />
         );
       case 'scheduling':
         return <SchedulingTabContent />;
       case 'smart-wallet':
-        return <SmartWalletTab />;
+        return (
+          <SmartWalletTab
+            activeSection={activeSection}
+            onSectionChange={setActiveSection}
+          />
+        );
       default:
         return <DashboardTabContent />;
     }
