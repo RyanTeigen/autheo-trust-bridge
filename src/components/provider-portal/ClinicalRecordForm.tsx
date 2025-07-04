@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, User, Shield, Stethoscope } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useClinicalRecords } from '@/hooks/useClinicalRecords';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Patient {
   id: string;
@@ -26,6 +28,7 @@ const ClinicalRecordForm: React.FC<ClinicalRecordFormProps> = ({ onSuccess, onCa
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientSearch, setPatientSearch] = useState('');
   const [patients, setPatients] = useState<Patient[]>([]);
+  const [loadingPatients, setLoadingPatients] = useState(false);
   const [formData, setFormData] = useState({
     record_type: 'consultation',
     title: '',
@@ -42,34 +45,40 @@ const ClinicalRecordForm: React.FC<ClinicalRecordFormProps> = ({ onSuccess, onCa
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { createClinicalRecord } = useClinicalRecords();
 
-  // Mock patient data - replace with actual API call
+  // Load real patients from database
   useEffect(() => {
-    const mockPatients: Patient[] = [
-      {
-        id: '1',
-        full_name: 'John Doe',
-        email: 'john.doe@email.com',
-        mrn: 'MRN001',
-        date_of_birth: '1985-06-15'
-      },
-      {
-        id: '2', 
-        full_name: 'Jane Smith',
-        email: 'jane.smith@email.com',
-        mrn: 'MRN002',
-        date_of_birth: '1992-03-22'
-      },
-      {
-        id: '3',
-        full_name: 'Bob Johnson', 
-        email: 'bob.johnson@email.com',
-        mrn: 'MRN003',
-        date_of_birth: '1978-11-08'
+    const fetchPatients = async () => {
+      setLoadingPatients(true);
+      try {
+        const { data, error } = await supabase
+          .from('patients')
+          .select('id, full_name, email, mrn, date_of_birth')
+          .order('full_name');
+
+        if (error) throw error;
+        
+        const patientsWithMRN = data.map(patient => ({
+          ...patient,
+          mrn: patient.mrn || `MR-${patient.id.slice(-6)}`
+        }));
+        
+        setPatients(patientsWithMRN);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load patients. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoadingPatients(false);
       }
-    ];
-    setPatients(mockPatients);
-  }, []);
+    };
+
+    fetchPatients();
+  }, [toast]);
 
   const filteredPatients = patients.filter(patient =>
     patient.full_name.toLowerCase().includes(patientSearch.toLowerCase()) ||
@@ -99,23 +108,27 @@ const ClinicalRecordForm: React.FC<ClinicalRecordFormProps> = ({ onSuccess, onCa
     setIsSubmitting(true);
     
     try {
-      // Here you would call your API to create the clinical record
-      // const clinicalRecord = {
-      //   ...formData,
-      //   patient_id: selectedPatient.id,
-      //   provider_id: currentUser.id, // from auth context
-      // };
-      // await createClinicalRecord(clinicalRecord);
+      const success = await createClinicalRecord(
+        selectedPatient.id,
+        formData.record_type,
+        {
+          title: formData.title,
+          clinical_notes: formData.clinical_notes,
+          diagnosis: formData.diagnosis,
+          treatment_plan: formData.treatment_plan,
+          medications: formData.medications,
+          follow_up: formData.follow_up,
+          visit_date: formData.visit_date,
+          vital_signs: formData.vital_signs,
+          lab_results: formData.lab_results,
+          imaging_results: formData.imaging_results,
+          provider_notes: formData.provider_notes
+        }
+      );
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Clinical Record Created",
-        description: `Clinical record for ${selectedPatient.full_name} has been created successfully.`
-      });
-      
-      onSuccess();
+      if (success) {
+        onSuccess();
+      }
     } catch (error) {
       console.error('Error creating clinical record:', error);
       toast({
@@ -149,7 +162,9 @@ const ClinicalRecordForm: React.FC<ClinicalRecordFormProps> = ({ onSuccess, onCa
             />
           </div>
           
-          {patientSearch && filteredPatients.length > 0 && (
+          {loadingPatients ? (
+            <div className="p-4 text-center text-slate-400">Loading patients...</div>
+          ) : patientSearch && filteredPatients.length > 0 ? (
             <div className="max-h-40 overflow-y-auto space-y-2">
               {filteredPatients.map((patient) => (
                 <div
@@ -162,12 +177,14 @@ const ClinicalRecordForm: React.FC<ClinicalRecordFormProps> = ({ onSuccess, onCa
                 >
                   <div className="font-medium text-slate-200">{patient.full_name}</div>
                   <div className="text-sm text-slate-400">
-                    MRN: {patient.mrn} • DOB: {patient.date_of_birth}
+                    MRN: {patient.mrn} • DOB: {patient.date_of_birth || 'Not specified'}
                   </div>
                 </div>
               ))}
             </div>
-          )}
+          ) : patientSearch && filteredPatients.length === 0 ? (
+            <div className="p-4 text-center text-slate-400">No patients found matching your search.</div>
+          ) : null}
           
           {selectedPatient && (
             <div className="p-3 bg-green-900/20 border border-green-700/30 rounded-lg">
