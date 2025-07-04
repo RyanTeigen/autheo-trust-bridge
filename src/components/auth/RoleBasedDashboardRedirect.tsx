@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import LoadingStates from '../ux/LoadingStates';
 
 const RoleBasedDashboardRedirect: React.FC = () => {
-  const { profile, isLoading } = useAuth();
+  const { profile, isLoading, isAuthenticated } = useAuth();
 
   // Show loading state while fetching user data
   if (isLoading) {
@@ -16,15 +16,20 @@ const RoleBasedDashboardRedirect: React.FC = () => {
     );
   }
 
-  // Determine redirect based on user roles
-  const userRoles = profile?.roles || ['patient'];
+  // If not authenticated, redirect to auth page
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Determine redirect based on user role (singular, not plural)
+  const userRole = profile?.role || 'patient';
   
   // Priority order: admin/supervisor > provider > patient
-  if (userRoles.includes('admin') || userRoles.includes('supervisor')) {
+  if (userRole === 'admin' || userRole === 'supervisor') {
     return <Navigate to="/admin-portal" replace />;
   }
   
-  if (userRoles.includes('provider')) {
+  if (userRole === 'provider') {
     return <Navigate to="/provider-portal" replace />;
   }
   
