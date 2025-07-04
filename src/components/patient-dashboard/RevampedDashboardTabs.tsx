@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Calendar, Activity, UserCheck } from 'lucide-react';
+import { User, FileText, Calendar, Activity, UserCheck, Share2 } from 'lucide-react';
 import SimplifiedHealthRecordsTab from './SimplifiedHealthRecordsTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
 import SimplifiedRecordSharingInbox from '@/components/patient/SimplifiedRecordSharingInbox';
+import ActiveSharesList from '@/components/patient/ActiveSharesList';
 
 interface RevampedDashboardTabsProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -31,7 +32,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-5 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -67,6 +68,13 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
           <UserCheck className="h-4 w-4" />
           <span className="hidden sm:inline">Access Requests</span>
         </TabsTrigger>
+        <TabsTrigger 
+          value="shared-records" 
+          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
+        >
+          <Share2 className="h-4 w-4" />
+          <span className="hidden sm:inline">Shared Records</span>
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="dashboard">
@@ -93,6 +101,10 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       
       <TabsContent value="access-requests">
         <SimplifiedRecordSharingInbox />
+      </TabsContent>
+      
+      <TabsContent value="shared-records">
+        <ActiveSharesList />
       </TabsContent>
     </Tabs>
   );

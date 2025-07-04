@@ -12,7 +12,8 @@ import {
   CheckCircle, 
   Activity,
   Database,
-  Search
+  Search,
+  UserCheck
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuditLogsAPI } from '@/hooks/useAuditLogsAPI';
@@ -46,7 +47,9 @@ const ComplianceAuditTab: React.FC = () => {
     todayLogs: 0,
     securityEvents: 0,
     dataAccess: 0,
-    systemChanges: 0
+    systemChanges: 0,
+    revokedAccess: 0,
+    activeShares: 0
   });
 
   const { toast } = useToast();
@@ -135,12 +138,28 @@ const ComplianceAuditTab: React.FC = () => {
         log.action.toLowerCase().includes('delete')
       ).length;
 
+      const revokedAccess = logsWithUserInfo.filter(log => 
+        log.action.toLowerCase().includes('revoke') ||
+        log.action === 'REVOKE_ACCESS'
+      ).length;
+
+      // Get sharing permissions stats
+      const { data: sharingStats } = await supabase
+        .from('sharing_permissions')
+        .select('status')
+        .in('status', ['approved', 'revoked']);
+
+      const activeShares = sharingStats?.filter(s => s.status === 'approved').length || 0;
+      const totalRevokedShares = sharingStats?.filter(s => s.status === 'revoked').length || 0;
+
       setAuditStats({
         totalLogs: logsWithUserInfo.length,
         todayLogs,
         securityEvents,
         dataAccess,
-        systemChanges
+        systemChanges,
+        revokedAccess: Math.max(revokedAccess, totalRevokedShares),
+        activeShares
       });
 
     } catch (error) {
@@ -165,7 +184,7 @@ const ComplianceAuditTab: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Audit Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
         <Card className="bg-slate-800 border-slate-700">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -222,6 +241,30 @@ const ComplianceAuditTab: React.FC = () => {
                 <p className="text-2xl font-bold text-purple-400">{auditStats.systemChanges}</p>
               </div>
               <Clock className="h-8 w-8 text-purple-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Active Shares</p>
+                <p className="text-2xl font-bold text-green-400">{auditStats.activeShares}</p>
+              </div>
+              <UserCheck className="h-8 w-8 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-800 border-slate-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-slate-400">Revoked Access</p>
+                <p className="text-2xl font-bold text-orange-400">{auditStats.revokedAccess}</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-orange-400" />
             </div>
           </CardContent>
         </Card>
