@@ -6,12 +6,28 @@ const LOCAL_PRIVATE_KEY_NAME = 'user_private_key';
 
 export function getOrCreateAESKey(): string {
   let key = localStorage.getItem(LOCAL_AES_KEY_NAME);
-  if (!key) {
-    // Generate 256-bit hex key (32 bytes)
-    const keyBytes = crypto.getRandomValues(new Uint8Array(32));
-    key = Array.from(keyBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-    localStorage.setItem(LOCAL_AES_KEY_NAME, key);
+  
+  // Validate existing key or generate new one
+  if (key) {
+    // Check if key is valid (should be 64 hex characters for 256-bit key)
+    if (key.length === 64 && /^[0-9a-fA-F]+$/.test(key)) {
+      return key;
+    } else {
+      console.warn(`Invalid AES key found (${key.length * 4} bits), generating new one`);
+      localStorage.removeItem(LOCAL_AES_KEY_NAME);
+    }
   }
+  
+  // Generate new 256-bit key (32 bytes = 64 hex characters)
+  const keyBytes = crypto.getRandomValues(new Uint8Array(32));
+  key = Array.from(keyBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  // Validate the generated key
+  if (key.length !== 64) {
+    throw new Error(`Generated key has invalid length: ${key.length} characters (expected 64)`);
+  }
+  
+  localStorage.setItem(LOCAL_AES_KEY_NAME, key);
   return key;
 }
 
@@ -69,8 +85,9 @@ export async function getUserPublicKey(userId: string): Promise<string | null> {
   }
 }
 
-// Clear all encryption keys
+// Clear all encryption keys and force regeneration
 export function clearAllKeys(): void {
   localStorage.removeItem(LOCAL_AES_KEY_NAME);
   localStorage.removeItem(LOCAL_PRIVATE_KEY_NAME);
+  console.log('All encryption keys cleared - new keys will be generated on next use');
 }
