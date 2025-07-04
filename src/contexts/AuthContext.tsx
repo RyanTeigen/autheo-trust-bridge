@@ -50,14 +50,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
-      setProfile(data);
+      
+      if (error) {
+        console.error('Profile fetch error:', error);
+        // Create a default profile if none exists
+        setProfile({ id: userId, role: 'patient' });
+      } else {
+        setProfile(data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      // Set default profile to prevent loading loop
+      setProfile({ id: userId, role: 'patient' });
     }
   };
 
