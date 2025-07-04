@@ -13,6 +13,8 @@ import {
   loadPrivateKeyFromLocal, 
   getUserPublicKey 
 } from '@/utils/encryption/keys';
+import { ZeroKnowledgeService } from '../security/ZeroKnowledgeService';
+import { ClientSideEncryptionService } from '../security/ClientSideEncryptionService';
 
 export interface EncryptedMedicalRecord {
   id: string;
@@ -39,8 +41,32 @@ export interface DecryptedRecord {
 }
 
 export class MedicalRecordsEncryption {
-  // -- Encrypt medical record data --
-  static async encryptMedicalRecord(data: any, userId: string): Promise<{ encrypted_data: string; iv: string }> {
+  // -- New Zero-Knowledge Encryption Methods --
+  
+  /**
+   * Encrypt medical record with zero-knowledge (client-side only)
+   */
+  static async encryptMedicalRecordZK(data: any, userId: string): Promise<{ encrypted_data: string; iv: string }> {
+    try {
+      const result = await ZeroKnowledgeService.storeEncryptedRecord(data, 'medical_record', userId);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to encrypt record');
+      }
+      
+      // Return format compatible with existing code
+      return {
+        encrypted_data: result.recordId || '',
+        iv: 'zero_knowledge'
+      };
+    } catch (error) {
+      console.error('Zero-knowledge encryption failed, falling back to legacy:', error);
+      return this.encryptMedicalRecordLegacy(data, userId);
+    }
+  }
+
+  // -- Legacy Encryption Methods (for backward compatibility) --
+  
+  static async encryptMedicalRecordLegacy(data: any, userId: string): Promise<{ encrypted_data: string; iv: string }> {
     const { privateKey, publicKey } = await ensureUserKeys(userId);
     
     if (!privateKey || !publicKey) {
@@ -54,6 +80,11 @@ export class MedicalRecordsEncryption {
     };
   }
 
+  // -- Main encryption method (uses zero-knowledge by default) --
+  static async encryptMedicalRecord(data: any, userId: string): Promise<{ encrypted_data: string; iv: string }> {
+    return await this.encryptMedicalRecordZK(data, userId);
+  }
+
   // -- Alias for consistency --
   static async encryptRecordData(data: any, userId?: string): Promise<{ encrypted_data: string; iv: string }> {
     const { data: { user } } = await supabase.auth.getUser();
@@ -64,8 +95,37 @@ export class MedicalRecordsEncryption {
     return this.encryptMedicalRecord(data, userIdToUse);
   }
 
-  // -- Decrypt medical record data --
-  static async decryptMedicalRecord(
+  // -- New Zero-Knowledge Decryption Methods --
+  
+  /**
+   * Decrypt medical record with zero-knowledge (client-side only)
+   */
+  static async decryptMedicalRecordZK(
+    encrypted_data: string,
+    iv: string,
+    userId: string
+  ): Promise<any> {
+    try {
+      if (iv === 'zero_knowledge') {
+        // This is a zero-knowledge record ID
+        const result = await ZeroKnowledgeService.retrieveAndDecryptRecord(encrypted_data, userId);
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to decrypt record');
+        }
+        return result.data;
+      } else {
+        // Legacy decryption
+        return await this.decryptMedicalRecordLegacy(encrypted_data, iv, userId);
+      }
+    } catch (error) {
+      console.error('Zero-knowledge decryption failed, trying legacy:', error);
+      return await this.decryptMedicalRecordLegacy(encrypted_data, iv, userId);
+    }
+  }
+
+  // -- Legacy Decryption Methods --
+  
+  static async decryptMedicalRecordLegacy(
     encrypted_data: string, 
     iv: string, 
     userId: string
@@ -78,6 +138,15 @@ export class MedicalRecordsEncryption {
     }
 
     return await decryptRecordForSelf({ iv, ciphertext: encrypted_data }, privateKey);
+  }
+
+  // -- Main decryption method (handles both zero-knowledge and legacy) --
+  static async decryptMedicalRecord(
+    encrypted_data: string, 
+    iv: string, 
+    userId: string
+  ): Promise<any> {
+    return await this.decryptMedicalRecordZK(encrypted_data, iv, userId);
   }
 
   // -- Decrypt single record --
@@ -198,7 +267,7 @@ export class MedicalRecordsEncryption {
     }
   }
 
-  // -- Get and decrypt medical records --
+  // -- Get and decrypt medical records (Zero-Knowledge version) --
   static async getDecryptedRecords(): Promise<{ success: boolean; records?: DecryptedRecord[]; error?: string }> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -206,7 +275,31 @@ export class MedicalRecordsEncryption {
         return { success: false, error: 'User not authenticated' };
       }
 
-      // Get patient records - for now, just get all records where we can access them
+      // Try zero-knowledge approach first
+      try {
+        const zkResult = await ZeroKnowledgeService.getAllUserRecords(user.id);
+        if (zkResult.success && zkResult.records) {
+          const decryptedRecords: DecryptedRecord[] = zkResult.records.map(record => ({
+            id: record.id,
+            patient_id: record.patient_id,
+            data: record.data,
+            record_type: record.record_type,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+            metadata: {
+              algorithm: 'Zero-Knowledge E2E',
+              timestamp: new Date().toISOString(),
+              encrypted: true
+            }
+          }));
+          
+          return { success: true, records: decryptedRecords };
+        }
+      } catch (zkError) {
+        console.log('Zero-knowledge retrieval failed, trying legacy approach:', zkError);
+      }
+
+      // Fallback to legacy approach
       const { data: records, error } = await supabase
         .from('medical_records')
         .select(`
@@ -229,7 +322,7 @@ export class MedicalRecordsEncryption {
         return { success: false, error: error.message };
       }
 
-      // Decrypt each record
+      // Decrypt each record using mixed approach
       const decryptedRecords = await this.decryptRecords(records || []);
 
       return { success: true, records: decryptedRecords };
