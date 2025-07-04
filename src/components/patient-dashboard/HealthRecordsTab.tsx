@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Filter, FileText, Calendar, User, Share2, Download, Upload, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import MedicalRecordForm from '@/components/medical/MedicalRecordForm';
+import SimpleMedicalRecordForm from '@/components/medical/SimpleMedicalRecordForm';
 import { ExportRecordButton } from '@/components/patient/ExportRecordButton';
 import { ImportRecordButton } from '@/components/patient/ImportRecordButton';
 import { RecordIntegrityBadge } from '@/components/patient/RecordIntegrityBadge';
@@ -147,7 +147,7 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
               <DialogHeader>
                 <DialogTitle>Add Medical Record</DialogTitle>
               </DialogHeader>
-              <MedicalRecordForm 
+              <SimpleMedicalRecordForm 
                 onSubmit={async () => {
                   setShowAddDialog(false);
                   toast({

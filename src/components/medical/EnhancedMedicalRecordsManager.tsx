@@ -30,44 +30,10 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<DecryptedRecord | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: 'general',
-    notes: ''
-  });
 
   useEffect(() => {
     fetchRecords();
   }, [fetchRecords]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingRecord) {
-      const success = await updateRecord(editingRecord.id, formData);
-      if (success) {
-        setEditingRecord(null);
-        resetForm();
-      }
-    } else {
-      const result = await createRecord(formData, formData.category);
-      if (result) {
-        setIsCreateDialogOpen(false);
-        resetForm();
-      }
-    }
-  };
-
-  const handleEdit = (record: DecryptedRecord) => {
-    setEditingRecord(record);
-    setFormData({
-      title: record.data?.title || '',
-      description: record.data?.description || '',
-      category: record.record_type,
-      notes: record.data?.notes || ''
-    });
-  };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this record? This action cannot be undone.')) {
@@ -75,23 +41,16 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      title: '',
-      description: '',
-      category: 'general',
-      notes: ''
-    });
+  const handleEdit = (record: DecryptedRecord) => {
+    setEditingRecord(record);
   };
 
   const handleCreateDialogClose = () => {
     setIsCreateDialogOpen(false);
-    resetForm();
   };
 
   const handleEditDialogClose = () => {
     setEditingRecord(null);
-    resetForm();
   };
 
   if (loading && records.length === 0) {
@@ -129,10 +88,19 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
             </DialogHeader>
             
             <SimpleMedicalRecordForm
-              formData={formData}
-              setFormData={setFormData}
-              onSubmit={handleSubmit}
-              loading={loading}
+              onSubmit={async (data) => {
+                const success = editingRecord 
+                  ? await updateRecord(editingRecord.id, data)
+                  : await createRecord(data);
+                
+                if (success) {
+                  if (editingRecord) {
+                    setEditingRecord(null);
+                  } else {
+                    setIsCreateDialogOpen(false);
+                  }
+                }
+              }}
               onCancel={handleCreateDialogClose}
             />
           </DialogContent>
@@ -173,11 +141,12 @@ const EnhancedMedicalRecordsManager: React.FC = () => {
             </DialogHeader>
             
             <SimpleMedicalRecordForm
-              formData={formData}
-              setFormData={setFormData}
-              onSubmit={handleSubmit}
-              loading={loading}
-              isEditing={true}
+              onSubmit={async (data) => {
+                const success = await updateRecord(editingRecord.id, data);
+                if (success) {
+                  setEditingRecord(null);
+                }
+              }}
               onCancel={handleEditDialogClose}
             />
           </DialogContent>
