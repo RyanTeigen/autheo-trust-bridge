@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Share2, Calendar, Activity } from 'lucide-react';
+import { User, FileText, Share2, Calendar, Activity, UserCheck } from 'lucide-react';
 import HealthRecordsTab from './HealthRecordsTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
 import SharedRecordsTab from './SharedRecordsTab';
+import RecordSharingInbox from '@/components/patient/RecordSharingInbox';
 
 interface RevampedDashboardTabsProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -31,7 +32,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-5 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -67,6 +68,13 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
           <Activity className="h-4 w-4" />
           <span className="hidden sm:inline">Tracker</span>
         </TabsTrigger>
+        <TabsTrigger 
+          value="access-requests" 
+          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
+        >
+          <UserCheck className="h-4 w-4" />
+          <span className="hidden sm:inline">Access Requests</span>
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="dashboard">
@@ -93,6 +101,10 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       
       <TabsContent value="health-tracker">
         <HealthTrackerTabContent />
+      </TabsContent>
+      
+      <TabsContent value="access-requests">
+        <RecordSharingInbox />
       </TabsContent>
     </Tabs>
   );
