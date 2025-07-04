@@ -67,6 +67,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Encryption keys setup completed');
     } catch (error) {
       console.error('Failed to setup encryption keys:', error);
+      // Don't block the auth flow if encryption setup fails
+      // The app should still work without quantum encryption
     }
   };
 
@@ -84,16 +86,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Create secure session and setup user data
           try {
             await sessionManagerInstance.createSession(session.user.id);
-            
-            setTimeout(async () => {
+          } catch (error) {
+            console.error('Error creating session:', error);
+            // Continue with auth flow even if session creation fails
+          }
+          
+          // Setup user data in background - don't block auth
+          setTimeout(async () => {
+            try {
               await Promise.all([
                 setupUserEncryption(session.user.id),
                 fetchProfile(session.user.id)
               ]);
-            }, 0);
-          } catch (error) {
-            console.error('Error creating session:', error);
-          }
+            } catch (error) {
+              console.error('Error setting up user data:', error);
+            }
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -109,10 +117,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (session?.user) {
         setTimeout(async () => {
-          await Promise.all([
-            setupUserEncryption(session.user.id),
-            fetchProfile(session.user.id)
-          ]);
+          try {
+            await Promise.all([
+              setupUserEncryption(session.user.id),
+              fetchProfile(session.user.id)
+            ]);
+          } catch (error) {
+            console.error('Error setting up user data:', error);
+          }
         }, 0);
       }
       
