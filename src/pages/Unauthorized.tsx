@@ -76,7 +76,7 @@ const Unauthorized: React.FC = () => {
             <div className="mt-6 p-4 bg-slate-800 rounded-lg">
               <p className="text-sm text-slate-400">Current User:</p>
               <p className="text-slate-200">{profile.firstName} {profile.lastName}</p>
-              <p className="text-slate-400 text-sm">Roles: {profile.roles?.join(', ') || 'patient'}</p>
+              <p className="text-slate-400 text-sm">Role: {profile.role || 'patient'}</p>
             </div>
           )}
         </div>
@@ -85,14 +85,15 @@ const Unauthorized: React.FC = () => {
   }
 
   // Production unauthorized page
-  const userRoles = profile?.roles || ['patient'];
+  const userRole = profile?.role || 'patient';
   
   // Determine user's default dashboard
   const getDefaultDashboard = () => {
-    if (userRoles.includes('admin') || userRoles.includes('supervisor')) {
+    if (userRole === 'admin' || userRole === 'supervisor') {
       return '/admin-portal';
     }
-    if (userRoles.includes('provider')) {
+    
+    if (userRole === 'provider') {
       return '/provider-portal';
     }
     return '/patient-dashboard';
@@ -114,13 +115,11 @@ const Unauthorized: React.FC = () => {
 
         {profile && (
           <div className="bg-slate-800 rounded-lg p-4 text-left">
-            <p className="text-sm text-slate-400 mb-2">Your current roles:</p>
+            <p className="text-sm text-slate-400 mb-2">Your current role:</p>
             <div className="flex flex-wrap gap-2">
-              {userRoles.map(role => (
-                <span key={role} className="px-2 py-1 bg-slate-700 rounded text-sm text-slate-200">
-                  {role}
-                </span>
-              ))}
+              <span className="px-2 py-1 bg-slate-700 rounded text-sm text-slate-200">
+                {userRole}
+              </span>
             </div>
           </div>
         )}

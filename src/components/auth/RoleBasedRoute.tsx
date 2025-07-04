@@ -46,8 +46,8 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
   }
 
   // Check if user has required role
-  const userRoles = profile?.roles || ['patient'];
-  const hasRequiredRole = allowedRoles.some(role => userRoles.includes(role));
+  const userRole = profile?.role || 'patient';
+  const hasRequiredRole = allowedRoles.includes(userRole);
   
   if (!hasRequiredRole) {
     // If a custom redirect is specified, use it
@@ -66,7 +66,7 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
                 You don't have permission to access this page. 
                 Required roles: {allowedRoles.join(', ')}
                 <br />
-                Your current roles: {userRoles.join(', ')}
+                Your current role: {userRole}
               </AlertDescription>
             </Alert>
           </div>

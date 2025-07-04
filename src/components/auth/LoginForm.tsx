@@ -24,6 +24,7 @@ const LoginForm: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
   const { wallet, isConnecting, connectMetaMask } = useWallet();
 
   // Get the page they were trying to visit from location state
@@ -75,6 +76,45 @@ const LoginForm: React.FC = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    const email = form.getValues('email');
+    
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResettingPassword(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?tab=reset-password`,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Password reset email sent",
+        description: "Check your email for the password reset link",
+      });
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      toast({
+        title: "Password reset failed",
+        description: error.message || "Failed to send password reset email",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -155,6 +195,18 @@ const LoginForm: React.FC = () => {
           </Button>
         </form>
       </Form>
+
+      <div className="text-center">
+        <Button 
+          type="button"
+          variant="link" 
+          className="text-slate-400 hover:text-slate-200 text-sm"
+          onClick={handlePasswordReset}
+          disabled={isResettingPassword}
+        >
+          {isResettingPassword ? "Sending reset email..." : "Forgot your password?"}
+        </Button>
+      </div>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

@@ -76,7 +76,7 @@ const MedicalNotesPage = () => {
   }
 
   // Display creator access banner when the user doesn't have provider/admin role
-  const hasProviderRole = profile?.roles?.includes('provider') || profile?.roles?.includes('admin');
+  const hasProviderRole = profile?.role === 'provider' || profile?.role === 'admin';
   
   return (
     <div className="space-y-6">

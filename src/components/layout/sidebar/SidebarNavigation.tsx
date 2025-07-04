@@ -19,11 +19,11 @@ import {
 const SidebarNavigation: React.FC = () => {
   const { profile } = useAuth();
   
-  const userRoles = profile?.roles || ['patient'];
-  const isProvider = userRoles.includes('provider');
-  const isAdmin = userRoles.includes('admin') || userRoles.includes('supervisor');
+  const userRole = profile?.role || 'patient';
+  const isProvider = userRole === 'provider';
+  const isAdmin = userRole === 'admin' || userRole === 'supervisor';
 
-  console.log('Sidebar Navigation - User roles:', userRoles);
+  console.log('Sidebar Navigation - User role:', userRole);
   console.log('Sidebar Navigation - Is provider:', isProvider);
 
   // Allow provider access in development mode for debugging

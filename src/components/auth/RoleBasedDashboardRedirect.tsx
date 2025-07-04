@@ -16,15 +16,15 @@ const RoleBasedDashboardRedirect: React.FC = () => {
     );
   }
 
-  // Determine redirect based on user roles
-  const userRoles = profile?.roles || ['patient'];
+  // Determine redirect based on user role
+  const userRole = profile?.role || 'patient';
   
   // Priority order: admin/supervisor > provider > patient
-  if (userRoles.includes('admin') || userRoles.includes('supervisor')) {
+  if (userRole === 'admin' || userRole === 'supervisor') {
     return <Navigate to="/admin-portal" replace />;
   }
   
-  if (userRoles.includes('provider')) {
+  if (userRole === 'provider') {
     return <Navigate to="/provider-portal" replace />;
   }
   

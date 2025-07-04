@@ -25,7 +25,7 @@ const AdminPortalContent: React.FC = () => {
   } = useAdminPortal();
 
   // Check if user has admin role
-  const hasAdminRole = profile?.roles?.includes('admin') || profile?.roles?.includes('supervisor');
+  const hasAdminRole = profile?.role === 'admin' || profile?.role === 'supervisor';
   const isCreatorMode = import.meta.env.DEV;
 
   // Show info about creator mode access instead of blocking

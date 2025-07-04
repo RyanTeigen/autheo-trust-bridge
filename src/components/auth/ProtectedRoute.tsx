@@ -35,7 +35,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If specific roles are required, check if user has them
   if (allowedRoles.length > 0 && profile) {
-    const hasRequiredRole = allowedRoles.some(role => profile.roles.includes(role));
+    const hasRequiredRole = allowedRoles.includes(profile.role);
     
     if (!hasRequiredRole) {
       return <Navigate to="/unauthorized" replace />;

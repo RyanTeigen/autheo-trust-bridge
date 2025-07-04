@@ -46,13 +46,13 @@ const UserProfileMenu: React.FC = () => {
     { role: 'supervisor', label: 'Admin Portal', icon: Shield, path: '/admin-portal' },
   ];
 
-  const userRoles = profile?.roles || ['patient'];
+  const userRole = profile?.role || 'patient';
   const visiblePortals = availablePortals.filter(portal => 
-    userRoles.includes(portal.role) || portal.role === 'patient' // Always show patient portal
+    portal.role === userRole || portal.role === 'patient' // Always show patient portal
   );
 
   const displayName = profile?.firstName || user?.email || 'User';
-  const primaryRole = userRoles[0] || 'patient';
+  const primaryRole = userRole;
 
   return (
     <DropdownMenu>

@@ -50,10 +50,10 @@ const SecureDataDisplay: React.FC<SecureDataDisplayProps> = ({
     // Apply masking based on user role and access level
     if (isMasked && profile) {
       const context: MaskingContext = {
-        userRole: profile.roles[0] || 'patient',
+        userRole: profile.role || 'patient',
         accessLevel,
         purpose: 'data_display',
-        requesterPermissions: profile.roles || []
+        requesterPermissions: profile.role ? [profile.role] : ['patient']
       };
 
       processedData = dataMasking.maskPersonalData(processedData, context);

@@ -16,7 +16,7 @@ const CompliancePage = () => {
   const { profile } = useAuth();
   
   // Check if user has compliance role
-  const hasComplianceRole = profile?.roles?.includes('compliance') || profile?.roles?.includes('admin');
+  const hasComplianceRole = profile?.role === 'compliance' || profile?.role === 'admin';
   
   const runAudit = () => {
     toast({
