@@ -1,7 +1,7 @@
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SharedRecord {
   id: string;
@@ -14,44 +14,67 @@ interface SharedRecord {
   anchored_at: string;
 }
 
-export const usePatientRecords = () => {
+export function usePatientRecords() {
   const { user } = useAuth();
   const [records, setRecords] = useState<SharedRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPatientRecords = async () => {
-    if (!user) return;
+  useEffect(() => {
+    const fetchRecords = async () => {
+      setLoading(true);
+      setError(null);
+      
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
 
+      try {
+        const { data, error: fetchError } = await supabase.rpc('get_patient_records', {
+          current_user_id: user.id,
+        });
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        setRecords(data || []);
+      } catch (err) {
+        console.error('Error fetching patient records:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch records');
+        setRecords([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecords();
+  }, [user?.id]);
+
+  const refetch = async () => {
+    if (!user?.id) return;
+    
     try {
       setLoading(true);
       setError(null);
-
-      // Call the Supabase function to get shared patient records
-      const { data: sharedRecords, error: fetchError } = await supabase
-        .rpc('get_patient_records', { current_user_id: user.id });
+      
+      const { data, error: fetchError } = await supabase.rpc('get_patient_records', {
+        current_user_id: user.id,
+      });
 
       if (fetchError) {
         throw fetchError;
       }
 
-      setRecords(sharedRecords || []);
+      setRecords(data || []);
     } catch (err) {
       console.error('Error fetching patient records:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch records');
+      setRecords([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchPatientRecords();
-    }
-  }, [user]);
-
-  const refetch = () => {
-    fetchPatientRecords();
   };
 
   return {
@@ -60,4 +83,4 @@ export const usePatientRecords = () => {
     error,
     refetch
   };
-};
+}
