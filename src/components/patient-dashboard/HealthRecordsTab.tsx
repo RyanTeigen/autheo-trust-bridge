@@ -13,6 +13,8 @@ import { ImportRecordButton } from '@/components/patient/ImportRecordButton';
 import { RecordIntegrityBadge } from '@/components/patient/RecordIntegrityBadge';
 import PatientRecordViewer from '@/components/patient/PatientRecordViewer';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HealthRecord {
   id: string;
@@ -49,51 +51,63 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Mock data for demonstration with integrity information
+  // Fetch real medical records from the database
   useEffect(() => {
-    const mockRecords: HealthRecord[] = [
-      {
-        id: '123e4567-e89b-12d3-a456-426614174000',
-        record_type: 'Lab Results',
-        created_at: '2024-01-15T10:30:00Z',
-        encrypted_data: 'encrypted_lab_data_here',
-        record_hash: 'a1b2c3d4e5f6',
-        anchored_at: '2024-01-15T10:35:00Z',
-        integrity: {
-          hasHash: true,
-          isAnchored: true,
-          anchoredAt: '2024-01-15T10:35:00Z'
-        }
-      },
-      {
-        id: '123e4567-e89b-12d3-a456-426614174001',
-        record_type: 'Prescription',
-        created_at: '2024-01-10T14:45:00Z',
-        encrypted_data: 'encrypted_prescription_data_here',
-        record_hash: 'b2c3d4e5f6g7',
-        integrity: {
-          hasHash: true,
-          isAnchored: false
-        }
-      },
-      {
-        id: '123e4567-e89b-12d3-a456-426614174002',
-        record_type: 'Imaging',
-        created_at: '2024-01-05T09:15:00Z',
-        encrypted_data: 'encrypted_imaging_data_here',
-        integrity: {
-          hasHash: false,
-          isAnchored: false
-        }
-      },
-    ];
+    const fetchRecords = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        
+        const { data, error } = await supabase
+          .from('medical_records')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
 
-    setTimeout(() => {
-      setRecords(mockRecords);
-      setLoading(false);
-    }, 1000);
-  }, []);
+        if (error) {
+          console.error('Error fetching medical records:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load medical records",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const formattedRecords: HealthRecord[] = data?.map(record => ({
+          id: record.id,
+          record_type: record.record_type,
+          created_at: record.created_at,
+          encrypted_data: record.encrypted_data,
+          iv: record.iv,
+          record_hash: record.record_hash,
+          anchored_at: record.anchored_at,
+          integrity: {
+            hasHash: !!record.record_hash,
+            isAnchored: !!record.anchored_at,
+            anchoredAt: record.anchored_at,
+            anchoringInProgress: false
+          }
+        })) || [];
+
+        setRecords(formattedRecords);
+      } catch (error) {
+        console.error('Error fetching records:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load medical records",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecords();
+  }, [user?.id, toast]);
 
   const filteredRecords = records.filter(record => {
     const matchesSearch = record.record_type.toLowerCase().includes(searchQuery.toLowerCase());
