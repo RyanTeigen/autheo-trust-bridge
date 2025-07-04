@@ -39,7 +39,21 @@ export type Database = {
             foreignKeyName: "anchored_hashes_record_id_fkey"
             columns: ["record_id"]
             isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anchored_hashes_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
             referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "anchored_hashes_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
             referencedColumns: ["id"]
           },
         ]
@@ -83,7 +97,21 @@ export type Database = {
             foreignKeyName: "atomic_data_points_record_id_fkey"
             columns: ["record_id"]
             isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atomic_data_points_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
             referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "atomic_data_points_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
             referencedColumns: ["id"]
           },
         ]
@@ -644,6 +672,7 @@ export type Database = {
           id: string
           iv: string | null
           patient_id: string | null
+          provider_id: string | null
           record_hash: string | null
           record_type: string | null
           updated_at: string | null
@@ -656,6 +685,7 @@ export type Database = {
           id?: string
           iv?: string | null
           patient_id?: string | null
+          provider_id?: string | null
           record_hash?: string | null
           record_type?: string | null
           updated_at?: string | null
@@ -668,6 +698,7 @@ export type Database = {
           id?: string
           iv?: string | null
           patient_id?: string | null
+          provider_id?: string | null
           record_hash?: string | null
           record_type?: string | null
           updated_at?: string | null
@@ -873,7 +904,21 @@ export type Database = {
             foreignKeyName: "record_shares_record_id_fkey"
             columns: ["record_id"]
             isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "record_shares_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
             referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "record_shares_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
             referencedColumns: ["id"]
           },
         ]
@@ -952,7 +997,21 @@ export type Database = {
             foreignKeyName: "sharing_permissions_medical_record_id_fkey"
             columns: ["medical_record_id"]
             isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_permissions_medical_record_id_fkey"
+            columns: ["medical_record_id"]
+            isOneToOne: false
             referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sharing_permissions_medical_record_id_fkey"
+            columns: ["medical_record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
             referencedColumns: ["id"]
           },
           {
@@ -1242,7 +1301,112 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      clinical_records: {
+        Row: {
+          anchored_at: string | null
+          created_at: string | null
+          encrypted_data: string | null
+          id: string | null
+          iv: string | null
+          patient_id: string | null
+          provider_id: string | null
+          record_hash: string | null
+          record_source: string | null
+          record_type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          anchored_at?: string | null
+          created_at?: string | null
+          encrypted_data?: string | null
+          id?: string | null
+          iv?: string | null
+          patient_id?: string | null
+          provider_id?: string | null
+          record_hash?: string | null
+          record_source?: never
+          record_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          anchored_at?: string | null
+          created_at?: string | null
+          encrypted_data?: string | null
+          id?: string | null
+          iv?: string | null
+          patient_id?: string | null
+          provider_id?: string | null
+          record_hash?: string | null
+          record_source?: never
+          record_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_records: {
+        Row: {
+          anchored_at: string | null
+          created_at: string | null
+          encrypted_data: string | null
+          id: string | null
+          iv: string | null
+          patient_id: string | null
+          provider_id: string | null
+          record_hash: string | null
+          record_source: string | null
+          record_type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          anchored_at?: string | null
+          created_at?: string | null
+          encrypted_data?: string | null
+          id?: string | null
+          iv?: string | null
+          patient_id?: string | null
+          provider_id?: string | null
+          record_hash?: string | null
+          record_source?: never
+          record_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          anchored_at?: string | null
+          created_at?: string | null
+          encrypted_data?: string | null
+          id?: string | null
+          iv?: string | null
+          patient_id?: string | null
+          provider_id?: string | null
+          record_hash?: string | null
+          record_source?: never
+          record_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       cleanup_expired_sessions: {
