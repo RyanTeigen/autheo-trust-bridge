@@ -5,6 +5,7 @@ import NotificationBanner from '@/components/provider/NotificationBanner';
 import PortalHeader from '@/components/provider-portal/PortalHeader';
 import ProviderDashboardTab from '@/components/provider-portal/ProviderDashboardTab';
 import ConsolidatedPatientRecordsTab from '@/components/provider-portal/ConsolidatedPatientRecordsTab';
+import RecordManagementTab from '@/components/provider-portal/RecordManagementTab';
 import MessagingTab from '@/components/provider-portal/MessagingTab';
 import ScheduleTab from '@/components/provider-portal/ScheduleTab';
 import { ProviderPortalProvider, useProviderPortal } from '@/contexts/ProviderPortalContext';
@@ -50,8 +51,9 @@ const ProviderPortalContent: React.FC = () => {
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
+          <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
             <TabsTrigger value="dashboard" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Dashboard</TabsTrigger>
+            <TabsTrigger value="records" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">My Records</TabsTrigger>
             <TabsTrigger value="patient-records" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Patient Records</TabsTrigger>
             <TabsTrigger value="messaging" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Messaging</TabsTrigger>
             <TabsTrigger value="schedule" className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900">Schedule</TabsTrigger>
@@ -63,6 +65,10 @@ const ProviderPortalContent: React.FC = () => {
               appointments={appointments}
               recentPatients={recentPatients}
             />
+          </TabsContent>
+          
+          <TabsContent value="records" className="mt-6">
+            <RecordManagementTab />
           </TabsContent>
           
           <TabsContent value="patient-records" className="mt-6">
