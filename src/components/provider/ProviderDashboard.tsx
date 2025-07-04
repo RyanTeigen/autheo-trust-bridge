@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Clock } from 'lucide-react';
+import { Clock, FileText, BarChart3, Upload } from 'lucide-react';
 import Badge from '@/components/emr/Badge';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Stethoscope, Users as UserIcon, BarChart3 } from 'lucide-react';
+import { Shield, Stethoscope, Users as UserIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProviderRecordForm from '@/components/provider/ProviderRecordForm';
+import ImportRecordForm from '@/components/provider/ImportRecordForm';
+import ProviderAnalyticsTab from '@/components/provider/ProviderAnalyticsTab';
 
 interface Appointment {
   id: string;
@@ -36,11 +39,76 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
   onSelectPatient,
   onAction 
 }) => {
+  const [activeTab, setActiveTab] = useState('overview');
+
   return (
     <div className="space-y-6">
-      {/* Medical Record Creation Form */}
-      <ProviderRecordForm />
-      
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
+          <TabsTrigger 
+            value="overview" 
+            className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger 
+            value="create" 
+            className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 flex items-center gap-2"
+          >
+            <FileText className="h-4 w-4" />
+            Create Record
+          </TabsTrigger>
+          <TabsTrigger 
+            value="import" 
+            className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 flex items-center gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            Import Records
+          </TabsTrigger>
+          <TabsTrigger 
+            value="analytics" 
+            className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 flex items-center gap-2"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="mt-6">
+          <DashboardOverview 
+            appointments={appointments}
+            recentPatients={recentPatients}
+            onSelectPatient={onSelectPatient}
+            onAction={onAction}
+          />
+        </TabsContent>
+
+        <TabsContent value="create" className="mt-6">
+          <ProviderRecordForm />
+        </TabsContent>
+
+        <TabsContent value="import" className="mt-6">
+          <ImportRecordForm />
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6">
+          <ProviderAnalyticsTab />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+// Extracted dashboard overview content
+const DashboardOverview: React.FC<{
+  appointments: Appointment[];
+  recentPatients: Patient[];
+  onSelectPatient: (patientId: string) => void;
+  onAction: () => void;
+}> = ({ appointments, recentPatients, onSelectPatient, onAction }) => {
+  return (
+    <div className="space-y-6">
       <Card className="bg-slate-800 border-slate-700">
         <CardHeader className="border-b border-slate-700 bg-slate-700/30">
           <div className="flex items-start justify-between">
@@ -53,51 +121,6 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
             <div className="flex items-center px-3 py-1 rounded-full bg-autheo-primary/20 text-autheo-primary text-xs">
               <Clock className="h-3.5 w-3.5 mr-1" /> Today's Schedule
             </div>
-          </div>
-          
-          {/* Value Multiplier Indicators */}
-          <div className="flex flex-wrap gap-3 mt-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-700/50 rounded-full cursor-help">
-                    <Shield className="h-3 w-3 text-green-400" />
-                    <span className="text-xs text-slate-300">Security</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p className="text-xs max-w-[200px]">HIPAA compliant schedule with zero-knowledge encryption</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-700/50 rounded-full cursor-help">
-                    <Stethoscope className="h-3 w-3 text-blue-400" />
-                    <span className="text-xs text-slate-300">Clinical Workflow</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p className="text-xs max-w-[200px]">Integrates with EHR and clinical documentation systems</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-slate-700/50 rounded-full cursor-help">
-                    <UserIcon className="h-3 w-3 text-purple-400" />
-                    <span className="text-xs text-slate-300">Patient Engagement</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p className="text-xs max-w-[200px]">Automatically notifies patients of upcoming appointments</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -122,16 +145,7 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
               </div>
             ))}
           </div>
-          <Button variant="ghost" className="w-full text-slate-400 hover:text-autheo-primary hover:bg-slate-700/30" onClick={onAction}>
-            View All Appointments
-          </Button>
         </CardContent>
-        <CardFooter className="bg-slate-700/30 border-t border-slate-700 px-4 py-2 text-xs text-slate-400">
-          <div className="flex items-center justify-between w-full">
-            <span>Schedule synchronized with EHR system</span>
-            <span>Last updated: {new Date().toLocaleTimeString()}</span>
-          </div>
-        </CardFooter>
       </Card>
       
       <Card className="bg-slate-800 border-slate-700">
@@ -142,9 +156,6 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
               <CardDescription className="text-slate-300">
                 Recently accessed patient records
               </CardDescription>
-            </div>
-            <div className="flex items-center px-3 py-1 rounded-full bg-autheo-primary/20 text-autheo-primary text-xs">
-              <BarChart3 className="h-3.5 w-3.5 mr-1" /> Activity Log
             </div>
           </div>
         </CardHeader>
@@ -170,12 +181,6 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
             ))}
           </div>
         </CardContent>
-        <CardFooter className="bg-slate-700/30 border-t border-slate-700 px-4 py-2 text-xs text-slate-400">
-          <div className="flex items-center">
-            <Shield className="h-4 w-4 mr-1.5 text-autheo-primary" />
-            Patient data access is cryptographically tracked and audited
-          </div>
-        </CardFooter>
       </Card>
     </div>
   );
