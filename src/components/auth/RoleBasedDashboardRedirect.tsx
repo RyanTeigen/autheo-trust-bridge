@@ -21,8 +21,14 @@ const RoleBasedDashboardRedirect: React.FC = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Determine redirect based on user role (singular, not plural)
-  const userRole = profile?.role || 'patient';
+  // If authenticated but no profile yet, wait a bit more or use default
+  if (!profile) {
+    // Default to patient dashboard if no profile is loaded
+    return <Navigate to="/patient-dashboard" replace />;
+  }
+
+  // Determine redirect based on user role
+  const userRole = profile.role || 'patient';
   
   // Priority order: admin/supervisor > provider > patient
   if (userRole === 'admin' || userRole === 'supervisor') {

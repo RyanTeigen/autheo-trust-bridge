@@ -54,19 +54,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
       
-      if (error) {
-        console.error('Profile fetch error:', error);
-        // Create a default profile if none exists
-        setProfile({ id: userId, role: 'patient' });
-      } else {
+      if (data) {
         setProfile(data);
+      } else {
+        console.log('No profile found for user, will use default');
+        setProfile(null);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-      // Set default profile to prevent loading loop
-      setProfile({ id: userId, role: 'patient' });
+      setProfile(null);
     }
   };
 
