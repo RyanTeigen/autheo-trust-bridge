@@ -23,6 +23,7 @@ import RevokedSharesList from '../RevokedSharesList';
 import ExportAuditLogsButton from '../ExportAuditLogsButton';
 import VerifyAuditAnchor from '../VerifyAuditAnchor';
 import { supabase } from '@/integrations/supabase/client';
+import { getBlockchainProofStatus } from '@/utils/blockchain';
 
 interface AuditLogEntry {
   id: string;
@@ -307,6 +308,7 @@ const ComplianceAuditTab: React.FC = () => {
                     <TableHead className="text-slate-300">Actor</TableHead>
                     <TableHead className="text-slate-300">Target</TableHead>
                     <TableHead className="text-slate-300">Status</TableHead>
+                    <TableHead className="text-slate-300">Anchored</TableHead>
                     <TableHead className="text-slate-300">Timestamp</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -347,6 +349,28 @@ const ComplianceAuditTab: React.FC = () => {
                         >
                           {log.status}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        {(() => {
+                          // Check if this is a record creation action that would be anchored
+                          const isRecordAction = log.action.toLowerCase().includes('create') && 
+                                                 log.resource.toLowerCase().includes('record');
+                          if (isRecordAction && log.resource_id) {
+                            const proofStatus = getBlockchainProofStatus(log.resource_id);
+                            return proofStatus.isAnchored ? (
+                              <Badge variant="default" className="bg-blue-900/20 text-blue-400 border-blue-800">
+                                ✅ Anchored
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="bg-slate-600/20 text-slate-400 border-slate-600">
+                                Pending
+                              </Badge>
+                            );
+                          }
+                          return (
+                            <span className="text-slate-500 text-sm">N/A</span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell className="text-slate-300">
                         {new Date(log.timestamp).toLocaleString()}

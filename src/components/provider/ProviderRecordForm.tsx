@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { FileText } from 'lucide-react';
+import { anchorRecordOnChain } from '@/utils/blockchain';
 
 export default function ProviderRecordForm() {
   const { user } = useAuth();
@@ -120,6 +121,14 @@ export default function ProviderRecordForm() {
         title: "Success",
         description: "Medical record created successfully",
       });
+
+      // Anchor the record on blockchain
+      try {
+        await anchorRecordOnChain(result.data.id);
+      } catch (error) {
+        console.error('Error anchoring record on blockchain:', error);
+        // Don't fail the entire operation if blockchain anchoring fails
+      }
 
       // Reset form
       setForm({

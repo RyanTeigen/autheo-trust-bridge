@@ -10,6 +10,7 @@ import MetricsSections from '@/components/compliance/overview/MetricsSections';
 import PriorityActionsCard from '@/components/compliance/overview/PriorityActionsCard';
 import StatusAlert from '@/components/compliance/overview/StatusAlert';
 import AuditAnchorsWidget from '@/components/compliance/AuditAnchorsWidget';
+import ConsentHashDisplay from '@/components/compliance/ConsentHashDisplay';
 
 interface ComplianceOverviewTabProps {
   onRunAudit: () => void;
@@ -176,6 +177,9 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
         <PriorityActionsCard metrics={metrics} />
         <AuditAnchorsWidget />
       </div>
+
+      {/* DID Consent Records */}
+      <ConsentHashDisplay />
 
       {/* Status Alert */}
       <StatusAlert score={overallScore} />

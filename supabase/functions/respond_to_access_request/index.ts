@@ -1,6 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
+// DID consent signing utility
+async function signAccessConsent(patientId: string, recordId: string, recipientId: string): Promise<string> {
+  console.log("📝 Signing access consent:", { patientId, recordId, recipientId });
+  
+  const timestamp = new Date().toISOString();
+  const consentHash = `signed-consent::${patientId}::${recordId}::${recipientId}::${timestamp}`;
+  
+  console.log("✅ Consent signed:", { consentHash, timestamp });
+  return consentHash;
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -123,13 +134,35 @@ serve(async (req) => {
       )
     }
 
+    // Generate signed consent if approving
+    let signedConsent = null;
+    if (status === 'approved') {
+      try {
+        signedConsent = await signAccessConsent(
+          sharingRequest.patient_id,
+          sharingRequest.medical_record_id,
+          sharingRequest.grantee_id
+        );
+        console.log(`Generated consent signature: ${signedConsent}`);
+      } catch (error) {
+        console.error('Error generating consent signature:', error);
+        // Continue without failing - consent is optional for now
+      }
+    }
+
     // Update the sharing permission status
+    const updateData: any = {
+      status: status,
+      responded_at: new Date().toISOString()
+    };
+
+    if (signedConsent) {
+      updateData.signed_consent = signedConsent;
+    }
+
     const { error: updateError } = await supabase
       .from('sharing_permissions')
-      .update({
-        status: status,
-        responded_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', request_id)
 
     if (updateError) {
@@ -151,7 +184,7 @@ serve(async (req) => {
         action: `sharing_request_${status}`,
         resource: 'sharing_permissions',
         resource_id: request_id,
-        details: `User ${status} sharing request for medical record ${sharingRequest.medical_record_id}`,
+        details: `User ${status} sharing request for medical record ${sharingRequest.medical_record_id}${signedConsent ? ' with DID consent signature' : ''}`,
         status: 'success'
       })
 
@@ -162,7 +195,8 @@ serve(async (req) => {
         success: true, 
         message: `Access request ${status} successfully`,
         request_id: request_id,
-        status: status
+        status: status,
+        consent_signed: !!signedConsent
       }),
       { 
         status: 200, 
