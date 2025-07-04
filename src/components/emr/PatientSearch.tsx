@@ -1,29 +1,73 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PatientSearchForm from './PatientSearchForm';
 import PatientSearchResults from './PatientSearchResults';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-// Mock patient data
-const mockPatients = [
-  { id: "P12345", name: "John Doe", dob: "1980-05-15", mrn: "MR-123456" },
-  { id: "P23456", name: "Jane Smith", dob: "1975-08-22", mrn: "MR-234567" },
-  { id: "P34567", name: "Robert Johnson", dob: "1990-11-10", mrn: "MR-345678" },
-  { id: "P45678", name: "Emily Wilson", dob: "1985-03-30", mrn: "MR-456789" },
-  { id: "P56789", name: "Michael Brown", dob: "1968-07-17", mrn: "MR-567890" },
-];
+interface Patient {
+  id: string;
+  name: string;
+  dob: string;
+  mrn: string;
+  email?: string;
+}
 
 interface PatientSearchProps {
   onSelectPatient: (patientId: string) => void;
 }
 
 const PatientSearch: React.FC<PatientSearchProps> = ({ onSelectPatient }) => {
-  const [searchResults, setSearchResults] = useState<typeof mockPatients>([]);
+  const [searchResults, setSearchResults] = useState<Patient[]>([]);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  
+  // Load real patients from database
+  useEffect(() => {
+    const fetchPatients = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('patients')
+          .select('id, full_name, email, mrn, date_of_birth')
+          .order('full_name');
+
+        if (error) throw error;
+        
+        const formattedPatients = data.map(patient => ({
+          id: patient.id,
+          name: patient.full_name || 'Unknown',
+          dob: patient.date_of_birth || '',
+          mrn: patient.mrn || `MR-${patient.id.slice(-6)}`,
+          email: patient.email
+        }));
+        
+        setAllPatients(formattedPatients);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load patients. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, [toast]);
+  
+  if (loading) {
+    return <div className="p-4 text-center text-slate-400">Loading patients...</div>;
+  }
   
   return (
     <div className="space-y-4">
       <PatientSearchForm 
         onSearch={setSearchResults}
-        patients={mockPatients}
+        patients={allPatients}
       />
       
       <PatientSearchResults 

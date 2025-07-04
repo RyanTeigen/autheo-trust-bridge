@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, User } from 'lucide-react';
 import PatientSearch from '@/components/emr/PatientSearch';
@@ -7,6 +7,7 @@ import PatientDetails from '@/components/emr/PatientDetails';
 import HealthDataChart from '@/components/emr/HealthDataChart';
 import { useToast } from '@/hooks/use-toast';
 import { AuditLogService } from '@/services/AuditLogService';
+import { supabase } from '@/integrations/supabase/client';
 
 // Mock health data for visualization
 const mockBloodPressureData = [
@@ -33,42 +34,50 @@ const mockGlucoseData = [
   { date: '2025-05-10', value: 98 },
 ];
 
-// Mock patient mapping
-const patientNameMap: Record<string, string> = {
-  'PAT001': 'John Smith',
-  'PAT002': 'Maria Garcia',
-  'PAT003': 'Robert Johnson',
-  'PAT004': 'Jessica Williams',
-  'PAT005': 'David Lee',
-};
-
 const PatientSearchTab: React.FC = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientName, setSelectedPatientName] = useState<string>('');
   const { toast } = useToast();
 
-  const handleSelectPatient = (patientId: string) => {
-    const patientName = patientNameMap[patientId] || 'Unknown Patient';
-    
-    setSelectedPatientId(patientId);
-    toast({
-      title: "Patient Selected",
-      description: `Patient ID: ${patientId}`,
-    });
-    
-    // Log this access in the audit system
-    AuditLogService.logPatientAccess(
-      patientId,
-      patientName,
-      'Viewed patient record from provider portal',
-      'success',
-      'Selected from consolidated patient search'
-    );
+  const handleSelectPatient = async (patientId: string) => {
+    try {
+      // Get patient name from database
+      const { data: patient, error } = await supabase
+        .from('patients')
+        .select('full_name')
+        .eq('id', patientId)
+        .single();
+
+      const patientName = patient?.full_name || 'Unknown Patient';
+      
+      setSelectedPatientId(patientId);
+      setSelectedPatientName(patientName);
+      
+      toast({
+        title: "Patient Selected",
+        description: `Selected: ${patientName}`,
+      });
+      
+      // Log this access in the audit system
+      AuditLogService.logPatientAccess(
+        patientId,
+        patientName,
+        'Viewed patient record from provider portal',
+        'success',
+        'Selected from consolidated patient search'
+      );
+    } catch (error) {
+      console.error('Error selecting patient:', error);
+      toast({
+        title: "Error",
+        description: "Failed to select patient. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleTimeRangeChange = (range: string) => {
-    if (selectedPatientId) {
-      const patientName = patientNameMap[selectedPatientId] || 'Unknown Patient';
-      
+    if (selectedPatientId && selectedPatientName) {
       toast({
         title: "Time Range Changed",
         description: `New range: ${range}`,
@@ -77,7 +86,7 @@ const PatientSearchTab: React.FC = () => {
       // Log this access in the audit system
       AuditLogService.logPatientAccess(
         selectedPatientId,
-        patientName,
+        selectedPatientName,
         `Changed data view time range to ${range}`,
         'success',
         'From provider portal patient search'
