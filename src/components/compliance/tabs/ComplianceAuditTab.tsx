@@ -15,22 +15,144 @@ import {
   Search
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuditLogsAPI } from '@/hooks/useAuditLogsAPI';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import SmartAnchoringWidget from '../audit-trail/SmartAnchoringWidget';
 import RevokedSharesList from '../RevokedSharesList';
-import { AuditLogTable } from '../AuditLogTable';
 import ExportAuditLogsButton from '../ExportAuditLogsButton';
 import VerifyAuditAnchor from '../VerifyAuditAnchor';
+import { supabase } from '@/integrations/supabase/client';
+
+interface AuditLogEntry {
+  id: string;
+  action: string;
+  user_id: string | null;
+  timestamp: string;
+  resource: string;
+  resource_id: string | null;
+  status: 'success' | 'warning' | 'error';
+  details: string | null;
+  user_email?: string;
+  user_role?: string;
+}
 
 const ComplianceAuditTab: React.FC = () => {
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [auditStats, setAuditStats] = useState({
-    totalLogs: 1247,
-    todayLogs: 43,
-    securityEvents: 12,
-    dataAccess: 156,
-    systemChanges: 89
+    totalLogs: 0,
+    todayLogs: 0,
+    securityEvents: 0,
+    dataAccess: 0,
+    systemChanges: 0
   });
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, []);
+
+  const fetchAuditLogs = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch audit logs with user profile information
+      const { data: logs, error } = await supabase
+        .from('audit_logs')
+        .select(`
+          id,
+          action,
+          user_id,
+          timestamp,
+          resource,
+          resource_id,
+          status,
+          details
+        `)
+        .order('timestamp', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      // Get user information for each log entry
+      const logsWithUserInfo = await Promise.all(
+        (logs || []).map(async (log) => {
+          if (log.user_id) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('email, role')
+              .eq('id', log.user_id)
+              .single();
+            
+            return {
+              ...log,
+              user_email: profile?.email || 'Unknown User',
+              user_role: profile?.role || 'Unknown Role',
+              status: (log.status === 'success' || log.status === 'warning' || log.status === 'error') 
+                ? log.status as 'success' | 'warning' | 'error'
+                : 'success' as const
+            };
+          }
+          return {
+            ...log,
+            user_email: 'System',
+            user_role: 'System',
+            status: (log.status === 'success' || log.status === 'warning' || log.status === 'error') 
+              ? log.status as 'success' | 'warning' | 'error'
+              : 'success' as const
+          };
+        })
+      );
+
+      setAuditLogs(logsWithUserInfo);
+
+      // Calculate stats
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const todayLogs = logsWithUserInfo.filter(log => 
+        new Date(log.timestamp) >= today
+      ).length;
+
+      const securityEvents = logsWithUserInfo.filter(log => 
+        log.action.toLowerCase().includes('security') ||
+        log.action.toLowerCase().includes('login') ||
+        log.action.toLowerCase().includes('auth')
+      ).length;
+
+      const dataAccess = logsWithUserInfo.filter(log => 
+        log.action.toLowerCase().includes('access') ||
+        log.action.toLowerCase().includes('view') ||
+        log.action.toLowerCase().includes('read')
+      ).length;
+
+      const systemChanges = logsWithUserInfo.filter(log => 
+        log.action.toLowerCase().includes('create') ||
+        log.action.toLowerCase().includes('update') ||
+        log.action.toLowerCase().includes('delete')
+      ).length;
+
+      setAuditStats({
+        totalLogs: logsWithUserInfo.length,
+        todayLogs,
+        securityEvents,
+        dataAccess,
+        systemChanges
+      });
+
+    } catch (error) {
+      console.error('Error fetching audit logs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load audit logs",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRunFullAudit = () => {
     toast({
@@ -165,7 +287,76 @@ const ComplianceAuditTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AuditLogTable />
+          {loading ? (
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full bg-slate-700" />
+              ))}
+            </div>
+          ) : auditLogs.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <FileText className="h-16 w-16 mx-auto mb-4 opacity-50" />
+              <p>No audit logs found</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-slate-700">
+                    <TableHead className="text-slate-300">Action</TableHead>
+                    <TableHead className="text-slate-300">Actor</TableHead>
+                    <TableHead className="text-slate-300">Target</TableHead>
+                    <TableHead className="text-slate-300">Status</TableHead>
+                    <TableHead className="text-slate-300">Timestamp</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {auditLogs.map((log) => (
+                    <TableRow key={log.id} className="border-slate-700 hover:bg-slate-750">
+                      <TableCell className="text-slate-200 font-medium">
+                        {log.action}
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        <div>
+                          <div className="font-medium">{log.user_email}</div>
+                          <div className="text-sm text-slate-400 capitalize">{log.user_role}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        <div>
+                          <div className="font-medium">{log.resource}</div>
+                          {log.resource_id && (
+                            <div className="text-sm text-slate-400">
+                              {log.resource_id.slice(0, 8)}...
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={
+                            log.status === 'success' ? 'default' : 
+                            log.status === 'warning' ? 'secondary' : 
+                            'destructive'
+                          }
+                          className={
+                            log.status === 'success' ? 'bg-green-900/20 text-green-400 border-green-800' :
+                            log.status === 'warning' ? 'bg-amber-900/20 text-amber-400 border-amber-800' :
+                            'bg-red-900/20 text-red-400 border-red-800'
+                          }
+                        >
+                          {log.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-300">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

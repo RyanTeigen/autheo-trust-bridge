@@ -2,6 +2,7 @@
 import React from 'react';
 import RealTimeComplianceMonitor from '@/components/compliance/RealTimeComplianceMonitor';
 import QuantumSecurityDashboard from '@/components/security/QuantumSecurityDashboard';
+import ComplianceQuantumScoreCard from '@/components/compliance/ComplianceQuantumScoreCard';
 
 const ComplianceMonitoringTab: React.FC = () => {
   return (
@@ -12,6 +13,9 @@ const ComplianceMonitoringTab: React.FC = () => {
           Live monitoring of security events, access patterns, and compliance metrics
         </p>
       </div>
+      
+      {/* Quantum Security Score */}
+      <ComplianceQuantumScoreCard />
       
       <RealTimeComplianceMonitor />
       <QuantumSecurityDashboard />
