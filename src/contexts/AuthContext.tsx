@@ -3,6 +3,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { ensureUserKeys } from '@/utils/encryption/keys';
+import { auditLogger } from '@/services/audit/HIPAAAuditLogger';
+import { SessionManager } from '@/services/security/SessionManager';
 
 interface AuthContextType {
   user: User | null;
@@ -69,6 +71,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // Initialize session manager
+    const sessionManagerInstance = SessionManager.getInstance();
+    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -76,13 +81,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Setup encryption keys and fetch profile
-          setTimeout(async () => {
-            await Promise.all([
-              setupUserEncryption(session.user.id),
-              fetchProfile(session.user.id)
-            ]);
-          }, 0);
+          // Create secure session and setup user data
+          try {
+            await sessionManagerInstance.createSession(session.user.id);
+            
+            setTimeout(async () => {
+              await Promise.all([
+                setupUserEncryption(session.user.id),
+                fetchProfile(session.user.id)
+              ]);
+            }, 0);
+          } catch (error) {
+            console.error('Error creating session:', error);
+          }
         } else {
           setProfile(null);
         }
