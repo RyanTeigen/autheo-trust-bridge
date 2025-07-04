@@ -72,12 +72,12 @@ const ClinicalRecordsTab: React.FC = () => {
   };
 
   const handleShareRecord = (record: ClinicalRecord) => {
-    // Mock patient data - in production, fetch from patients table
+    // We need to get the patient's auth user ID, not the patient record ID
     const mockPatient: Patient = {
-      id: record.patient_id,
+      id: record.patient_id, // This is the patient record ID from patients table
       full_name: record.patient_name || 'Unknown Patient',
       email: record.patient_email,
-      user_id: record.patient_user_id || record.patient_id
+      user_id: record.patient_user_id || record.patient_id // This should be the auth user ID
     };
     
     setShareDialog({
@@ -89,7 +89,7 @@ const ClinicalRecordsTab: React.FC = () => {
 
   const handleShareComplete = async (
     recordId: string, 
-    patientUserId: string, 
+    patientUserId: string, // This should be the auth user ID
     permissionType: 'read' | 'write', 
     expiresAt?: string
   ) => {

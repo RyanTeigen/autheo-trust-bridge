@@ -161,19 +161,30 @@ export const useClinicalRecords = () => {
 
   const shareRecordWithPatient = useCallback(async (
     recordId: string,
-    patientId: string,
+    patientUserId: string, // This is the auth user ID
     permissionType: 'read' | 'write' = 'read',
     expiresAt?: string
   ) => {
     if (!user) return false;
     
     try {
+      // First, get the patient record ID from the auth user ID
+      const { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', patientUserId)
+        .single();
+
+      if (patientError || !patientData) {
+        throw new Error('Patient not found');
+      }
+
       const { error } = await supabase
         .from('sharing_permissions')
         .insert({
           medical_record_id: recordId,
-          patient_id: patientId,
-          grantee_id: patientId, // The patient user ID
+          patient_id: patientData.id, // Patient record ID from patients table
+          grantee_id: patientUserId, // Auth user ID
           permission_type: permissionType,
           status: 'approved', // Auto-approve provider-initiated shares
           expires_at: expiresAt,
