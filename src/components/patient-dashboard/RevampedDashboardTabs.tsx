@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Share2, Calendar, Activity, UserCheck } from 'lucide-react';
-import HealthRecordsTab from './HealthRecordsTab';
+import { User, FileText, Calendar, Activity, UserCheck } from 'lucide-react';
+import SimplifiedHealthRecordsTab from './SimplifiedHealthRecordsTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
-import SharedRecordsTab from './SharedRecordsTab';
-import RecordSharingInbox from '@/components/patient/RecordSharingInbox';
+import SimplifiedRecordSharingInbox from '@/components/patient/SimplifiedRecordSharingInbox';
 
 interface RevampedDashboardTabsProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -32,7 +31,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 }) => {
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-5 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -46,13 +45,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         >
           <FileText className="h-4 w-4" />
           <span className="hidden sm:inline">Records</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="shared-records" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Shared Records</span>
         </TabsTrigger>
         <TabsTrigger 
           value="scheduling" 
@@ -82,17 +74,13 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="records">
-        <HealthRecordsTab
+        <SimplifiedHealthRecordsTab
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           handleToggleShare={handleToggleShare}
         />
-      </TabsContent>
-      
-      <TabsContent value="shared-records">
-        <SharedRecordsTab />
       </TabsContent>
       
       <TabsContent value="scheduling">
@@ -104,7 +92,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="access-requests">
-        <RecordSharingInbox />
+        <SimplifiedRecordSharingInbox />
       </TabsContent>
     </Tabs>
   );
