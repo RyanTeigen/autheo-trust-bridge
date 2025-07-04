@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,100 +14,155 @@ import {
   Share2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Mock data for better UX and consistent experience
-const mockPendingRequests = [
-  {
-    id: '1',
-    record_type: 'Lab Results - Blood Work', 
-    provider_name: 'Dr. Sarah Johnson',
-    provider_specialty: 'Internal Medicine',
-    requested_at: '2024-12-20T10:30:00Z',
-    permission_type: 'read' as const,
-    expires_at: '2025-01-20T00:00:00Z',
-    record_id: 'med_123'
-  },
-  {
-    id: '2',
-    record_type: 'Cardiac Stress Test Results',
-    provider_name: 'Dr. Michael Chen', 
-    provider_specialty: 'Cardiology',
-    requested_at: '2024-12-18T14:15:00Z',
-    permission_type: 'read' as const,
-    expires_at: '2025-01-18T00:00:00Z',
-    record_id: 'med_456'
-  }
-];
-
-const mockApprovedRequests = [
-  {
-    id: '3',
-    record_type: 'MRI Scan Results',
-    provider_name: 'Dr. Emily Davis',
-    provider_specialty: 'Radiology', 
-    requested_at: '2024-12-15T09:00:00Z',
-    approved_at: '2024-12-15T10:30:00Z',
-    permission_type: 'read' as const,
-    expires_at: '2025-01-15T00:00:00Z',
-    record_id: 'med_789'
-  }
-];
-
-const mockRejectedRequests = [
-  {
-    id: '4',
-    record_type: 'Psychiatric Evaluation',
-    provider_name: 'Dr. Robert Wilson',
-    provider_specialty: 'Psychiatry',
-    requested_at: '2024-12-10T16:20:00Z', 
-    rejected_at: '2024-12-10T18:45:00Z',
-    permission_type: 'read' as const,
-    record_id: 'med_101'
-  }
-];
+interface SharingPermission {
+  id: string;
+  medical_record_id: string;
+  patient_id: string;
+  grantee_id: string;
+  permission_type: 'read' | 'write';
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  expires_at?: string;
+  responded_at?: string;
+  record_type?: string;
+  provider_name?: string;
+  provider_specialty?: string;
+}
 
 const SimplifiedRecordSharingInbox: React.FC = () => {
-  const [pendingRequests, setPendingRequests] = useState(mockPendingRequests);
-  const [approvedRequests, setApprovedRequests] = useState(mockApprovedRequests);
-  const [rejectedRequests, setRejectedRequests] = useState(mockRejectedRequests);
+  const [pendingRequests, setPendingRequests] = useState<SharingPermission[]>([]);
+  const [approvedRequests, setApprovedRequests] = useState<SharingPermission[]>([]);
+  const [rejectedRequests, setRejectedRequests] = useState<SharingPermission[]>([]);
+  const [loading, setLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchSharingRequests();
+    }
+  }, [user?.id]);
+
+  const fetchSharingRequests = async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoading(true);
+
+      // Fetch all sharing permissions for the current user
+      const { data, error } = await supabase
+        .from('sharing_permissions')
+        .select(`
+          id,
+          medical_record_id,
+          patient_id,
+          grantee_id,
+          permission_type,
+          status,
+          created_at,
+          expires_at,
+          responded_at,
+          medical_records!inner(
+            record_type,
+            provider_id
+          )
+        `)
+        .eq('grantee_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Get provider information for each request
+      const requestsWithProviders = await Promise.all(
+        (data || []).map(async (request) => {
+          const providerId = (request.medical_records as any)?.provider_id;
+          let providerInfo = null;
+
+          if (providerId) {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('first_name, last_name, email, role')
+              .eq('id', providerId)
+              .single();
+
+            if (profileData) {
+              providerInfo = {
+                name: `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || 'Healthcare Provider',
+                specialty: profileData.role === 'provider' ? 'Healthcare Provider' : 'Medical Professional'
+              };
+            }
+          }
+
+          return {
+            ...request,
+            record_type: (request.medical_records as any)?.record_type || 'Medical Record',
+            provider_name: providerInfo?.name || 'Healthcare Provider',
+            provider_specialty: providerInfo?.specialty || 'Medical Professional'
+          } as SharingPermission;
+        })
+      );
+
+      // Separate requests by status
+      const pending = requestsWithProviders.filter(r => r.status === 'pending');
+      const approved = requestsWithProviders.filter(r => r.status === 'approved');
+      const rejected = requestsWithProviders.filter(r => r.status === 'rejected');
+
+      setPendingRequests(pending);
+      setApprovedRequests(approved);
+      setRejectedRequests(rejected);
+
+    } catch (err) {
+      console.error('Error fetching sharing requests:', err);
+      toast({
+        title: "Error",
+        description: "Failed to load sharing requests",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRequestResponse = async (requestId: string, newStatus: 'approved' | 'rejected') => {
     setProcessingIds(prev => new Set(prev).add(requestId));
 
-    // Simulate API delay
-    setTimeout(() => {
-      const request = pendingRequests.find(r => r.id === requestId);
-      if (!request) return;
+    try {
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('respond_to_access_request', {
+        body: {
+          request_id: requestId,
+          status: newStatus
+        }
+      });
 
-      // Remove from pending
-      setPendingRequests(prev => prev.filter(r => r.id !== requestId));
-
-      // Add to appropriate list
-      if (newStatus === 'approved') {
-        setApprovedRequests(prev => [...prev, {
-          ...request,
-          approved_at: new Date().toISOString()
-        }]);
-      } else {
-        setRejectedRequests(prev => [...prev, {
-          ...request,
-          rejected_at: new Date().toISOString()
-        }]);
-      }
+      if (error) throw error;
 
       toast({
         title: newStatus === 'approved' ? "Request Approved" : "Request Denied",
-        description: `The sharing request has been ${newStatus}.`,
+        description: data.message || `The sharing request has been ${newStatus}.`,
       });
 
+      // Refresh the requests list
+      await fetchSharingRequests();
+
+    } catch (err) {
+      console.error('Error updating sharing request:', err);
+      toast({
+        title: "Error",
+        description: `Failed to ${newStatus === 'approved' ? 'approve' : 'deny'} the request`,
+        variant: "destructive"
+      });
+    } finally {
       setProcessingIds(prev => {
         const newSet = new Set(prev);
         newSet.delete(requestId);
         return newSet;
       });
-    }, 800);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -117,6 +172,18 @@ const SimplifiedRecordSharingInbox: React.FC = () => {
       minute: '2-digit' 
     });
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-slate-700 rounded w-1/3"></div>
+          <div className="h-32 bg-slate-700 rounded"></div>
+          <div className="h-32 bg-slate-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
 
   const renderRequestCard = (
     request: any, 
@@ -157,7 +224,7 @@ const SimplifiedRecordSharingInbox: React.FC = () => {
           <div className="flex items-center justify-between text-sm text-slate-400">
             <div className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
-              <span>Requested: {formatDate(request.requested_at)}</span>
+              <span>Requested: {formatDate(request.created_at)}</span>
             </div>
             {request.expires_at && (
               <div className="flex items-center gap-1">
@@ -167,11 +234,11 @@ const SimplifiedRecordSharingInbox: React.FC = () => {
             )}
           </div>
           
-          {(request.approved_at || request.rejected_at) && (
+          {(request.responded_at) && (
             <div className="flex items-center gap-1 text-sm text-slate-400">
               <CheckCircle className="h-4 w-4" />
               <span>
-                {request.approved_at ? 'Approved' : 'Rejected'}: {formatDate(request.approved_at || request.rejected_at)}
+                Responded: {formatDate(request.responded_at)}
               </span>
             </div>
           )}
@@ -202,7 +269,7 @@ const SimplifiedRecordSharingInbox: React.FC = () => {
           )}
 
           <div className="text-xs text-slate-500">
-            Record ID: {request.record_id}
+            Record ID: {request.medical_record_id.slice(0, 8)}...
           </div>
         </div>
       </CardContent>
