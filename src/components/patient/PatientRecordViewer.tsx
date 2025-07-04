@@ -5,7 +5,7 @@ import { FileText, Calendar, User, Shield, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { decryptLegacy } from '@/utils/encryption';
+import { MedicalRecordsEncryption } from '@/services/encryption/MedicalRecordsEncryption';
 
 interface SharedMedicalRecord {
   id: string;
@@ -65,18 +65,18 @@ const PatientRecordViewer: React.FC = () => {
         try {
           let decryptedValue;
           
-          // Try to decrypt the data
+          // Try to decrypt the data using the correct encryption service
           try {
-            decryptedValue = decryptLegacy(record.encrypted_data);
-            
-            // If it's JSON, parse it
-            if (decryptedValue.startsWith('{') || decryptedValue.startsWith('[')) {
-              decryptedValue = JSON.parse(decryptedValue);
-            }
+            decryptedValue = await MedicalRecordsEncryption.decryptMedicalRecord(
+              record.encrypted_data,
+              record.iv,
+              user.id
+            );
           } catch (decryptError) {
+            console.error('Decryption failed:', decryptError);
             // If decryption fails, show the raw encrypted data with a note
             decryptedValue = {
-              error: 'Unable to decrypt record',
+              error: 'Unable to decrypt record - may require different decryption keys',
               raw_data_preview: record.encrypted_data.substring(0, 50) + '...'
             };
           }
