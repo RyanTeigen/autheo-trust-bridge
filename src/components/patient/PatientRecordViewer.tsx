@@ -14,11 +14,12 @@ import { format } from 'date-fns';
 interface SharedRecord {
   id: string;
   patient_id: string;
-  provider_id: string;
-  type: string;
-  value: string;
-  unit: string;
-  recorded_at: string;
+  record_type: string;
+  encrypted_data: string;
+  iv: string;
+  created_at: string;
+  record_hash: string;
+  anchored_at: string;
 }
 
 export const PatientRecordViewer: React.FC = () => {
@@ -82,16 +83,14 @@ export const PatientRecordViewer: React.FC = () => {
   };
 
   const formatRecordType = (type: string) => {
-    return type.split('_').map(word => 
+    return type?.split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    ).join(' ') || 'Medical Record';
   };
 
   const renderRecordValue = (record: SharedRecord) => {
-    if (record.value && record.unit) {
-      return `${record.value} ${record.unit}`;
-    }
-    return record.value || 'No data';
+    // For encrypted records, show basic info
+    return `Record ID: ${record.id.slice(0, 8)}...`;
   };
 
   if (!user) {
@@ -145,8 +144,8 @@ export const PatientRecordViewer: React.FC = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Type</TableHead>
-              <TableHead>Data</TableHead>
               <TableHead>Created</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>ID</TableHead>
             </TableRow>
           </TableHeader>
@@ -154,17 +153,17 @@ export const PatientRecordViewer: React.FC = () => {
             {records.map((record) => (
               <TableRow key={record.id}>
                 <TableCell>
-                  <Badge className={getRecordTypeColor(record.type)}>
-                    {formatRecordType(record.type)}
+                  <Badge className={getRecordTypeColor(record.record_type || 'general')}>
+                    {formatRecordType(record.record_type || 'general')}
                   </Badge>
                 </TableCell>
-                <TableCell className="max-w-xs">
-                  <div className="text-sm truncate">
-                    {renderRecordValue(record)}
-                  </div>
-                </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
+                  {format(new Date(record.created_at), 'MMM dd, yyyy')}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="text-green-600">
+                    {record.record_hash ? 'Secured' : 'Processing'}
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {record.id.slice(0, 8)}...
@@ -185,16 +184,16 @@ export const PatientRecordViewer: React.FC = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {formatRecordType(record.type)}
+                {formatRecordType(record.record_type || 'general')}
               </CardTitle>
-              <Badge className={getRecordTypeColor(record.type)}>
-                {formatRecordType(record.type)}
+              <Badge className={getRecordTypeColor(record.record_type || 'general')}>
+                {formatRecordType(record.record_type || 'general')}
               </Badge>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
+                {format(new Date(record.created_at), 'MMM dd, yyyy')}
               </div>
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4" />
@@ -204,10 +203,17 @@ export const PatientRecordViewer: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="bg-gray-50 rounded-lg p-4">
-              <h4 className="font-medium mb-2">Record Data:</h4>
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap">
-                {renderRecordValue(record)}
-              </pre>
+              <h4 className="font-medium mb-2">Record Status:</h4>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-green-600">
+                  {record.record_hash ? 'Secured & Encrypted' : 'Processing'}
+                </Badge>
+                {record.anchored_at && (
+                  <Badge variant="outline" className="text-blue-600">
+                    Blockchain Anchored
+                  </Badge>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
