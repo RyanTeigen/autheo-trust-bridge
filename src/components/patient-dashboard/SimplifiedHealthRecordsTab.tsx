@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import ExportRecordsButton from '@/components/patient/ExportRecordsButton';
 
 // Mock data for better UX
 const mockPersonalRecords = [
@@ -150,6 +151,12 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
             <Upload className="h-4 w-4 mr-2" />
             Import
           </Button>
+          
+          <ExportRecordsButton 
+            variant="outline" 
+            size="sm"
+            className="text-slate-300 border-slate-600 hover:bg-slate-700"
+          />
           
           <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
@@ -294,14 +301,11 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
                           Share
                         </Button>
                         
-                        <Button
+                        <ExportRecordsButton 
                           variant="outline"
                           size="sm"
                           className="text-slate-300 border-slate-600 hover:bg-slate-700"
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Export
-                        </Button>
+                        />
                       </div>
                     </div>
                   </CardContent>

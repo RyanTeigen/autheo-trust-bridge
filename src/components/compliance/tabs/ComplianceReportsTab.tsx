@@ -5,6 +5,7 @@ import ComplianceRadarChart from '@/components/compliance/ComplianceRadarChart';
 import ComplianceRecommendations from '@/components/compliance/ComplianceRecommendations';
 import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
+import ComplianceExportButton from '@/components/compliance/ComplianceExportButton';
 
 const ComplianceReportsTab: React.FC = () => {
   // Sample trend data for the compliance trend chart
@@ -39,10 +40,10 @@ const ComplianceReportsTab: React.FC = () => {
             <FileText className="h-4 w-4 mr-2" />
             Generate Report
           </Button>
-          <Button className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900">
-            <Download className="h-4 w-4 mr-2" />
-            Export Data
-          </Button>
+          <ComplianceExportButton 
+            variant="default"
+            className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
+          />
         </div>
       </div>
 
