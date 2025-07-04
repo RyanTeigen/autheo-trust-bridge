@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Shield } from 'lucide-react';
+import { MedicalRecordsEncryption } from '@/services/encryption/MedicalRecordsEncryption';
 
 interface SimpleMedicalRecordFormProps {
   onSubmit: (data: any) => Promise<void>;
@@ -30,6 +31,16 @@ const SimpleMedicalRecordForm: React.FC<SimpleMedicalRecordFormProps> = ({ onSub
     setIsSubmitting(true);
     
     try {
+      // Use post-quantum encryption from our existing service
+      const result = await MedicalRecordsEncryption.createEncryptedRecord(
+        formData,
+        formData.category
+      );
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create record');
+      }
+      
       await onSubmit(formData);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -181,12 +192,12 @@ const SimpleMedicalRecordForm: React.FC<SimpleMedicalRecordFormProps> = ({ onSub
           {isSubmitting ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-900 mr-2"></div>
-              Encrypting...
+              Post-Quantum Encrypting...
             </>
           ) : (
             <>
               <Shield className="h-4 w-4 mr-2" />
-              Create Record
+              Create Quantum-Safe Record
             </>
           )}
         </Button>

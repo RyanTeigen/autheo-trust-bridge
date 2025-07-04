@@ -2,6 +2,8 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { MedicalRecordsEncryption } from '@/services/encryption/MedicalRecordsEncryption';
+import { useAuditLog } from '@/hooks/useAuditLog';
 
 export interface ClinicalRecord {
   id: string;
@@ -32,6 +34,16 @@ export interface ClinicalRecordData {
   imaging_results?: string;
   provider_notes?: string;
 }
+
+// Helper function to generate record hash for integrity
+const generateRecordHash = async (data: any): Promise<string> => {
+  const dataString = JSON.stringify(data);
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(dataString);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
 
 export const useClinicalRecords = () => {
   const [records, setRecords] = useState<ClinicalRecord[]>([]);
@@ -92,8 +104,11 @@ export const useClinicalRecords = () => {
     setError(null);
     
     try {
-      // Encrypt the record data (simplified - in production use proper encryption)
-      const encryptedData = JSON.stringify(recordData);
+      // Use post-quantum encryption from our existing service
+      const { encrypted_data, iv } = await MedicalRecordsEncryption.encryptMedicalRecord(
+        recordData, 
+        user.id
+      );
       
       const { data, error } = await supabase
         .from('medical_records')
@@ -101,8 +116,10 @@ export const useClinicalRecords = () => {
           patient_id: patientId,
           provider_id: user.id,
           record_type: recordType,
-          encrypted_data: encryptedData,
-          // In production, add proper encryption IV and record hash
+          encrypted_data,
+          iv,
+          // Add record hash for integrity verification
+          record_hash: await generateRecordHash(recordData)
         })
         .select()
         .single();
@@ -112,9 +129,19 @@ export const useClinicalRecords = () => {
       // Add to local state
       setRecords(prev => [data, ...prev]);
       
+      // Log the clinical record creation for audit
+      if (useAuditLog) {
+        const { logAccess } = useAuditLog();
+        await logAccess(
+          'clinical_record_created',
+          data.id,
+          `Created ${recordType} for patient ${patientId}`
+        );
+      }
+      
       toast({
         title: "Clinical Record Created",
-        description: "The clinical record has been successfully created and encrypted."
+        description: "The clinical record has been encrypted with post-quantum cryptography and stored securely."
       });
       
       return true;
