@@ -10,7 +10,7 @@ const DashboardTabContent: React.FC = () => {
 
   const getRecentRecords = () => {
     return records
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime())
       .slice(0, 3);
   };
 
@@ -79,13 +79,13 @@ const DashboardTabContent: React.FC = () => {
               {getRecentRecords().map((record) => (
                 <div key={record.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <h4 className="font-medium">{record.record_type.replace('_', ' ')}</h4>
+                    <h4 className="font-medium">{record.type.replace('_', ' ')}</h4>
                     <p className="text-sm text-gray-600">
-                      {new Date(record.created_at).toLocaleDateString()}
+                      {new Date(record.recorded_at).toLocaleDateString()}
                     </p>
                   </div>
                   <Badge variant="outline">
-                    {record.record_type}
+                    {record.type}
                   </Badge>
                 </div>
               ))}

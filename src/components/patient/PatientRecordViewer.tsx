@@ -9,21 +9,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { AlertCircle, FileText, Calendar, User, LayoutGrid, Table as TableIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { MedicalRecordsEncryption } from '@/services/encryption/MedicalRecordsEncryption';
 import { format } from 'date-fns';
 
-interface DecryptedRecord {
+interface SharedRecord {
   id: string;
   patient_id: string;
-  record_type: string;
-  data: any;
-  created_at: string;
-  updated_at: string;
+  provider_id: string;
+  type: string;
+  value: string;
+  unit: string;
+  recorded_at: string;
 }
 
 export const PatientRecordViewer: React.FC = () => {
   const { user } = useAuth();
-  const [records, setRecords] = useState<DecryptedRecord[]>([]);
+  const [records, setRecords] = useState<SharedRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
@@ -41,45 +41,15 @@ export const PatientRecordViewer: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Call the Supabase function to get patient records
-      const { data: rawRecords, error: fetchError } = await supabase
+      // Call the Supabase function to get shared patient records
+      const { data: sharedRecords, error: fetchError } = await supabase
         .rpc('get_patient_records', { current_user_id: user.id });
 
       if (fetchError) {
         throw fetchError;
       }
 
-      if (!rawRecords || rawRecords.length === 0) {
-        setRecords([]);
-        return;
-      }
-
-      // Decrypt each record
-      const decryptedRecords: DecryptedRecord[] = [];
-      
-      for (const record of rawRecords) {
-        try {
-          const decryptedData = await MedicalRecordsEncryption.decryptMedicalRecord(
-            record.encrypted_data,
-            record.iv,
-            user.id
-          );
-
-          decryptedRecords.push({
-            id: record.id,
-            patient_id: record.patient_id,
-            record_type: record.record_type || 'general',
-            data: decryptedData,
-            created_at: record.created_at,
-            updated_at: record.updated_at
-          });
-        } catch (decryptError) {
-          console.error(`Failed to decrypt record ${record.id}:`, decryptError);
-          // Continue with other records even if one fails to decrypt
-        }
-      }
-
-      setRecords(decryptedRecords);
+      setRecords(sharedRecords || []);
     } catch (err) {
       console.error('Error fetching patient records:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch records');
@@ -117,24 +87,11 @@ export const PatientRecordViewer: React.FC = () => {
     ).join(' ');
   };
 
-  const renderRecordValue = (record: DecryptedRecord) => {
-    const data = record.data;
-    
-    if (typeof data === 'object' && data !== null) {
-      if (data.value && data.unit) {
-        return `${data.value} ${data.unit}`;
-      }
-      if (data.title) {
-        return data.title;
-      }
-      if (data.description) {
-        return data.description;
-      }
-      // Handle complex objects
-      return JSON.stringify(data, null, 2);
+  const renderRecordValue = (record: SharedRecord) => {
+    if (record.value && record.unit) {
+      return `${record.value} ${record.unit}`;
     }
-    
-    return String(data);
+    return record.value || 'No data';
   };
 
   if (!user) {
@@ -197,8 +154,8 @@ export const PatientRecordViewer: React.FC = () => {
             {records.map((record) => (
               <TableRow key={record.id}>
                 <TableCell>
-                  <Badge className={getRecordTypeColor(record.record_type)}>
-                    {formatRecordType(record.record_type)}
+                  <Badge className={getRecordTypeColor(record.type)}>
+                    {formatRecordType(record.type)}
                   </Badge>
                 </TableCell>
                 <TableCell className="max-w-xs">
@@ -207,7 +164,7 @@ export const PatientRecordViewer: React.FC = () => {
                   </div>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {format(new Date(record.created_at), 'MMM dd, yyyy')}
+                  {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {record.id.slice(0, 8)}...
@@ -228,16 +185,16 @@ export const PatientRecordViewer: React.FC = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                {formatRecordType(record.record_type)}
+                {formatRecordType(record.type)}
               </CardTitle>
-              <Badge className={getRecordTypeColor(record.record_type)}>
-                {formatRecordType(record.record_type)}
+              <Badge className={getRecordTypeColor(record.type)}>
+                {formatRecordType(record.type)}
               </Badge>
             </div>
             <div className="flex items-center gap-4 text-sm text-gray-500">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                {format(new Date(record.created_at), 'MMM dd, yyyy')}
+                {format(new Date(record.recorded_at), 'MMM dd, yyyy')}
               </div>
               <div className="flex items-center gap-1">
                 <User className="h-4 w-4" />
@@ -252,11 +209,6 @@ export const PatientRecordViewer: React.FC = () => {
                 {renderRecordValue(record)}
               </pre>
             </div>
-            {record.updated_at !== record.created_at && (
-              <div className="mt-3 text-xs text-gray-500">
-                Last updated: {format(new Date(record.updated_at), 'MMM dd, yyyy HH:mm')}
-              </div>
-            )}
           </CardContent>
         </Card>
       ))}
