@@ -11,6 +11,7 @@ import SimpleMedicalRecordForm from '@/components/medical/SimpleMedicalRecordFor
 import { ExportRecordButton } from '@/components/patient/ExportRecordButton';
 import { ImportRecordButton } from '@/components/patient/ImportRecordButton';
 import { RecordIntegrityBadge } from '@/components/patient/RecordIntegrityBadge';
+import PatientRecordViewer from '@/components/patient/PatientRecordViewer';
 import { useToast } from '@/hooks/use-toast';
 
 interface HealthRecord {
@@ -123,11 +124,14 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Patient Record Viewer - Shared Records from Providers */}
+      <PatientRecordViewer />
+      
       {/* Header with Import/Export Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-200">Health Records</h2>
-          <p className="text-slate-400">Manage your encrypted medical records with blockchain integrity verification</p>
+          <h2 className="text-2xl font-bold text-slate-200">My Health Records</h2>
+          <p className="text-slate-400">Manage your personal encrypted medical records with blockchain integrity verification</p>
         </div>
         
         <div className="flex gap-2">

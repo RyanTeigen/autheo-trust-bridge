@@ -1,0 +1,277 @@
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Calendar, User, Shield, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { decryptLegacy } from '@/utils/encryption';
+
+interface SharedMedicalRecord {
+  id: string;
+  patient_id: string;
+  record_type: string;
+  encrypted_data: string;
+  iv: string;
+  created_at: string;
+  record_hash: string;
+  anchored_at?: string;
+}
+
+interface DecryptedRecord extends Omit<SharedMedicalRecord, 'encrypted_data'> {
+  decrypted_value: any;
+  provider_name?: string;
+  unit?: string;
+}
+
+const PatientRecordViewer: React.FC = () => {
+  const [records, setRecords] = useState<DecryptedRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchSharedRecords();
+    }
+  }, [user?.id]);
+
+  const fetchSharedRecords = async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Call the Supabase function to get patient records
+      const { data, error: fetchError } = await supabase.rpc('get_patient_records', {
+        current_user_id: user.id
+      });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      if (!data || data.length === 0) {
+        setRecords([]);
+        return;
+      }
+
+      // Decrypt each record
+      const decryptedRecords: DecryptedRecord[] = [];
+      
+      for (const record of data) {
+        try {
+          let decryptedValue;
+          
+          // Try to decrypt the data
+          try {
+            decryptedValue = decryptLegacy(record.encrypted_data);
+            
+            // If it's JSON, parse it
+            if (decryptedValue.startsWith('{') || decryptedValue.startsWith('[')) {
+              decryptedValue = JSON.parse(decryptedValue);
+            }
+          } catch (decryptError) {
+            // If decryption fails, show the raw encrypted data with a note
+            decryptedValue = {
+              error: 'Unable to decrypt record',
+              raw_data_preview: record.encrypted_data.substring(0, 50) + '...'
+            };
+          }
+
+          const decryptedRecord: DecryptedRecord = {
+            ...record,
+            decrypted_value: decryptedValue,
+            provider_name: 'Healthcare Provider', // Could be fetched from providers table
+            unit: extractUnit(decryptedValue)
+          };
+
+          decryptedRecords.push(decryptedRecord);
+        } catch (recordError) {
+          console.error(`Error processing record ${record.id}:`, recordError);
+        }
+      }
+
+      setRecords(decryptedRecords);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch shared records';
+      setError(errorMessage);
+      console.error('Error fetching shared records:', err);
+      
+      toast({
+        title: "Error Loading Records",
+        description: errorMessage,
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper function to extract unit from decrypted value
+  const extractUnit = (value: any): string | undefined => {
+    if (typeof value === 'object' && value !== null) {
+      return value.unit || value.units;
+    }
+    return undefined;
+  };
+
+  // Helper function to format the decrypted value for display
+  const formatValue = (value: any): string => {
+    if (typeof value === 'object' && value !== null) {
+      if (value.error) {
+        return `⚠️ ${value.error}`;
+      }
+      if (value.value !== undefined) {
+        return String(value.value);
+      }
+      if (value.description) {
+        return value.description;
+      }
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-slate-700 rounded w-1/3"></div>
+          <div className="h-32 bg-slate-700 rounded"></div>
+          <div className="h-32 bg-slate-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-slate-800 border-slate-700">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <Shield className="h-12 w-12 mx-auto mb-4 text-red-400" />
+            <h3 className="text-lg font-medium text-slate-300 mb-2">Error Loading Records</h3>
+            <p className="text-slate-400">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (records.length === 0) {
+    return (
+      <Card className="bg-slate-800 border-slate-700">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <FileText className="h-12 w-12 mx-auto mb-4 text-slate-400 opacity-50" />
+            <h3 className="text-lg font-medium text-slate-300 mb-2">No Shared Records</h3>
+            <p className="text-slate-400">
+              You don't have any shared medical records yet. Healthcare providers can share records with you for viewing.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-slate-200">Shared Medical Records</h3>
+          <p className="text-slate-400">Records shared with you by healthcare providers</p>
+        </div>
+        <Badge variant="secondary" className="bg-blue-900/20 text-blue-400 border-blue-800">
+          {records.length} Record{records.length !== 1 ? 's' : ''}
+        </Badge>
+      </div>
+
+      <div className="grid gap-4">
+        {records.map((record) => (
+          <Card key={record.id} className="bg-slate-800 border-slate-700 hover:border-slate-600 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-500/20 p-2 rounded-lg">
+                    <FileText className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-slate-200 text-lg">{record.record_type}</CardTitle>
+                    <div className="flex items-center gap-4 mt-1">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4 text-slate-400" />
+                        <span className="text-sm text-slate-400">
+                          {new Date(record.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {record.provider_name && (
+                        <div className="flex items-center gap-1">
+                          <User className="h-4 w-4 text-slate-400" />
+                          <span className="text-sm text-slate-400">{record.provider_name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="bg-green-900/20 text-green-400 border-green-800">
+                    Shared
+                  </Badge>
+                  {record.record_hash && (
+                    <Badge variant="secondary" className="bg-purple-900/20 text-purple-400 border-purple-800">
+                      Verified
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="pt-0 space-y-4">
+              {/* Decrypted Value Display */}
+              <div className="bg-slate-700/30 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="h-4 w-4 text-autheo-primary" />
+                  <span className="text-sm font-medium text-slate-200">Decrypted Content</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-300 font-mono text-sm">
+                      {formatValue(record.decrypted_value)}
+                    </span>
+                    {record.unit && (
+                      <Badge variant="outline" className="text-xs">
+                        {record.unit}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Record Metadata */}
+              <div className="flex items-center justify-between text-sm text-slate-400">
+                <div className="flex items-center gap-4">
+                  <div>Record ID: {record.id.slice(0, 8)}...</div>
+                  {record.record_hash && (
+                    <div>Hash: {record.record_hash.slice(0, 8)}...</div>
+                  )}
+                </div>
+                {record.anchored_at && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>Anchored: {new Date(record.anchored_at).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default PatientRecordViewer;
