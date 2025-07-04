@@ -4,7 +4,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { ensureUserKeys } from '@/utils/encryption/keys';
 import { auditLogger } from '@/services/audit/HIPAAAuditLogger';
-import { SessionManager } from '@/services/security/SessionManager';
+import SessionManager from '@/services/security/SessionManager';
 
 interface AuthContextType {
   user: User | null;
