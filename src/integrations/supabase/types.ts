@@ -256,66 +256,6 @@ export type Database = {
         }
         Relationships: []
       }
-      enhanced_audit_logs: {
-        Row: {
-          action_performed: string
-          after_state: Json | null
-          before_state: Json | null
-          compliance_flags: Json | null
-          created_at: string
-          details: Json | null
-          event_type: Database["public"]["Enums"]["audit_event_type"]
-          id: string
-          ip_address: unknown | null
-          phi_accessed: boolean | null
-          resource_id: string | null
-          resource_type: string | null
-          retention_until: string | null
-          session_id: string | null
-          severity: Database["public"]["Enums"]["audit_severity"]
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action_performed: string
-          after_state?: Json | null
-          before_state?: Json | null
-          compliance_flags?: Json | null
-          created_at?: string
-          details?: Json | null
-          event_type: Database["public"]["Enums"]["audit_event_type"]
-          id?: string
-          ip_address?: unknown | null
-          phi_accessed?: boolean | null
-          resource_id?: string | null
-          resource_type?: string | null
-          retention_until?: string | null
-          session_id?: string | null
-          severity?: Database["public"]["Enums"]["audit_severity"]
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action_performed?: string
-          after_state?: Json | null
-          before_state?: Json | null
-          compliance_flags?: Json | null
-          created_at?: string
-          details?: Json | null
-          event_type?: Database["public"]["Enums"]["audit_event_type"]
-          id?: string
-          ip_address?: unknown | null
-          phi_accessed?: boolean | null
-          resource_id?: string | null
-          resource_type?: string | null
-          retention_until?: string | null
-          session_id?: string | null
-          severity?: Database["public"]["Enums"]["audit_severity"]
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       fitness_access_permissions: {
         Row: {
           conditions: Json | null
@@ -1168,48 +1108,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_sessions: {
-        Row: {
-          created_at: string
-          expires_at: string
-          id: string
-          ip_address: unknown | null
-          is_active: boolean
-          last_activity: string
-          session_token: string
-          terminated_at: string | null
-          termination_reason: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          expires_at: string
-          id?: string
-          ip_address?: unknown | null
-          is_active?: boolean
-          last_activity?: string
-          session_token: string
-          terminated_at?: string | null
-          termination_reason?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          ip_address?: unknown | null
-          is_active?: boolean
-          last_activity?: string
-          session_token?: string
-          terminated_at?: string | null
-          termination_reason?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_settings: {
         Row: {
           created_at: string
@@ -1245,32 +1143,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_expired_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      extend_session: {
-        Args: { session_token_param: string }
-        Returns: boolean
-      }
       get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_patient_records: {
-        Args: { current_user_id: string }
-        Returns: {
-          id: string
-          patient_id: string
-          record_type: string
-          encrypted_data: string
-          iv: string
-          created_at: string
-          record_hash: string
-          anchored_at: string
-        }[]
-      }
-      get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
@@ -1280,22 +1153,6 @@ export type Database = {
       }
     }
     Enums: {
-      audit_event_type:
-        | "login"
-        | "logout"
-        | "login_failed"
-        | "phi_access"
-        | "phi_create"
-        | "phi_update"
-        | "phi_delete"
-        | "phi_export"
-        | "permission_grant"
-        | "permission_revoke"
-        | "role_change"
-        | "system_access"
-        | "configuration_change"
-        | "backup_restore"
-      audit_severity: "info" | "warning" | "error" | "critical"
       user_role: "patient" | "provider" | "auditor" | "admin" | "compliance"
     }
     CompositeTypes: {
@@ -1412,23 +1269,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      audit_event_type: [
-        "login",
-        "logout",
-        "login_failed",
-        "phi_access",
-        "phi_create",
-        "phi_update",
-        "phi_delete",
-        "phi_export",
-        "permission_grant",
-        "permission_revoke",
-        "role_change",
-        "system_access",
-        "configuration_change",
-        "backup_restore",
-      ],
-      audit_severity: ["info", "warning", "error", "critical"],
       user_role: ["patient", "provider", "auditor", "admin", "compliance"],
     },
   },

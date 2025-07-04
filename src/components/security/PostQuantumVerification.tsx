@@ -60,24 +60,30 @@ const PostQuantumVerification: React.FC = () => {
     updateTestResult('Library Detection', { status: 'running' });
     
     try {
-      // Skip actual library import to prevent blocking errors
-      console.log('Skipping @noble/post-quantum import to prevent blocking');
+      // Test @noble/post-quantum import
+      const pq = await import('@noble/post-quantum');
+      const availableExports = Object.keys(pq);
       
-      // Simulate library detection results for development
+      // Check for Kyber implementations
+      const kyberExports = availableExports.filter(key => 
+        key.toLowerCase().includes('kyber') || 
+        key.toLowerCase().includes('kem') || 
+        key.toLowerCase().includes('mlkem')
+      );
+      
       updateTestResult('Library Detection', {
         status: 'passed',
         details: {
-          libraryFound: false,
-          availableExports: [],
-          kyberExports: [],
-          totalExports: 0,
-          note: 'Using fallback implementation for development'
+          libraryFound: true,
+          availableExports: availableExports.slice(0, 10),
+          kyberExports,
+          totalExports: availableExports.length
         }
       });
     } catch (error) {
       updateTestResult('Library Detection', {
         status: 'failed',
-        error: `Library detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        error: `Library not available: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
     }
   };

@@ -3,8 +3,6 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { ensureUserKeys } from '@/utils/encryption/keys';
-import { auditLogger } from '@/services/audit/HIPAAAuditLogger';
-import SessionManager from '@/services/security/SessionManager';
 
 interface AuthContextType {
   user: User | null;
@@ -50,21 +48,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .maybeSingle();
-      
-      if (data) {
-        setProfile(data);
-      } else {
-        console.log('No profile found for user, will use default');
-        setProfile(null);
-      }
+        .single();
+      setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setProfile(null);
     }
   };
 
@@ -74,15 +65,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Encryption keys setup completed');
     } catch (error) {
       console.error('Failed to setup encryption keys:', error);
-      // Don't block the auth flow if encryption setup fails
-      // The app should still work without quantum encryption
     }
   };
 
   useEffect(() => {
-    // Initialize session manager
-    const sessionManagerInstance = SessionManager.getInstance();
-    
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -90,24 +76,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Create secure session and setup user data
-          try {
-            await sessionManagerInstance.createSession(session.user.id);
-          } catch (error) {
-            console.error('Error creating session:', error);
-            // Continue with auth flow even if session creation fails
-          }
-          
-          // Setup user data in background - don't block auth
+          // Setup encryption keys and fetch profile
           setTimeout(async () => {
-            try {
-              await Promise.all([
-                setupUserEncryption(session.user.id),
-                fetchProfile(session.user.id)
-              ]);
-            } catch (error) {
-              console.error('Error setting up user data:', error);
-            }
+            await Promise.all([
+              setupUserEncryption(session.user.id),
+              fetchProfile(session.user.id)
+            ]);
           }, 0);
         } else {
           setProfile(null);
@@ -124,14 +98,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (session?.user) {
         setTimeout(async () => {
-          try {
-            await Promise.all([
-              setupUserEncryption(session.user.id),
-              fetchProfile(session.user.id)
-            ]);
-          } catch (error) {
-            console.error('Error setting up user data:', error);
-          }
+          await Promise.all([
+            setupUserEncryption(session.user.id),
+            fetchProfile(session.user.id)
+          ]);
         }, 0);
       }
       

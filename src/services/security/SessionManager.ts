@@ -1,22 +1,25 @@
-// HIPAA-compliant session management service
+
 import { supabase } from '@/integrations/supabase/client';
-import { auditLogger } from '../audit/HIPAAAuditLogger';
+import { AuthenticationError, logError, AppError } from '@/utils/errorHandling';
+
+export interface SessionConfig {
+  maxAge: number; // in minutes
+  warningThreshold: number; // in minutes before expiry to warn
+  refreshThreshold: number; // in minutes before expiry to auto-refresh
+}
 
 export interface SessionInfo {
-  id: string;
   userId: string;
-  sessionToken: string;
-  createdAt: string;
-  lastActivity: string;
-  expiresAt: string;
+  expiresAt: Date;
+  lastActivity: Date;
   isValid: boolean;
   timeRemaining: number; // in minutes
 }
 
-class SessionManager {
+export class SessionManager {
   private static instance: SessionManager;
-  private sessionToken: string | null = null;
-  private lastActivity: Date = new Date();
+  private config: SessionConfig;
+  private sessionCheckInterval = 60000; // Check every minute
 
   public static getInstance(): SessionManager {
     if (!SessionManager.instance) {
@@ -25,138 +28,128 @@ class SessionManager {
     return SessionManager.instance;
   }
 
-  private constructor() {}
-
-  public async createSession(userId: string): Promise<string> {
-    try {
-      const sessionToken = this.generateSecureToken();
-      const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000); // 8 hours
-
-      const { error } = await supabase
-        .from('user_sessions')
-        .insert({
-          user_id: userId,
-          session_token: sessionToken,
-          expires_at: expiresAt.toISOString(),
-          ip_address: 'client-detected',
-          user_agent: navigator.userAgent
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      this.sessionToken = sessionToken;
-      this.lastActivity = new Date();
-      await auditLogger.logLogin(userId, true);
-
-      return sessionToken;
-    } catch (error) {
-      console.error('Error creating session:', error);
-      throw error;
-    }
+  private constructor() {
+    this.config = {
+      maxAge: 480, // 8 hours
+      warningThreshold: 15, // Warn 15 minutes before expiry
+      refreshThreshold: 30, // Auto-refresh 30 minutes before expiry
+    };
+    this.startSessionMonitoring();
   }
 
   public async getCurrentSession(): Promise<SessionInfo | null> {
-    if (!this.sessionToken) {
-      return null;
-    }
-
     try {
-      const { data, error } = await supabase
-        .from('user_sessions')
-        .select('*')
-        .eq('session_token', this.sessionToken)
-        .eq('is_active', true)
-        .single();
-
-      if (error || !data) {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        const appError = new AuthenticationError('Session validation error', { originalError: error });
+        logError(appError);
+        return null;
+      }
+      
+      if (!session) {
         return null;
       }
 
-      const expiresAt = new Date(data.expires_at);
+      const expiresAt = new Date(session.expires_at! * 1000);
       const now = new Date();
       const timeRemaining = Math.max(0, Math.floor((expiresAt.getTime() - now.getTime()) / (1000 * 60)));
-
+      
       return {
-        id: data.id,
-        userId: data.user_id,
-        sessionToken: data.session_token,
-        createdAt: data.created_at,
-        lastActivity: data.last_activity,
-        expiresAt: data.expires_at,
-        isValid: expiresAt > now,
+        userId: session.user.id,
+        expiresAt,
+        lastActivity: new Date(localStorage.getItem('lastActivity') || now.toISOString()),
+        isValid: timeRemaining > 0,
         timeRemaining
       };
     } catch (error) {
-      console.error('Error getting current session:', error);
+      const appError = error instanceof AppError ? error : new AuthenticationError('Failed to get current session', { originalError: error });
+      logError(appError);
       return null;
     }
   }
 
   public async refreshSession(): Promise<boolean> {
-    if (!this.sessionToken) {
-      return false;
-    }
-
     try {
-      const { data, error } = await supabase
-        .rpc('extend_session', { session_token_param: this.sessionToken });
-
+      const { data, error } = await supabase.auth.refreshSession();
+      
       if (error) {
-        console.error('Error refreshing session:', error);
+        const appError = new AuthenticationError('Session refresh failed', { originalError: error });
+        logError(appError);
         return false;
       }
-
-      this.lastActivity = new Date();
-      return data;
+      
+      if (data.session) {
+        this.updateLastActivity();
+        return true;
+      }
+      
+      return false;
     } catch (error) {
-      console.error('Error refreshing session:', error);
+      const appError = error instanceof AppError ? error : new AuthenticationError('Session refresh error', { originalError: error });
+      logError(appError);
       return false;
     }
   }
 
   public updateLastActivity(): void {
-    this.lastActivity = new Date();
-    // You could also update the database here if needed
+    const now = new Date().toISOString();
+    localStorage.setItem('lastActivity', now);
   }
 
-  public async signOut(reason: string = 'manual'): Promise<void> {
+  public async signOut(reason: 'expired' | 'inactive' | 'manual' = 'manual'): Promise<void> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (this.sessionToken) {
-        await supabase
-          .from('user_sessions')
-          .update({
-            is_active: false,
-            terminated_at: new Date().toISOString(),
-            termination_reason: reason
-          })
-          .eq('session_token', this.sessionToken);
-      }
-
+      localStorage.removeItem('lastActivity');
       await supabase.auth.signOut();
-
-      if (user) {
-        await auditLogger.logLogout(user.id);
+      
+      // Don't log in production, but provide user feedback through UI
+      if (import.meta.env.DEV) {
+        console.log(`Session ended: ${reason}`);
       }
-
-      this.sessionToken = null;
     } catch (error) {
-      console.error('Error signing out:', error);
+      const appError = error instanceof AppError ? error : new AuthenticationError('Sign out error', { originalError: error });
+      logError(appError);
     }
   }
 
-  private generateSecureToken(): string {
-    const array = new Uint8Array(32);
-    crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  public async isSessionExpiringSoon(): Promise<boolean> {
+    const sessionInfo = await this.getCurrentSession();
+    return sessionInfo ? sessionInfo.timeRemaining <= this.config.warningThreshold : false;
+  }
+
+  private startSessionMonitoring(): void {
+    // Check session status every minute
+    setInterval(async () => {
+      const sessionInfo = await this.getCurrentSession();
+      
+      if (!sessionInfo || !sessionInfo.isValid) {
+        await this.signOut('expired');
+        return;
+      }
+      
+      // Check for inactivity
+      const timeSinceLastActivity = Date.now() - sessionInfo.lastActivity.getTime();
+      const inactivityThreshold = 30 * 60 * 1000; // 30 minutes
+      
+      if (timeSinceLastActivity > inactivityThreshold) {
+        await this.signOut('inactive');
+        return;
+      }
+      
+      // Auto-refresh if needed
+      if (sessionInfo.timeRemaining <= this.config.refreshThreshold) {
+        await this.refreshSession();
+      }
+    }, this.sessionCheckInterval);
+  }
+
+  public getConfig(): SessionConfig {
+    return { ...this.config };
+  }
+
+  public updateConfig(newConfig: Partial<SessionConfig>): void {
+    this.config = { ...this.config, ...newConfig };
   }
 }
 
-// Export as default to match the hook's import
 export default SessionManager;
-
-// Also export the instance for convenience
-export const sessionManager = SessionManager.getInstance();

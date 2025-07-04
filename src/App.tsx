@@ -12,7 +12,7 @@ import RoleBasedRoute from "./components/auth/RoleBasedRoute";
 import AuthPage from "./pages/AuthPage";
 import Unauthorized from "./pages/Unauthorized";
 import CompliancePage from "./pages/CompliancePage";
-import HIPAAAuditLogsPage from "./pages/HIPAAAuditLogsPage";
+import AuditLogsPage from "./pages/AuditLogsPage";
 import NotFound from "./pages/NotFound";
 import PatientRecordsPage from "./pages/PatientRecordsPage";
 import ProviderPortalPage from "./pages/ProviderPortalPage";
@@ -139,7 +139,7 @@ const App = () => {
                     <Route path="/audit-logs" element={
                       <ProtectedRoute>
                         <MainLayout>
-                          <HIPAAAuditLogsPage />
+                          <AuditLogsPage />
                         </MainLayout>
                       </ProtectedRoute>
                     } />

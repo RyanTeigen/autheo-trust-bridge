@@ -51,69 +51,46 @@ export async function getOrCreateMedicalRecord(userId: string): Promise<string |
       console.log('Created new patient:', patientId);
     }
 
-    // Step 2: Try to fetch existing medical record (use limit(1) to handle potential duplicates)
-    const { data: existingRecords, error: recordFetchError } = await supabase
+    // Step 2: Try to fetch existing medical record
+    const { data: existingRecord, error: recordFetchError } = await supabase
       .from('medical_records')
       .select('id')
       .eq('user_id', userId)
-      .eq('record_type', 'general')
-      .limit(1);
+      .maybeSingle();
 
     if (recordFetchError) {
       console.error('Error fetching medical record:', recordFetchError);
       return null;
     }
 
-    if (existingRecords && existingRecords.length > 0) {
-      console.log('Found existing medical record:', existingRecords[0].id);
-      return existingRecords[0].id;
+    if (existingRecord) {
+      console.log('Found existing medical record:', existingRecord.id);
+      return existingRecord.id;
     }
 
-    // Step 3: Create new medical record with conflict handling
+    // Step 3: Create new medical record
     console.log('Creating new medical record for user:', userId, 'patient:', patientId);
     
-    try {
-      const { data: newRecord, error: recordCreateError } = await supabase
-        .from('medical_records')
-        .insert({ 
-          user_id: userId,
-          patient_id: patientId,
-          encrypted_data: '{}', // Empty initial data
-          record_type: 'general',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
+    const { data: newRecord, error: recordCreateError } = await supabase
+      .from('medical_records')
+      .insert({ 
+        user_id: userId,
+        patient_id: patientId,
+        encrypted_data: '{}', // Empty initial data
+        record_type: 'general',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
 
-      if (recordCreateError) {
-        // If we get a unique constraint violation, try to fetch the existing record
-        if (recordCreateError.code === '23505') {
-          console.log('Record already exists due to race condition, fetching existing record');
-          const { data: existingRecord } = await supabase
-            .from('medical_records')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('record_type', 'general')
-            .limit(1)
-            .single();
-          
-          if (existingRecord) {
-            console.log('Found existing record after conflict:', existingRecord.id);
-            return existingRecord.id;
-          }
-        }
-        
-        console.error('Error creating medical record:', recordCreateError);
-        return null;
-      }
-
-      console.log('Created new medical record:', newRecord.id);
-      return newRecord.id;
-    } catch (error) {
-      console.error('Error in medical record creation:', error);
+    if (recordCreateError) {
+      console.error('Error creating medical record:', recordCreateError);
       return null;
     }
+
+    console.log('Created new medical record:', newRecord.id);
+    return newRecord.id;
     
   } catch (error) {
     console.error('Unexpected error in getOrCreateMedicalRecord:', error);

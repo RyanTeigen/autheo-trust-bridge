@@ -1,5 +1,6 @@
 
-const { supabase } = require('../config/database');
+const jwt = require('jsonwebtoken');
+const { supabase } = require('../../integrations/supabase/client');
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -8,50 +9,32 @@ const authMiddleware = async (req, res, next) => {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ 
         success: false, 
-        error: 'No authorization token provided' 
+        error: 'Authorization header missing or invalid' 
       });
     }
 
-    const token = authHeader.replace('Bearer ', '');
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    // Verify the token with Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
     
-    // Verify the JWT token with Supabase
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
-    if (authError || !user) {
+    if (error || !user) {
       return res.status(401).json({ 
         success: false, 
         error: 'Invalid or expired token' 
       });
     }
 
-    // Get user profile and role
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (profileError) {
-      console.error('Error fetching user profile:', profileError);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Failed to verify user permissions' 
-      });
-    }
-
-    // Attach user info to request
-    req.user = {
-      id: user.id,
-      email: user.email,
-      role: profile?.role || 'patient'
-    };
-
+    // Add user info to request object
+    req.user = user;
+    req.token = token;
+    
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);
-    return res.status(500).json({ 
+    res.status(401).json({ 
       success: false, 
-      error: 'Authentication error' 
+      error: 'Authentication failed' 
     });
   }
 };

@@ -13,7 +13,6 @@ interface MedicalRecordsControlsProps {
   onRecordTypeChange: (value: string) => void;
   onCreateNew: () => void;
   showCreateButton?: boolean;
-  patientId?: string;
 }
 
 export function MedicalRecordsControls({
@@ -22,8 +21,7 @@ export function MedicalRecordsControls({
   recordType,
   onRecordTypeChange,
   onCreateNew,
-  showCreateButton = true,
-  patientId
+  showCreateButton = true
 }: MedicalRecordsControlsProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -56,7 +54,7 @@ export function MedicalRecordsControls({
           </SelectContent>
         </Select>
 
-        <ExportRecordsButton patientId={patientId} />
+        <ExportRecordsButton />
 
         {showCreateButton && (
           <Button onClick={onCreateNew}>
