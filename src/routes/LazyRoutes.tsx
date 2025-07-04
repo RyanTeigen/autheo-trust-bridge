@@ -9,7 +9,7 @@ export const LazyWalletPage = lazy(() => import('@/pages/WalletPage'));
 export const LazySchedulingPage = lazy(() => import('@/pages/SchedulingPage'));
 export const LazyHealthTracker = lazy(() => import('@/pages/HealthTrackerPage'));
 export const LazyCompliancePage = lazy(() => import('@/pages/CompliancePage'));
-export const LazyAuditLogsPage = lazy(() => import('@/pages/AuditLogsPage'));
+export const LazyHIPAAAuditLogsPage = lazy(() => import('@/pages/HIPAAAuditLogsPage'));
 export const LazySharedRecordsPage = lazy(() => import('@/pages/SharedRecordsPage'));
 export const LazySmartFormsPage = lazy(() => import('@/pages/SmartFormsPage'));
 export const LazySettingsPage = lazy(() => import('@/pages/SettingsPage'));
