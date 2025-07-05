@@ -3,7 +3,7 @@ import React from 'react';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
 import HealthMetricsCard from './HealthMetricsCard';
 import AtomicVitalsCard from '@/components/patient/AtomicVitalsCard';
-import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Link } from 'lucide-react';
 
@@ -38,7 +38,7 @@ const ConsolidatedHealthOverview: React.FC = () => {
             healthRecords={healthRecords}
             complianceScore={complianceScore}
           />
-          <VitalsMetrics />
+          
         </div>
         
         {/* Atomic vitals card */}
