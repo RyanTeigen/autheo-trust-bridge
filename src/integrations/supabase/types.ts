@@ -912,6 +912,33 @@ export type Database = {
           },
         ]
       }
+      record_anchors: {
+        Row: {
+          anchor_hash: string
+          anchored_at: string
+          blockchain_tx_hash: string | null
+          created_at: string
+          id: string
+          record_id: string
+        }
+        Insert: {
+          anchor_hash: string
+          anchored_at?: string
+          blockchain_tx_hash?: string | null
+          created_at?: string
+          id?: string
+          record_id: string
+        }
+        Update: {
+          anchor_hash?: string
+          anchored_at?: string
+          blockchain_tx_hash?: string | null
+          created_at?: string
+          id?: string
+          record_id?: string
+        }
+        Relationships: []
+      }
       record_shares: {
         Row: {
           created_at: string | null
