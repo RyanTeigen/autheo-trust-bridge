@@ -1467,12 +1467,12 @@ export type Database = {
         Returns: {
           id: string
           patient_id: string
+          provider_id: string
           record_type: string
           encrypted_data: string
           iv: string
           created_at: string
           record_hash: string
-          anchored_at: string
         }[]
       }
       get_user_role: {
