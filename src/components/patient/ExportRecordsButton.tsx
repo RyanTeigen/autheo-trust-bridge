@@ -16,12 +16,17 @@ interface ExportRecordsButtonProps {
 }
 
 interface MedicalRecordExport {
-  id: string;
-  record_type: string;
+  record_id: string;
+  type: string;
+  unit?: string;
+  timestamp: string;
+  provider_id?: string;
+  encrypted_value?: string;
+  blockchain_anchor_hash?: string;
+  sharing_status: 'shared' | 'not_shared' | 'approved' | 'pending';
+  // Extended fields for comprehensive export
   created_at: string;
   updated_at: string;
-  provider_id?: string;
-  record_hash?: string;
   anchored_at?: string;
   blockchain_status: 'not_anchored' | 'anchored' | 'pending';
   consent_hash?: string;
@@ -31,6 +36,7 @@ interface MedicalRecordExport {
     created_at: string;
     expires_at?: string;
     signed_consent?: string;
+    status: string;
   }>;
   metadata: {
     export_timestamp: string;
@@ -127,12 +133,18 @@ const ExportRecordsButton: React.FC<ExportRecordsButtonProps> = ({
         const approvedPermissions = record.sharing_permissions.filter(p => p.status === 'approved');
         
         return {
-          id: record.id,
-          record_type: record.record_type || 'Unknown',
+          record_id: record.id,
+          type: record.record_type || 'Unknown',
+          unit: undefined, // Will be populated from atomic_data_points if available
+          timestamp: record.created_at,
+          provider_id: record.provider_id,
+          encrypted_value: undefined, // Will contain encrypted data if available
+          blockchain_anchor_hash: record.record_hash || anchorData?.record_hash,
+          sharing_status: approvedPermissions.length > 0 ? 'approved' : 
+                         record.sharing_permissions.length > 0 ? 'pending' : 'not_shared',
+          // Extended fields for comprehensive export
           created_at: record.created_at,
           updated_at: record.updated_at,
-          provider_id: record.provider_id,
-          record_hash: record.record_hash || anchorData?.record_hash,
           anchored_at: record.anchored_at || anchorData?.anchored_at,
           blockchain_status: anchorData ? 'anchored' : record.record_hash ? 'pending' : 'not_anchored',
           consent_hash: approvedPermissions[0]?.signed_consent || undefined,
@@ -141,7 +153,8 @@ const ExportRecordsButton: React.FC<ExportRecordsButtonProps> = ({
             permission_type: p.permission_type,
             created_at: p.created_at,
             expires_at: p.expires_at,
-            signed_consent: p.signed_consent
+            signed_consent: p.signed_consent,
+            status: p.status
           })),
           metadata: {
             export_timestamp: new Date().toISOString(),
@@ -230,7 +243,7 @@ const ExportRecordsButton: React.FC<ExportRecordsButtonProps> = ({
         // Add individual record files
         const recordsFolder = zip.folder('individual-records');
         records.forEach(record => {
-          recordsFolder?.file(`${record.record_type}-${record.id}.json`, JSON.stringify(record, null, 2));
+          recordsFolder?.file(`${record.type}-${record.record_id}.json`, JSON.stringify(record, null, 2));
         });
 
         // Add compliance report
@@ -244,8 +257,8 @@ const ExportRecordsButton: React.FC<ExportRecordsButtonProps> = ({
             audit_logging: true
           },
           blockchain_verification: records.filter(r => r.blockchain_status === 'anchored').map(r => ({
-            record_id: r.id,
-            record_hash: r.record_hash,
+            record_id: r.record_id,
+            record_hash: r.blockchain_anchor_hash,
             anchored_at: r.anchored_at
           }))
         };
@@ -312,7 +325,7 @@ const ExportRecordsButton: React.FC<ExportRecordsButtonProps> = ({
         ) : (
           <>
             <Download className="h-4 w-4 mr-2" />
-            Export Records
+            Download My Records
           </>
         )}
       </Button>
@@ -367,21 +380,21 @@ const ExportRecordsButton: React.FC<ExportRecordsButtonProps> = ({
               <h3 className="text-lg font-medium">Records to be Exported</h3>
               <div className="max-h-64 overflow-y-auto space-y-2">
                 {records.map((record) => (
-                  <Card key={record.id} className="bg-slate-800 border-slate-700">
+                  <Card key={record.record_id} className="bg-slate-800 border-slate-700">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <FileText className="h-5 w-5 text-autheo-primary" />
                           <div>
                             <div className="font-medium text-slate-200">
-                              {record.record_type}
+                              {record.type}
                             </div>
                             <div className="text-sm text-slate-400 flex items-center gap-4">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
                                 {new Date(record.created_at).toLocaleDateString()}
                               </span>
-                              {record.record_hash && (
+                              {record.blockchain_anchor_hash && (
                                 <span className="flex items-center gap-1">
                                   <Hash className="h-3 w-3" />
                                   Hash Available
