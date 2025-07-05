@@ -707,6 +707,8 @@ export type Database = {
           anchored_at: string | null
           created_at: string | null
           encrypted_data: string
+          encrypted_key: string | null
+          encrypted_payload: string | null
           id: string
           iv: string | null
           patient_id: string | null
@@ -720,6 +722,8 @@ export type Database = {
           anchored_at?: string | null
           created_at?: string | null
           encrypted_data: string
+          encrypted_key?: string | null
+          encrypted_payload?: string | null
           id?: string
           iv?: string | null
           patient_id?: string | null
@@ -733,6 +737,8 @@ export type Database = {
           anchored_at?: string | null
           created_at?: string | null
           encrypted_data?: string
+          encrypted_key?: string | null
+          encrypted_payload?: string | null
           id?: string
           iv?: string | null
           patient_id?: string | null

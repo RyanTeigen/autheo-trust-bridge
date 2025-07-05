@@ -8,6 +8,7 @@ import { Shield, Stethoscope, Users as UserIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProviderRecordForm from '@/components/provider/ProviderRecordForm';
+import EncryptionDemo from '@/components/provider/EncryptionDemo';
 import ImportRecordForm from '@/components/provider/ImportRecordForm';
 import ProviderAnalyticsTab from '@/components/provider/ProviderAnalyticsTab';
 
@@ -85,7 +86,10 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
         </TabsContent>
 
         <TabsContent value="create" className="mt-6">
-          <ProviderRecordForm />
+          <div className="space-y-6">
+            <ProviderRecordForm />
+            <EncryptionDemo />
+          </div>
         </TabsContent>
 
         <TabsContent value="import" className="mt-6">

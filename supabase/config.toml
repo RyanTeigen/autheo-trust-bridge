@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.access-request-response]
 verify_jwt = true
+
+[functions.log_anchor]
+verify_jwt = true

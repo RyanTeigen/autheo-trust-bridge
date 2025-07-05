@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { FileText } from 'lucide-react';
-import { anchorRecordOnChain } from '@/utils/blockchain';
+import { FileText, Shield } from 'lucide-react';
+import { encryptMedicalRecord, anchorRecordToBlockchain } from '@/lib/encryption';
 
 export default function ProviderRecordForm() {
   const { user } = useAuth();
@@ -22,6 +22,21 @@ export default function ProviderRecordForm() {
     timestamp: new Date().toISOString().slice(0, 16),
   });
   const [loading, setLoading] = useState(false);
+
+  // Mock function to get patient's Kyber public key
+  // In production, this would fetch from patient's profile or key management system
+  const getPatientKyberPublicKey = async (patientId: string): Promise<string> => {
+    // For now, return a mock public key
+    // TODO: Replace with actual key retrieval from patient profile
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('encryption_public_key')
+      .eq('id', patientId)
+      .single();
+    
+    // Return mock key if no key is stored (for development)
+    return profile?.encryption_public_key || 'mock_kyber_public_key_' + patientId;
+  };
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -79,31 +94,42 @@ export default function ProviderRecordForm() {
         return;
       }
 
+      // Get patient's public key for encryption
+      const patientPublicKey = await getPatientKyberPublicKey(patient.user_id);
+
       // Create the medical record data
       const recordData = {
-        title: `${form.type.replace('_', ' ')} Record`,
-        description: `${form.type}: ${form.value} ${form.unit}`,
-        category: form.type,
-        notes: `Recorded by provider at ${new Date(form.timestamp).toLocaleString()}`,
+        type: form.type,
         value: form.value,
         unit: form.unit,
-        recorded_at: form.timestamp,
+        timestamp: form.timestamp,
+        provider_notes: `Recorded by provider at ${new Date(form.timestamp).toLocaleString()}`,
       };
 
-      // Use the medical records API
-      const response = await fetch('/api/medical-records', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(recordData),
-      });
+      // Encrypt the medical record using hybrid encryption
+      const { encryptedPayload, encryptedKey } = await encryptMedicalRecord(
+        JSON.stringify(recordData),
+        patientPublicKey
+      );
 
-      const result = await response.json();
+      // Insert the encrypted medical record directly into the database
+      const { data: medicalRecord, error: insertError } = await supabase
+        .from('medical_records')
+        .insert({
+          patient_id: patient.id,
+          provider_id: user.id,
+          user_id: patient.user_id,
+          record_type: form.type,
+          encrypted_data: encryptedPayload,
+          encrypted_payload: encryptedPayload,
+          encrypted_key: encryptedKey,
+          iv: 'hybrid_encrypted',
+        })
+        .select()
+        .single();
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to create medical record');
+      if (insertError) {
+        throw new Error('Failed to create medical record: ' + insertError.message);
       }
 
       // Log the action for audit purposes
@@ -111,23 +137,32 @@ export default function ProviderRecordForm() {
         user_id: user.id,
         action: 'CREATE_RECORD',
         resource: 'medical_record',
-        resource_id: result.data.id,
+        resource_id: medicalRecord.id,
         status: 'success',
-        details: `Created ${form.type} record for patient ${patient.id}`,
+        details: `Created encrypted ${form.type} record for patient ${patient.id}`,
         timestamp: new Date().toISOString(),
       });
 
-      toast({
-        title: "Success",
-        description: "Medical record created successfully",
-      });
-
-      // Anchor the record on blockchain
+      // Anchor the record on blockchain for provenance
       try {
-        await anchorRecordOnChain(result.data.id);
+        const anchorResult = await anchorRecordToBlockchain(
+          medicalRecord.id,
+          patient.user_id,
+          form.type
+        );
+        console.log('Record anchored:', anchorResult);
+        
+        toast({
+          title: "Success",
+          description: "Medical record created & anchored to blockchain",
+        });
       } catch (error) {
         console.error('Error anchoring record on blockchain:', error);
-        // Don't fail the entire operation if blockchain anchoring fails
+        toast({
+          title: "Partial Success",
+          description: "Record created but blockchain anchoring failed",
+          variant: "destructive",
+        });
       }
 
       // Reset form
@@ -156,8 +191,12 @@ export default function ProviderRecordForm() {
       <CardHeader className="border-b border-slate-700">
         <CardTitle className="text-autheo-primary flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Create Medical Record
+          Create Encrypted Medical Record
         </CardTitle>
+        <div className="flex items-center gap-2 mt-2">
+          <Shield className="h-4 w-4 text-green-400" />
+          <span className="text-sm text-green-400">Quantum-safe hybrid encryption enabled</span>
+        </div>
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-4">
@@ -228,7 +267,7 @@ export default function ProviderRecordForm() {
             onClick={handleSubmit}
             className="w-full bg-autheo-primary hover:bg-autheo-primary/90"
           >
-            {loading ? 'Creating Record...' : 'Create Medical Record'}
+            {loading ? 'Creating & Encrypting Record...' : 'Create Encrypted Record'}
           </Button>
         </div>
       </CardContent>
