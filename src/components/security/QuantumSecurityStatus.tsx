@@ -10,10 +10,16 @@ import {
   Key,
   Lock,
   Zap,
-  Activity
+  Activity,
+  RotateCcw,
+  FileSignature,
+  Database
 } from 'lucide-react';
 import { getKyberHealthStatus, initializeKyberSubsystem } from '@/utils/kyber-health';
 import { getKyberParams } from '@/utils/pq-kyber';
+import { quantumKeyManager } from '@/services/security/QuantumKeyManager';
+import { HybridEncryptionService } from '@/services/security/HybridEncryptionService';
+import { QuantumDigitalSignatures } from '@/services/security/QuantumDigitalSignatures';
 import QuantumEncryptionIndicator from './QuantumEncryptionIndicator';
 
 interface SecurityMetric {
@@ -29,6 +35,9 @@ const QuantumSecurityStatus: React.FC = () => {
   const [kyberParams, setKyberParams] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [keyManagerStatus, setKeyManagerStatus] = useState<any>(null);
+  const [hybridEncryptionBenchmark, setHybridEncryptionBenchmark] = useState<any>(null);
+  const [digitalSignatureStatus, setDigitalSignatureStatus] = useState<any>(null);
 
   useEffect(() => {
     const initializeAndCheck = async () => {
@@ -46,6 +55,39 @@ const QuantumSecurityStatus: React.FC = () => {
         // Get health status
         const health = getKyberHealthStatus();
         setHealthStatus(health);
+
+        // Initialize Key Manager
+        try {
+          const keyManagerResult = await quantumKeyManager.initialize();
+          const rotationCheck = await quantumKeyManager.checkKeyRotationNeeded();
+          setKeyManagerStatus({ ...keyManagerResult, ...rotationCheck });
+        } catch (error) {
+          console.error('Key manager initialization failed:', error);
+          setKeyManagerStatus({ success: false, error: 'Key manager unavailable' });
+        }
+
+        // Benchmark Hybrid Encryption
+        try {
+          const benchmark = await HybridEncryptionService.benchmarkPerformance('Test data for benchmarking', 3);
+          setHybridEncryptionBenchmark(benchmark);
+        } catch (error) {
+          console.error('Hybrid encryption benchmark failed:', error);
+          setHybridEncryptionBenchmark({ error: 'Benchmark unavailable' });
+        }
+
+        // Check Digital Signatures
+        try {
+          const signingKeys = QuantumDigitalSignatures.getAllSigningKeysMetadata();
+          setDigitalSignatureStatus({ 
+            available: true, 
+            keyCount: signingKeys.length,
+            keys: signingKeys
+          });
+        } catch (error) {
+          console.error('Digital signature check failed:', error);
+          setDigitalSignatureStatus({ available: false, error: 'Digital signatures unavailable' });
+        }
+
       } catch (error) {
         console.error('Error initializing quantum security status:', error);
       } finally {
@@ -285,6 +327,82 @@ const QuantumSecurityStatus: React.FC = () => {
               {healthStatus?.lastCheck && (
                 <div className="md:col-span-2">
                   <span className="font-medium">Last Health Check:</span> {new Date(healthStatus.lastCheck).toLocaleString()}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Key Management Status */}
+      {keyManagerStatus && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RotateCcw className="h-5 w-5" />
+              Key Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Status:</span>
+                <Badge variant={keyManagerStatus.success ? 'default' : 'destructive'}>
+                  {keyManagerStatus.success ? 'Operational' : 'Error'}
+                </Badge>
+              </div>
+              {keyManagerStatus.currentKey && (
+                <div className="text-sm text-muted-foreground">
+                  Key ID: {keyManagerStatus.currentKey.id}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Hybrid Encryption Status */}
+      {hybridEncryptionBenchmark && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Hybrid Encryption
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {hybridEncryptionBenchmark.error ? (
+              <div className="text-sm text-muted-foreground">{hybridEncryptionBenchmark.error}</div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>Encrypt: {hybridEncryptionBenchmark.averageEncryptTime?.toFixed(1)}ms</div>
+                <div>Decrypt: {hybridEncryptionBenchmark.averageDecryptTime?.toFixed(1)}ms</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Digital Signatures Status */}
+      {digitalSignatureStatus && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileSignature className="h-5 w-5" />
+              Digital Signatures
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Available:</span>
+                <Badge variant={digitalSignatureStatus.available ? 'default' : 'destructive'}>
+                  {digitalSignatureStatus.available ? 'Yes' : 'No'}
+                </Badge>
+              </div>
+              {digitalSignatureStatus.keyCount !== undefined && (
+                <div className="text-sm text-muted-foreground">
+                  Signing Keys: {digitalSignatureStatus.keyCount}
                 </div>
               )}
             </div>
