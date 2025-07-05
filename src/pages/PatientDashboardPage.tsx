@@ -7,7 +7,7 @@ import RevampedDashboardTabs from '@/components/patient-dashboard/RevampedDashbo
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import ZeroKnowledgeVerificationWidget from '@/components/security/ZeroKnowledgeVerificationWidget';
+
 
 const PatientDashboardPage = () => {
   const { user } = useAuth();
@@ -56,8 +56,6 @@ const PatientDashboardPage = () => {
         description="Your personal health management platform with quantum-safe sharing and comprehensive health tracking"
         icon={<Heart className="h-8 w-8 text-autheo-primary" />}
       />
-      
-      <ZeroKnowledgeVerificationWidget />
       
       <RevampedDashboardTabs
         handleToggleShare={handleToggleShare}
