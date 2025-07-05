@@ -2,39 +2,66 @@
 import React from 'react';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Clock, Pill } from 'lucide-react';
+import { Check, Clock, Pill, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface Medication {
-  id: string;
-  name: string;
-  dosage: string;
-  frequency: string;
-  nextDose: string;
-}
+import { Skeleton } from '@/components/ui/skeleton';
+import { useMedications, type Medication } from '@/hooks/useMedications';
 
 interface MedicationRemindersCardProps {
   medications: Medication[];
+  loading?: boolean;
 }
 
-const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medications }) => {
-  const handleMarkTaken = (id: string) => {
-    console.log('Marked as taken:', id);
-    // In a real app, this would update the state/backend
+const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medications, loading = false }) => {
+  const { markAsTaken, requestRefill } = useMedications();
+  
+  const handleMarkTaken = async (id: string, medicationName: string) => {
+    await markAsTaken(id);
   };
   
-  const handleRefill = () => {
-    console.log('Request refill');
-    // In a real app, this would navigate to a refill page or open a modal
+  const handleRefill = async (id: string) => {
+    await requestRefill(id);
   };
   
   const getTimeColor = (nextDose: string): string => {
-    if (nextDose.includes('Today')) {
+    if (nextDose.toLowerCase().includes('today')) {
       return 'text-amber-300';
     } else {
       return 'text-slate-300';
     }
   };
+
+  const isDueToday = (nextDose: string): boolean => {
+    return nextDose.toLowerCase().includes('today');
+  };
+
+  const needsRefill = (medication: Medication): boolean => {
+    return medication.refillsRemaining <= 1;
+  };
+
+  if (loading) {
+    return (
+      <Card className="bg-slate-800 border-slate-700 text-slate-100">
+        <CardHeader className="border-b border-slate-700 bg-slate-700/30">
+          <CardTitle className="text-autheo-primary">Medication Reminders</CardTitle>
+          <CardDescription className="text-slate-300">
+            Keep track of your medication schedule
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-5">
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-3 border border-slate-700 bg-slate-800/50 rounded-lg">
+                <Skeleton className="h-4 w-32 mb-2 bg-slate-700" />
+                <Skeleton className="h-3 w-24 mb-1 bg-slate-700" />
+                <Skeleton className="h-3 w-28 bg-slate-700" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <Card className="bg-slate-800 border-slate-700 text-slate-100">
@@ -46,46 +73,84 @@ const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medic
       </CardHeader>
       <CardContent className="p-5">
         <div className="space-y-3">
-          {medications.map((medication) => (
-            <div 
-              key={medication.id}
-              className="p-3 border border-slate-700 bg-slate-800/50 rounded-lg flex justify-between items-start"
-            >
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <Pill className="h-4 w-4 text-autheo-primary" />
-                  <span className="font-medium text-slate-100">{medication.name} {medication.dosage}</span>
+          {medications.length === 0 ? (
+            <div className="text-center py-6 text-slate-400">
+              <Pill className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No medications to track</p>
+            </div>
+          ) : (
+            medications.map((medication) => (
+              <div 
+                key={medication.id}
+                className={`p-3 border border-slate-700 bg-slate-800/50 rounded-lg ${
+                  isDueToday(medication.nextDose) ? 'ring-2 ring-amber-400/30' : ''
+                }`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <Pill className="h-4 w-4 text-autheo-primary" />
+                    <span className="font-medium text-slate-100">{medication.name} {medication.dosage}</span>
+                    {needsRefill(medication) && (
+                      <Badge variant="outline" className="bg-red-100/10 text-red-300 border-red-300/20">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        Low Stock
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    {needsRefill(medication) && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="h-7 px-2 border-blue-600/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400"
+                        onClick={() => handleRefill(medication.id)}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        Refill
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="h-7 px-2 border-green-600/30 bg-green-600/10 hover:bg-green-600/20 text-green-400"
+                      onClick={() => handleMarkTaken(medication.id, medication.name)}
+                    >
+                      <Check className="h-3 w-3 mr-1" />
+                      Taken
+                    </Button>
+                  </div>
                 </div>
                 
-                <div className="text-sm text-slate-400">{medication.frequency}</div>
+                <div className="text-sm text-slate-400 mb-1">{medication.frequency}</div>
                 
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-2 mb-1">
                   <Clock className={`h-3.5 w-3.5 ${getTimeColor(medication.nextDose)}`} />
                   <span className={`text-sm ${getTimeColor(medication.nextDose)}`}>
                     Next dose: {medication.nextDose}
                   </span>
                 </div>
+
+                {medication.lastTaken && (
+                  <div className="text-xs text-slate-500">
+                    Last taken: {medication.lastTaken}
+                  </div>
+                )}
+
+                <div className="text-xs text-slate-500 mt-1">
+                  Prescribed by {medication.prescribedBy} • {medication.refillsRemaining} refills remaining
+                </div>
               </div>
-              
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="border-green-600/30 bg-green-600/10 hover:bg-green-600/20 text-green-400"
-                onClick={() => handleMarkTaken(medication.id)}
-              >
-                <Check className="h-3.5 w-3.5 mr-1" />
-                Mark Taken
-              </Button>
-            </div>
-          ))}
+            ))
+          )}
           
           <div className="mt-2">
             <Button 
-              onClick={handleRefill}
+              onClick={() => console.log('Navigate to full medication management')}
               variant="outline"
               className="w-full border-slate-700 hover:bg-slate-700/50 text-slate-100"
             >
-              Request Medication Refill
+              <Pill className="h-4 w-4 mr-2" />
+              Manage All Medications
             </Button>
           </div>
         </div>

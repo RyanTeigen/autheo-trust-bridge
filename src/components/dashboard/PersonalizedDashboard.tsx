@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { useHealthRecords } from '@/contexts/HealthRecordsContext';
+import { useAppointments } from '@/hooks/useAppointments';
+import { useMedications } from '@/hooks/useMedications';
 import DashboardWelcomeEnhanced from './DashboardWelcomeEnhanced';
 import EnhancedQuickActions from './EnhancedQuickActions';
 import ConsolidatedHealthOverview from './ConsolidatedHealthOverview';
@@ -15,44 +17,8 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
   patientName = "Patient",
 }) => {
   const { summary } = useHealthRecords();
-  
-  // Default appointments
-  const defaultAppointments = [
-    {
-      id: '1',
-      provider: 'Dr. Sarah Johnson',
-      date: 'May 25, 2025',
-      time: '10:30 AM',
-      type: 'Follow-up',
-      location: 'Main Clinic'
-    },
-    {
-      id: '2',
-      provider: 'Dr. Michael Lee',
-      date: 'Jun 12, 2025',
-      time: '2:15 PM',
-      type: 'Consultation',
-      location: 'Virtual'
-    }
-  ];
-  
-  // Default medications
-  const defaultMedications = [
-    {
-      id: '1',
-      name: 'Lisinopril',
-      dosage: '10mg',
-      frequency: 'Once daily',
-      nextDose: 'Today, 8:00 PM'
-    },
-    {
-      id: '2',
-      name: 'Metformin',
-      dosage: '500mg',
-      frequency: 'Twice daily',
-      nextDose: 'Tomorrow, 8:00 AM'
-    }
-  ];
+  const { upcomingAppointments, loading: appointmentsLoading } = useAppointments();
+  const { medications, loading: medicationsLoading } = useMedications();
   
   // Mock compliance score
   const complianceScore = 92;
@@ -63,21 +29,27 @@ const PersonalizedDashboard: React.FC<PersonalizedDashboardProps> = ({
       <DashboardWelcomeEnhanced 
         patientName={patientName} 
         complianceScore={complianceScore} 
-        appointmentsCount={defaultAppointments.length}
+        appointmentsCount={upcomingAppointments.length}
         unreadMessages={3}
       />
+      
+      {/* Priority Section: Immediate Health Actions - Moved to top */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <AppointmentsCard 
+          appointments={upcomingAppointments} 
+          loading={appointmentsLoading}
+        />
+        <MedicationRemindersCard 
+          medications={medications} 
+          loading={medicationsLoading}
+        />
+      </div>
       
       {/* Enhanced quick actions */}
       <EnhancedQuickActions className="bg-slate-800 border-slate-700" />
       
       {/* Consolidated health overview (now includes atomic vitals) */}
       <ConsolidatedHealthOverview />
-      
-      {/* Appointments and medications in a consistent style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <AppointmentsCard appointments={defaultAppointments} />
-        <MedicationRemindersCard medications={defaultMedications} />
-      </div>
     </div>
   );
 };
