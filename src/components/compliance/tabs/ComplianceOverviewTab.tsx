@@ -93,63 +93,63 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
     <div className="space-y-6">
       {/* Key Metrics Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Total Records</p>
-                <p className="text-2xl font-bold text-slate-200">
+                <p className="text-sm text-muted-foreground">Total Records</p>
+                <p className="text-2xl font-bold text-card-foreground">
                   {dashboardMetrics.loading ? '...' : dashboardMetrics.totalRecords.toLocaleString()}
                 </p>
               </div>
-              <FileText className="h-8 w-8 text-blue-400" />
+              <FileText className="h-8 w-8 text-secondary" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Access Requests This Month</p>
-                <p className="text-2xl font-bold text-slate-200">
+                <p className="text-sm text-muted-foreground">Access Requests This Month</p>
+                <p className="text-2xl font-bold text-card-foreground">
                   {dashboardMetrics.loading ? '...' : dashboardMetrics.accessRequestsThisMonth}
                 </p>
               </div>
-              <Calendar className="h-8 w-8 text-green-400" />
+              <Calendar className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Approval Rate</p>
-                <p className="text-2xl font-bold text-green-400">
+                <p className="text-sm text-muted-foreground">Approval Rate</p>
+                <p className="text-2xl font-bold text-primary">
                   {dashboardMetrics.loading ? '...' : `${dashboardMetrics.approvalRate}%`}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-400" />
+              <TrendingUp className="h-8 w-8 text-primary" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-slate-400">Active Users</p>
-                <p className="text-2xl font-bold text-slate-200">
+                <p className="text-sm text-muted-foreground">Active Users</p>
+                <p className="text-2xl font-bold text-card-foreground">
                   {dashboardMetrics.loading ? '...' : 
                     `${dashboardMetrics.activePatients + dashboardMetrics.activeProviders}`
                   }
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground/70">
                   {dashboardMetrics.activePatients}P + {dashboardMetrics.activeProviders}Pr
                 </p>
               </div>
-              <Users className="h-8 w-8 text-purple-400" />
+              <Users className="h-8 w-8 text-accent" />
             </div>
           </CardContent>
         </Card>

@@ -26,21 +26,21 @@ const CompliancePage = () => {
   };
   
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100">
+    <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 py-6 space-y-6 max-w-7xl">
         {/* Header */}
         <div className="space-y-4">
           <div className="flex justify-between items-start flex-wrap gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight mb-2 text-slate-100">HIPAA Compliance Dashboard</h1>
-              <p className="text-slate-300">
+              <h1 className="text-3xl font-bold tracking-tight mb-2 text-foreground">HIPAA Compliance Dashboard</h1>
+              <p className="text-muted-foreground">
                 Monitor, manage, and maintain your organization's compliance status
               </p>
             </div>
           </div>
 
           {!hasComplianceRole && (
-            <Alert className="mb-4 bg-amber-900/20 border-amber-500/30 text-amber-200">
+            <Alert className="mb-4 bg-destructive/10 border-destructive/30 text-destructive-foreground">
               <AlertTriangle className="h-5 w-5" />
               <AlertDescription>
                 You are accessing this page with creator privileges. Normally, this page is restricted to users with compliance or admin roles.
@@ -51,34 +51,34 @@ const CompliancePage = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
+          <TabsList className="grid w-full grid-cols-5 bg-card border-border">
             <TabsTrigger 
               value="overview" 
-              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger 
               value="monitoring" 
-              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Monitoring
             </TabsTrigger>
             <TabsTrigger 
               value="audit" 
-              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Audit
             </TabsTrigger>
             <TabsTrigger 
               value="tools" 
-              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Tools
             </TabsTrigger>
             <TabsTrigger 
               value="reports" 
-              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Reports
             </TabsTrigger>
