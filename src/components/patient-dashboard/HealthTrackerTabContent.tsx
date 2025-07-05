@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Activity, Heart, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import VitalSignsTracker from '@/components/healthcare/VitalSignsTracker';
 import AtomicDataForm from '@/components/patient/AtomicDataForm';
 import VitalsMetrics from '@/components/patient/vital-signs/VitalsMetrics';
 import { useAuth } from '@/contexts/AuthContext';
@@ -135,9 +134,6 @@ const HealthTrackerTabContent: React.FC = () => {
 
       {/* Health Metrics and Charts */}
       <VitalsMetrics />
-
-      {/* Legacy Vital Signs Tracker */}
-      <VitalSignsTracker />
     </div>
   );
 };
