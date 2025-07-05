@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
 import ComplianceExportButton from '@/components/compliance/ComplianceExportButton';
 import ExportAuditLogsButton from '@/components/compliance/ExportAuditLogsButton';
+import AnchoredLogsTable from '@/components/compliance/AnchoredLogsTable';
 
 const ComplianceReportsTab: React.FC = () => {
   // Sample trend data for the compliance trend chart
@@ -52,6 +53,10 @@ const ComplianceReportsTab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <ComplianceTrendChart data={trendData} />
         <ComplianceRadarChart data={radarData} />
+      </div>
+      
+      <div className="mb-6">
+        <AnchoredLogsTable />
       </div>
       
       <ComplianceRecommendations />

@@ -58,6 +58,44 @@ export type Database = {
           },
         ]
       }
+      anchored_logs: {
+        Row: {
+          anchor_tx_hash: string | null
+          anchored: boolean | null
+          export_type: string
+          hash: string
+          id: string
+          initiated_by: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          anchor_tx_hash?: string | null
+          anchored?: boolean | null
+          export_type: string
+          hash: string
+          id?: string
+          initiated_by?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          anchor_tx_hash?: string | null
+          anchored?: boolean | null
+          export_type?: string
+          hash?: string
+          id?: string
+          initiated_by?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "anchored_logs_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atomic_data_points: {
         Row: {
           created_at: string | null

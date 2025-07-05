@@ -139,6 +139,14 @@ serve(async (req) => {
       }
     })
 
+    // Track export in anchored_logs table for future blockchain anchoring
+    await supabase.from('anchored_logs').insert({
+      export_type: 'audit_log',
+      hash: hash,
+      initiated_by: user.id,
+      anchored: false
+    })
+
     console.log(`Successfully exported ${logs.length} audit logs for user ${user.id}`)
 
     return new Response(csvContent, {
