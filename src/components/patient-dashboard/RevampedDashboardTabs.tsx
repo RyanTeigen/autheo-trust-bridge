@@ -6,7 +6,7 @@ import SimplifiedHealthRecordsTab from './SimplifiedHealthRecordsTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
-import SimplifiedRecordSharingInbox from '@/components/patient/SimplifiedRecordSharingInbox';
+import AccessRequestsTab from './AccessRequestsTab';
 import ActiveSharesList from '@/components/patient/ActiveSharesList';
 
 interface RevampedDashboardTabsProps {
@@ -100,7 +100,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="access-requests">
-        <SimplifiedRecordSharingInbox />
+        <AccessRequestsTab />
       </TabsContent>
       
       <TabsContent value="shared-records">

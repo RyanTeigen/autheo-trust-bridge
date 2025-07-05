@@ -996,6 +996,7 @@ export type Database = {
       sharing_permissions: {
         Row: {
           created_at: string | null
+          decision_note: string | null
           expires_at: string | null
           grantee_id: string
           id: string
@@ -1009,6 +1010,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          decision_note?: string | null
           expires_at?: string | null
           grantee_id: string
           id?: string
@@ -1022,6 +1024,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          decision_note?: string | null
           expires_at?: string | null
           grantee_id?: string
           id?: string
