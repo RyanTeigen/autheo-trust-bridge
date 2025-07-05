@@ -9,6 +9,7 @@ export interface SharedPatientRecord {
   iv: string;
   created_at: string;
   record_hash: string;
+  recipient_id: string;
 }
 
 export class PatientRecordsAccessService {

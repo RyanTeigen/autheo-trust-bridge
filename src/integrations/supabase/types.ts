@@ -1473,6 +1473,7 @@ export type Database = {
           iv: string
           created_at: string
           record_hash: string
+          recipient_id: string
         }[]
       }
       get_user_role: {
