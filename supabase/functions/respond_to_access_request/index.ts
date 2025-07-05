@@ -24,18 +24,6 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    )
-
     // Get the authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -48,14 +36,25 @@ serve(async (req) => {
       )
     }
 
-    // Set the auth header for the supabase client
-    supabase.auth.setSession({
-      access_token: authHeader.replace('Bearer ', ''),
-      refresh_token: ''
-    } as any)
+    // Initialize Supabase client with the auth token
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        },
+        global: {
+          headers: {
+            Authorization: authHeader
+          }
+        }
+      }
+    )
 
     // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
     if (userError || !user) {
       console.error('Authentication error:', userError)
       return new Response(
