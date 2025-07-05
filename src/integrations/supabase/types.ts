@@ -802,6 +802,7 @@ export type Database = {
           full_name: string | null
           id: string
           insurance_info: Json | null
+          kyber_public_key: string | null
           mrn: string | null
           phone: string | null
           updated_at: string | null
@@ -817,6 +818,7 @@ export type Database = {
           full_name?: string | null
           id: string
           insurance_info?: Json | null
+          kyber_public_key?: string | null
           mrn?: string | null
           phone?: string | null
           updated_at?: string | null
@@ -832,6 +834,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           insurance_info?: Json | null
+          kyber_public_key?: string | null
           mrn?: string | null
           phone?: string | null
           updated_at?: string | null

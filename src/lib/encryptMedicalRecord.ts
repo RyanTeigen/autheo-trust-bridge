@@ -59,10 +59,10 @@ export async function fetchPublicKey(patientId: string): Promise<string> {
   try {
     console.log('🔍 Fetching patient public key for:', patientId);
     
-    // First try to get from patients table
+    // First try to get from patients table (check if kyber_public_key column exists)
     const { data: patientData, error: patientError } = await supabase
       .from('patients')
-      .select('kyber_public_key, user_id')
+      .select('user_id')
       .eq('id', patientId)
       .single();
 
@@ -70,38 +70,32 @@ export async function fetchPublicKey(patientId: string): Promise<string> {
       throw new Error(`Database error: ${patientError.message}`);
     }
 
-    // If found in patients table and has key
-    if (patientData?.kyber_public_key) {
-      console.log('✅ Found Kyber public key in patients table');
-      return patientData.kyber_public_key;
+    if (!patientData) {
+      throw new Error('Patient not found');
     }
 
     // Try to get from profiles table using user_id
-    if (patientData?.user_id) {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('encryption_public_key')
-        .eq('id', patientData.user_id)
-        .single();
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('encryption_public_key')
+      .eq('id', patientData.user_id)
+      .single();
 
-      if (!profileError && profileData?.encryption_public_key) {
-        console.log('✅ Found encryption public key in profiles table');
-        return profileData.encryption_public_key;
-      }
+    if (!profileError && profileData?.encryption_public_key) {
+      console.log('✅ Found encryption public key in profiles table');
+      return profileData.encryption_public_key;
     }
 
     // If no key found, generate a mock key for development
     console.warn('⚠️ No public key found, generating mock key for patient:', patientId);
     const mockKey = btoa(`MOCK_KYBER_PUBLIC_KEY::${patientId}::${Date.now()}`);
     
-    // Optionally store the mock key for consistency
-    if (patientData?.user_id) {
-      await supabase
-        .from('profiles')
-        .update({ encryption_public_key: mockKey })
-        .eq('id', patientData.user_id);
-      console.log('💾 Stored mock public key in profiles table');
-    }
+    // Store the mock key for consistency
+    await supabase
+      .from('profiles')
+      .update({ encryption_public_key: mockKey })
+      .eq('id', patientData.user_id);
+    console.log('💾 Stored mock public key in profiles table');
 
     return mockKey;
   } catch (error) {
@@ -121,31 +115,21 @@ export async function fetchPublicKey(patientId: string): Promise<string> {
  */
 export async function storePublicKey(patientId: string, publicKey: string): Promise<void> {
   try {
-    // Try to update patients table first
-    const { error: patientError } = await supabase
+    // Get user_id from patients table
+    const { data: patientData } = await supabase
       .from('patients')
-      .update({ kyber_public_key: publicKey })
-      .eq('id', patientId);
+      .select('user_id')
+      .eq('id', patientId)
+      .single();
 
-    if (patientError) {
-      console.warn('Could not update patients table, trying profiles table');
-      
-      // Get user_id from patients table
-      const { data: patientData } = await supabase
-        .from('patients')
-        .select('user_id')
-        .eq('id', patientId)
-        .single();
+    if (patientData?.user_id) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ encryption_public_key: publicKey })
+        .eq('id', patientData.user_id);
 
-      if (patientData?.user_id) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ encryption_public_key: publicKey })
-          .eq('id', patientData.user_id);
-
-        if (profileError) {
-          throw new Error(`Failed to store public key: ${profileError.message}`);
-        }
+      if (profileError) {
+        throw new Error(`Failed to store public key: ${profileError.message}`);
       }
     }
 

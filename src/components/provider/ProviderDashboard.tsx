@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProviderRecordForm from '@/components/provider/ProviderRecordForm';
 import EncryptionDemo from '@/components/provider/EncryptionDemo';
+import KeyManagementDemo from '@/components/provider/KeyManagementDemo';
 import ImportRecordForm from '@/components/provider/ImportRecordForm';
 import ProviderAnalyticsTab from '@/components/provider/ProviderAnalyticsTab';
 
@@ -88,7 +89,10 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
         <TabsContent value="create" className="mt-6">
           <div className="space-y-6">
             <ProviderRecordForm />
-            <EncryptionDemo />
+            <div className="grid gap-6 md:grid-cols-2">
+              <EncryptionDemo />
+              <KeyManagementDemo />
+            </div>
           </div>
         </TabsContent>
 
