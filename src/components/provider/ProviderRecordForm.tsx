@@ -9,7 +9,8 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { FileText, Shield } from 'lucide-react';
-import { encryptMedicalRecord, anchorRecordToBlockchain } from '@/lib/encryption';
+import { encryptMedicalRecord, fetchPublicKey } from '@/lib/encryptMedicalRecord';
+import { anchorRecordToBlockchain } from '@/lib/encryption';
 
 export default function ProviderRecordForm() {
   const { user } = useAuth();
@@ -22,21 +23,6 @@ export default function ProviderRecordForm() {
     timestamp: new Date().toISOString().slice(0, 16),
   });
   const [loading, setLoading] = useState(false);
-
-  // Mock function to get patient's Kyber public key
-  // In production, this would fetch from patient's profile or key management system
-  const getPatientKyberPublicKey = async (patientId: string): Promise<string> => {
-    // For now, return a mock public key
-    // TODO: Replace with actual key retrieval from patient profile
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('encryption_public_key')
-      .eq('id', patientId)
-      .single();
-    
-    // Return mock key if no key is stored (for development)
-    return profile?.encryption_public_key || 'mock_kyber_public_key_' + patientId;
-  };
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -95,7 +81,8 @@ export default function ProviderRecordForm() {
       }
 
       // Get patient's public key for encryption
-      const patientPublicKey = await getPatientKyberPublicKey(patient.user_id);
+      console.log('🔍 Fetching patient public key...');
+      const patientPublicKey = await fetchPublicKey(patient.id);
 
       // Create the medical record data
       const recordData = {
@@ -106,12 +93,14 @@ export default function ProviderRecordForm() {
         provider_notes: `Recorded by provider at ${new Date(form.timestamp).toLocaleString()}`,
       };
 
+      console.log('🔐 Encrypting medical record...');
       // Encrypt the medical record using hybrid encryption
-      const { encryptedPayload, encryptedKey } = await encryptMedicalRecord(
+      const { encryptedPayload, encryptedKey, algorithm } = await encryptMedicalRecord(
         JSON.stringify(recordData),
         patientPublicKey
       );
 
+      console.log('💾 Storing encrypted record...');
       // Insert the encrypted medical record directly into the database
       const { data: medicalRecord, error: insertError } = await supabase
         .from('medical_records')
@@ -123,7 +112,7 @@ export default function ProviderRecordForm() {
           encrypted_data: encryptedPayload,
           encrypted_payload: encryptedPayload,
           encrypted_key: encryptedKey,
-          iv: 'hybrid_encrypted',
+          iv: algorithm, // Store algorithm info in iv field
         })
         .select()
         .single();
@@ -131,6 +120,8 @@ export default function ProviderRecordForm() {
       if (insertError) {
         throw new Error('Failed to create medical record: ' + insertError.message);
       }
+
+      console.log('✅ Medical record created:', medicalRecord.id);
 
       // Log the action for audit purposes
       await supabase.from('audit_logs').insert({
@@ -144,23 +135,24 @@ export default function ProviderRecordForm() {
       });
 
       // Anchor the record on blockchain for provenance
+      console.log('⛓️ Anchoring to blockchain...');
       try {
         const anchorResult = await anchorRecordToBlockchain(
           medicalRecord.id,
           patient.user_id,
           form.type
         );
-        console.log('Record anchored:', anchorResult);
+        console.log('✅ Record anchored:', anchorResult);
         
         toast({
           title: "Success",
-          description: "Medical record created & anchored to blockchain",
+          description: `Encrypted record saved & anchored! Algorithm: ${algorithm}`,
         });
       } catch (error) {
-        console.error('Error anchoring record on blockchain:', error);
+        console.error('❌ Error anchoring record on blockchain:', error);
         toast({
           title: "Partial Success",
-          description: "Record created but blockchain anchoring failed",
+          description: "Record encrypted & saved, but blockchain anchoring failed",
           variant: "destructive",
         });
       }
