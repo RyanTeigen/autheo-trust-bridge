@@ -53,7 +53,20 @@ const SimplifiedRecordSharingInbox: React.FC = () => {
     try {
       setLoading(true);
 
-      // Fetch all sharing permissions for the current user
+      // First get the patient record for the current user
+      const { data: patient } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!patient) {
+        console.log('No patient record found for user');
+        setLoading(false);
+        return;
+      }
+
+      // Fetch all sharing permissions where this user is the patient (data owner)
       const { data, error } = await supabase
         .from('sharing_permissions')
         .select(`
@@ -71,22 +84,22 @@ const SimplifiedRecordSharingInbox: React.FC = () => {
             provider_id
           )
         `)
-        .eq('grantee_id', user.id)
+        .eq('patient_id', patient.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Get provider information for each request
+      // Get provider information for each request (grantee_id is the provider)
       const requestsWithProviders = await Promise.all(
         (data || []).map(async (request) => {
-          const providerId = (request.medical_records as any)?.provider_id;
           let providerInfo = null;
 
-          if (providerId) {
+          // Get provider info from grantee_id (the healthcare provider requesting access)
+          if (request.grantee_id) {
             const { data: profileData } = await supabase
               .from('profiles')
               .select('first_name, last_name, email, role')
-              .eq('id', providerId)
+              .eq('id', request.grantee_id)
               .single();
 
             if (profileData) {

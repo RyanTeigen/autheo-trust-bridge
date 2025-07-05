@@ -122,11 +122,29 @@ serve(async (req) => {
       )
     }
 
-    // Verify that the current user is the grantee (the one being asked for permission)
-    if (sharingRequest.grantee_id !== user.id) {
-      console.error(`Unauthorized: User ${user.id} cannot respond to request for grantee ${sharingRequest.grantee_id}`)
+    // Get patient record for the current user
+    const { data: patient, error: patientError } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('user_id', user.id)
+      .single()
+
+    if (patientError || !patient) {
+      console.error('Patient lookup error:', patientError)
       return new Response(
-        JSON.stringify({ error: 'Unauthorized: You can only respond to requests addressed to you' }),
+        JSON.stringify({ error: 'Patient record not found' }),
+        { 
+          status: 404, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Verify that the current user is the patient (data owner)
+    if (sharingRequest.patient_id !== patient.id) {
+      console.error(`Unauthorized: User ${user.id} (patient ${patient.id}) cannot respond to request for patient ${sharingRequest.patient_id}`)
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: You can only respond to requests for your own records' }),
         { 
           status: 403, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
