@@ -32,7 +32,7 @@ const ExportAuditLogsButton: React.FC = () => {
         return;
       }
 
-      const response = await fetch('/api/audit/export', {
+      const response = await fetch(`https://ilhzzroafedbyttdfypf.supabase.co/functions/v1/export_audit_log`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,

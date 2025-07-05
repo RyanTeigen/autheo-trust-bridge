@@ -6,6 +6,7 @@ import ComplianceRecommendations from '@/components/compliance/ComplianceRecomme
 import { Button } from '@/components/ui/button';
 import { Download, FileText } from 'lucide-react';
 import ComplianceExportButton from '@/components/compliance/ComplianceExportButton';
+import ExportAuditLogsButton from '@/components/compliance/ExportAuditLogsButton';
 
 const ComplianceReportsTab: React.FC = () => {
   // Sample trend data for the compliance trend chart
@@ -44,6 +45,7 @@ const ComplianceReportsTab: React.FC = () => {
             variant="default"
             className="bg-autheo-primary hover:bg-autheo-primary/90 text-slate-900"
           />
+          <ExportAuditLogsButton />
         </div>
       </div>
 
