@@ -161,10 +161,21 @@ const QuantumSecurityStatus: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {!isInitialized && (
-            <Alert className="border-amber-200 bg-amber-50">
+            <Alert className="bg-destructive/10 border-destructive/30">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Quantum cryptography subsystem initialization failed. System is operating in fallback mode.
+              <AlertDescription className="text-destructive-foreground">
+                <strong>⚠️ MOCK DATA WARNING:</strong> Real quantum cryptography is not available. 
+                All metrics shown are simulated for demonstration purposes only. 
+                This is NOT providing actual quantum security.
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {isInitialized && (
+            <Alert className="bg-primary/10 border-primary/30">
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription className="text-primary-foreground">
+                ✅ Real quantum cryptography is operational and protecting your data.
               </AlertDescription>
             </Alert>
           )}
@@ -206,8 +217,11 @@ const QuantumSecurityStatus: React.FC = () => {
                     {metric.icon}
                   </div>
                   <div>
-                    <h3 className="font-medium">{metric.name}</h3>
-                    <p className="text-sm text-gray-600">{metric.description}</p>
+                    <h3 className="font-medium">
+                      {metric.name}
+                      {!isInitialized && <span className="text-xs text-destructive ml-2">(MOCK)</span>}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{metric.description}</p>
                   </div>
                 </div>
                 <Badge 
