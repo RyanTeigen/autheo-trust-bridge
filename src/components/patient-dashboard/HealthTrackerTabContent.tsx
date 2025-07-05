@@ -4,52 +4,43 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Activity, Heart, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import AtomicDataForm from '@/components/patient/AtomicDataForm';
-
 import { useAuth } from '@/contexts/AuthContext';
-import { getOrCreateMedicalRecord } from '@/utils/record';
+import { supabase } from '@/integrations/supabase/client';
 
 const HealthTrackerTabContent: React.FC = () => {
   const { user } = useAuth();
-  const [recordId, setRecordId] = useState<string | null>(null);
-  const [recordLoading, setRecordLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchOrCreateRecord = async () => {
-    if (!user?.id) {
-      setRecordLoading(false);
-      setError('Please log in to access your medical records.');
-      return;
-    }
-    
-    console.log('Fetching or creating medical record for user:', user.id);
-    setError(null);
-    setRecordLoading(true);
-    
-    try {
-      const id = await getOrCreateMedicalRecord(user.id);
-      
-      if (id) {
-        setRecordId(id);
-        console.log('Successfully loaded medical record:', id);
-      } else {
-        setError('Failed to load or create medical record. This might be due to database permissions. Please try refreshing the page or contact support if the issue persists.');
-      }
-    } catch (err) {
-      console.error('Error in fetchOrCreateRecord:', err);
-      setError('An unexpected error occurred while loading your medical record. Please try again.');
-    } finally {
-      setRecordLoading(false);
-    }
-  };
+  const [records, setRecords] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchOrCreateRecord();
-  }, [user]);
+    const fetchExistingRecords = async () => {
+      if (!user?.id) {
+        setLoading(false);
+        return;
+      }
+      
+      try {
+        // Only fetch existing medical records created by providers
+        const { data, error } = await supabase
+          .from('medical_records')
+          .select('*')
+          .eq('patient_id', user.id)
+          .not('provider_id', 'is', null); // Only records with provider_id
+        
+        if (error) {
+          console.error('Error fetching records:', error);
+        } else {
+          setRecords(data || []);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleRetry = () => {
-    fetchOrCreateRecord();
-  };
+    fetchExistingRecords();
+  }, [user]);
 
   if (!user) {
     return (
@@ -77,61 +68,43 @@ const HealthTrackerTabContent: React.FC = () => {
         </CardHeader>
         <CardContent className="p-6">
           <p className="text-slate-300 mb-4">
-            Track your vital signs, view health metrics, and monitor your health trends over time.
+            View your health metrics and vital signs data shared by healthcare providers.
           </p>
         </CardContent>
       </Card>
 
-      {/* Vital Signs Input Section */}
-      <div className="mb-6">
-        {recordLoading ? (
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-center space-x-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-autheo-primary"></div>
-                <p className="text-center text-slate-300">Loading your medical record...</p>
+      {/* Display provider-created health records */}
+      <Card className="bg-slate-800 border-slate-700">
+        <CardContent className="p-6">
+          {loading ? (
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-autheo-primary"></div>
+              <p className="text-center text-slate-300">Loading health records...</p>
+            </div>
+          ) : records.length > 0 ? (
+            <div>
+              <h3 className="text-lg font-medium text-slate-200 mb-4">Your Health Records</h3>
+              <div className="space-y-2">
+                {records.map((record) => (
+                  <div key={record.id} className="p-3 bg-slate-700 rounded-lg">
+                    <p className="text-slate-200">{record.record_type}</p>
+                    <p className="text-sm text-slate-400">
+                      Created: {new Date(record.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        ) : error ? (
-          <Alert className="border-red-500/30 bg-red-900/20">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-slate-200 flex items-center justify-between">
-              <span>{error}</span>
-              <Button 
-                onClick={handleRetry}
-                variant="outline"
-                size="sm"
-                className="ml-4"
-              >
-                Try Again
-              </Button>
-            </AlertDescription>
-          </Alert>
-        ) : recordId ? (
-          <AtomicDataForm recordId={recordId} />
-        ) : (
-          <Card className="bg-slate-800 border-slate-700">
-            <CardContent className="p-6">
-              <Alert className="border-amber-500/30 bg-amber-900/20">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-slate-200 flex items-center justify-between">
-                  <span>No medical record found. Click to create one.</span>
-                  <Button 
-                    onClick={handleRetry}
-                    variant="outline"
-                    size="sm"
-                    className="ml-4"
-                  >
-                    Create Record
-                  </Button>
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
+            </div>
+          ) : (
+            <Alert className="border-blue-500/30 bg-blue-900/20">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-slate-200">
+                No health tracking records available. Contact your healthcare provider to set up health monitoring.
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

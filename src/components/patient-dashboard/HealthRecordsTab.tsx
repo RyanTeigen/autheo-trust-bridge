@@ -5,11 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, FileText, Calendar, User, Share2, Download, Upload, Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import SimpleMedicalRecordForm from '@/components/medical/SimpleMedicalRecordForm';
+import { Search, Filter, FileText, Calendar, Share2 } from 'lucide-react';
 import { ExportRecordButton } from '@/components/patient/ExportRecordButton';
-import { ImportRecordButton } from '@/components/patient/ImportRecordButton';
 import { RecordIntegrityBadge } from '@/components/patient/RecordIntegrityBadge';
 import PatientRecordViewer from '@/components/patient/PatientRecordViewer';
 import { useToast } from '@/hooks/use-toast';
@@ -49,7 +46,6 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
 }) => {
   const [records, setRecords] = useState<HealthRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAddDialog, setShowAddDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -115,15 +111,6 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
     return matchesSearch && matchesCategory;
   });
 
-  const handleImportSuccess = () => {
-    // Refresh records list or handle successful import
-    toast({
-      title: "Record Imported",
-      description: "Your medical record has been successfully imported and added to your collection.",
-    });
-    // In a real implementation, you would refetch the records here
-  };
-
   if (loading) {
     return (
       <div className="space-y-4">
@@ -145,38 +132,11 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-200">My Health Records</h2>
-          <p className="text-slate-400">Manage your personal encrypted medical records with blockchain integrity verification</p>
+          <p className="text-slate-400">View your encrypted medical records created by healthcare providers</p>
         </div>
         
         <div className="flex gap-2">
-          <ImportRecordButton 
-            onImportSuccess={handleImportSuccess}
-            className="text-slate-300 border-slate-600 hover:bg-slate-700"
-          />
-          
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button variant="autheo">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Record
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Add Medical Record</DialogTitle>
-              </DialogHeader>
-              <SimpleMedicalRecordForm 
-                onSubmit={async () => {
-                  setShowAddDialog(false);
-                  toast({
-                    title: "Success",
-                    description: "Medical record added successfully",
-                  });
-                }}
-                onCancel={() => setShowAddDialog(false)}
-              />
-            </DialogContent>
-          </Dialog>
+          {/* Export functionality remains available for patients */}
         </div>
       </div>
 
@@ -218,15 +178,9 @@ const HealthRecordsTab: React.FC<HealthRecordsTabProps> = ({
               <p className="text-slate-400 mb-4">
                 {searchQuery || selectedCategory !== 'all' 
                   ? 'Try adjusting your search or filter criteria'
-                  : 'Your health records will appear here once they are added'
+                  : 'Medical records created by healthcare providers will appear here'
                 }
               </p>
-              <div className="flex justify-center gap-2">
-                <ImportRecordButton 
-                  onImportSuccess={handleImportSuccess}
-                  className="text-slate-300 border-slate-600 hover:bg-slate-700"
-                />
-              </div>
             </CardContent>
           </Card>
         ) : (

@@ -12,13 +12,9 @@ import {
   Calendar, 
   User, 
   Share2, 
-  Download, 
-  Upload, 
-  Plus,
   Shield,
   Clock
 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import ExportRecordsButton from '@/components/patient/ExportRecordsButton';
 
@@ -28,7 +24,7 @@ const mockPersonalRecords = [
     id: '1',
     record_type: 'Lab Results - Blood Work',
     created_at: '2024-12-15T10:30:00Z',
-    provider: 'My Lab Upload',
+    provider: 'Dr. Martinez - Primary Care',
     status: 'completed',
     integrity: { hasHash: true, isAnchored: true, anchoredAt: '2024-12-15T11:00:00Z' }
   },
@@ -36,7 +32,7 @@ const mockPersonalRecords = [
     id: '2', 
     record_type: 'Annual Physical Exam',
     created_at: '2024-11-20T14:15:00Z',
-    provider: 'Self-Recorded',
+    provider: 'Dr. Thompson - Family Medicine',
     status: 'completed',
     integrity: { hasHash: true, isAnchored: false }
   },
@@ -44,7 +40,7 @@ const mockPersonalRecords = [
     id: '3',
     record_type: 'Vaccination Record - COVID',
     created_at: '2024-10-10T09:00:00Z',
-    provider: 'Imported Document',
+    provider: 'City Health Department',
     status: 'completed',
     integrity: { hasHash: false, isAnchored: false }
   }
@@ -88,7 +84,6 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
   setSelectedCategory,
   handleToggleShare,
 }) => {
-  const [showAddDialog, setShowAddDialog] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
   const { toast } = useToast();
 
@@ -104,21 +99,6 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
       record.provider.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSearch;
   });
-
-  const handleImportSuccess = () => {
-    toast({
-      title: "Record Imported",
-      description: "Your medical record has been successfully imported.",
-    });
-  };
-
-  const handleAddRecord = () => {
-    setShowAddDialog(false);
-    toast({
-      title: "Record Added",
-      description: "Your medical record has been added successfully.",
-    });
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -138,50 +118,15 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-200">Health Records</h2>
-          <p className="text-slate-400">Manage your personal and shared medical records</p>
+          <p className="text-slate-400">View your medical records created by healthcare providers</p>
         </div>
         
         <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleImportSuccess}
-            className="text-slate-300 border-slate-600 hover:bg-slate-700"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Import
-          </Button>
-          
           <ExportRecordsButton 
             variant="outline" 
             size="sm"
             className="text-slate-300 border-slate-600 hover:bg-slate-700"
           />
-          
-          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-            <DialogTrigger asChild>
-              <Button variant="autheo" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Record
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Add Medical Record</DialogTitle>
-              </DialogHeader>
-              <div className="p-4">
-                <p className="text-slate-400 mb-4">Record form would go here...</p>
-                <div className="flex gap-2">
-                  <Button onClick={handleAddRecord} variant="autheo">
-                    Save Record
-                  </Button>
-                  <Button onClick={() => setShowAddDialog(false)} variant="outline">
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
 
@@ -239,13 +184,9 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
                   <p className="text-slate-400 mb-4">
                     {searchQuery || selectedCategory !== 'all' 
                       ? 'Try adjusting your search or filter criteria'
-                      : 'Add your first medical record to get started'
+                      : 'Medical records created by healthcare providers will appear here'
                     }
                   </p>
-                  <Button onClick={() => setShowAddDialog(true)} variant="autheo">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Record
-                  </Button>
                 </CardContent>
               </Card>
             ) : (
