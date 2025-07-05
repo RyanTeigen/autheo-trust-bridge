@@ -42,53 +42,13 @@ const PatientDashboardPage = () => {
 
     setExportLoading(true);
     try {
-      // Get patient record first
-      const { data: patient } = await supabase
-        .from('patients')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!patient) {
-        throw new Error('Patient record not found');
-      }
-
-      // Fetch all approved records with specific fields as requested
-      const { data: records, error } = await supabase
-        .from('medical_records')
-        .select(`
-          id,
-          record_type,
-          created_at,
-          provider_id,
-          encrypted_data,
-          sharing_permissions!medical_record_id (
-            status,
-            signed_consent
-          ),
-          anchored_hashes!record_id (
-            record_hash
-          )
-        `)
-        .or(`user_id.eq.${user.id},patient_id.eq.${patient.id}`)
-        .eq('sharing_permissions.status', 'approved');
+      // Call the edge function for secure export
+      const { data, error } = await supabase.functions.invoke('export_records');
 
       if (error) throw error;
 
-      // Format the output exactly as specified
-      const exportData = (records || []).map(r => ({
-        id: r.id,
-        type: r.record_type,
-        unit: 'N/A', // Will be populated from atomic data if available
-        timestamp: r.created_at,
-        provider_id: r.provider_id || 'self',
-        encrypted_value: r.encrypted_data ? 'encrypted' : 'N/A',
-        anchor_hash: r.anchored_hashes?.[0]?.record_hash || 'N/A',
-        status: r.sharing_permissions?.[0]?.status || 'unknown'
-      }));
-
-      // Trigger file download as specified
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
+      // Create and trigger file download
+      const blob = new Blob([JSON.stringify(data, null, 2)], { 
         type: 'application/json' 
       });
       const url = URL.createObjectURL(blob);
@@ -100,23 +60,9 @@ const PatientDashboardPage = () => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Log the export for audit purposes
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'SECURE_EXPORT_RECORDS',
-        resource: 'medical_records',
-        status: 'success',
-        details: `Exported ${exportData.length} approved records`,
-        metadata: {
-          export_format: 'json',
-          records_count: exportData.length,
-          timestamp: new Date().toISOString()
-        }
-      });
-
       toast({
         title: "Export Successful",
-        description: `Successfully exported ${exportData.length} approved medical records.`,
+        description: `Successfully exported ${data.length} approved medical records.`,
       });
 
     } catch (error) {
