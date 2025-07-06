@@ -118,6 +118,10 @@
     transition-duration: 150ms;
   }
 
+  .hover-scale {
+    @apply transition-transform duration-200 ease-in-out hover:scale-105;
+  }
+
   .full-bleed {
     width: 100vw;
     margin-left: 50%;
