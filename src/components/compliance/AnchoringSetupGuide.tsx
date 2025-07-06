@@ -31,14 +31,21 @@ export default function AnchoringSetupGuide() {
   const environmentVariables = [
     {
       name: 'BLOCKCHAIN_RPC_URL',
-      description: 'RPC endpoint for blockchain network (e.g., Polygon, Ethereum)',
-      example: 'https://rpc-mainnet.maticvigil.com/',
+      description: 'RPC endpoint for Autheo blockchain network',
+      example: 'https://testnet-rpc2.autheo.com',
       required: false,
-      note: 'Defaults to Polygon if not provided'
+      note: 'Defaults to Autheo Testnet if not provided'
+    },
+    {
+      name: 'USE_MAINNET',
+      description: 'Set to "true" to use Autheo Mainnet instead of Testnet',
+      example: 'false',
+      required: false,
+      note: 'Defaults to Autheo Testnet (false) for safety'
     },
     {
       name: 'WALLET_PRIVATE_KEY',
-      description: 'Private key for blockchain transactions (keep secure!)',
+      description: 'Private key for Autheo blockchain transactions (keep secure!)',
       example: '0x1234567890abcdef...',
       required: false,
       note: 'Uses simulation mode if not provided'
@@ -81,7 +88,7 @@ export default function AnchoringSetupGuide() {
       <CardHeader>
         <CardTitle className="text-autheo-primary flex items-center gap-2">
           <Settings className="h-5 w-5" />
-          Blockchain Anchoring Setup
+          Autheo Blockchain Anchoring Setup
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -89,8 +96,8 @@ export default function AnchoringSetupGuide() {
         <Alert className="bg-blue-900/20 border-blue-800">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="text-blue-300">
-            <strong>Current Status:</strong> The system is running in simulation mode. 
-            Configure the environment variables below to enable real blockchain anchoring.
+            <strong>Current Status:</strong> The system defaults to Autheo Testnet in simulation mode. 
+            Configure the environment variables below to enable real Autheo blockchain anchoring.
           </AlertDescription>
         </Alert>
 
@@ -165,7 +172,7 @@ export default function AnchoringSetupGuide() {
                 <div>
                   <strong>Add Variables:</strong>
                   <p className="text-slate-400 mt-1">
-                    Add the environment variables above based on your blockchain and webhook requirements
+                    Add the environment variables above based on your Autheo blockchain and webhook requirements
                   </p>
                 </div>
               </li>

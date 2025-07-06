@@ -39,7 +39,7 @@ export class RealBlockchainAnchorService {
       customTimestamp?: number;
     }
   ): Promise<RealAnchorResult> {
-    console.log('🚀 Starting real blockchain anchoring process...');
+    console.log('🚀 Starting real Autheo blockchain anchoring process...');
     
     try {
       // Initialize blockchain service if not already done
@@ -47,26 +47,26 @@ export class RealBlockchainAnchorService {
       if (!initialized) {
         return {
           success: false,
-          error: 'Failed to initialize blockchain connection'
+          error: 'Failed to initialize Autheo blockchain connection'
         };
       }
 
       // Get network info for verification
       const networkInfo = await this.blockchainService.getNetworkInfo();
-      console.log('🌐 Network Info:', networkInfo);
+      console.log('🌐 Autheo Network Info:', networkInfo);
 
       // Check account balance
       const balance = await this.blockchainService.getBalance();
-      console.log(`💰 Account Balance: ${balance} ETH`);
+      console.log(`💰 Account Balance: ${balance} AUTHEO`);
 
       if (parseFloat(balance) < 0.001) {
         return {
           success: false,
-          error: 'Insufficient balance for blockchain transaction'
+          error: 'Insufficient balance for Autheo blockchain transaction'
         };
       }
 
-      // Anchor the hash on blockchain
+      // Anchor the hash on Autheo blockchain
       const anchorResult: AnchorResult = await this.blockchainService.anchorAuditHash(
         auditHash,
         logCount,
@@ -76,11 +76,11 @@ export class RealBlockchainAnchorService {
       if (!anchorResult.success) {
         return {
           success: false,
-          error: anchorResult.error || 'Blockchain anchoring failed'
+          error: anchorResult.error || 'Autheo blockchain anchoring failed'
         };
       }
 
-      console.log('✅ Blockchain anchoring successful!');
+      console.log('✅ Autheo blockchain anchoring successful!');
       console.log(`   - Transaction Hash: ${anchorResult.transactionHash}`);
       console.log(`   - Block Number: ${anchorResult.blockNumber}`);
       console.log(`   - Gas Used: ${anchorResult.gasUsed}`);
@@ -109,10 +109,10 @@ export class RealBlockchainAnchorService {
       };
 
     } catch (error) {
-      console.error('❌ Real blockchain anchoring failed:', error);
+      console.error('❌ Real Autheo blockchain anchoring failed:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown anchoring error'
+        error: error instanceof Error ? error.message : 'Unknown Autheo anchoring error'
       };
     }
   }
@@ -198,7 +198,7 @@ export class RealBlockchainAnchorService {
     logCount: number,
     blockNumber?: number
   ): Promise<void> {
-    console.log('💾 Storing blockchain anchor in database...');
+    console.log('💾 Storing Autheo blockchain anchor in database...');
 
     const networkName = this.useMainnet ? 'autheo-mainnet' : 'autheo-testnet';
 
@@ -230,11 +230,11 @@ export class RealBlockchainAnchorService {
       });
 
     if (anchorError) {
-      console.error('❌ Error storing blockchain anchor:', anchorError);
-      throw new Error(`Failed to store blockchain anchor: ${anchorError.message}`);
+      console.error('❌ Error storing Autheo blockchain anchor:', anchorError);
+      throw new Error(`Failed to store Autheo blockchain anchor: ${anchorError.message}`);
     }
 
-    console.log('✅ Blockchain anchor stored successfully in database');
+    console.log('✅ Autheo blockchain anchor stored successfully in database');
   }
 
   /**

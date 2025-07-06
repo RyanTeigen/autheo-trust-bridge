@@ -2,6 +2,12 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { ethers } from 'https://esm.sh/ethers@6.8.0';
 
+// Autheo Blockchain Configuration
+const AUTHEO_TESTNET_RPC = 'https://testnet-rpc2.autheo.com';
+const AUTHEO_MAINNET_RPC = 'https://rpc.autheo.io';
+const AUTHEO_TESTNET_EXPLORER = 'https://testnet-explorer.autheo.io';
+const AUTHEO_MAINNET_EXPLORER = 'https://explorer.autheo.io';
+
 // Cron scheduling - run every 10 minutes
 export const config = {
   schedule: "*/10 * * * *"
@@ -20,10 +26,19 @@ interface QueueItem {
   retry_count: number;
 }
 
-// Real blockchain anchoring using Ethers.js
+// Helper function to get explorer URL
+function getExplorerUrl(transactionHash: string, useMainnet: boolean = false): string {
+  const baseUrl = useMainnet ? AUTHEO_MAINNET_EXPLORER : AUTHEO_TESTNET_EXPLORER;
+  return `${baseUrl}/tx/${transactionHash}`;
+}
+
+// Real blockchain anchoring using Ethers.js on Autheo Network
 async function anchorToBlockchain(hash: string): Promise<string> {
-  const rpcUrl = Deno.env.get('BLOCKCHAIN_RPC_URL') || 'https://rpc-mainnet.maticvigil.com/'; // Polygon mainnet
+  const useMainnet = Deno.env.get('USE_MAINNET') === 'true';
+  const rpcUrl = Deno.env.get('BLOCKCHAIN_RPC_URL') || (useMainnet ? AUTHEO_MAINNET_RPC : AUTHEO_TESTNET_RPC);
   const privateKey = Deno.env.get('WALLET_PRIVATE_KEY');
+  
+  console.log(`🌐 Using ${useMainnet ? 'Autheo Mainnet' : 'Autheo Testnet'}: ${rpcUrl}`);
   
   if (!privateKey) {
     console.warn('No WALLET_PRIVATE_KEY provided, using simulation mode');
@@ -34,16 +49,19 @@ async function anchorToBlockchain(hash: string): Promise<string> {
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new ethers.Wallet(privateKey, provider);
     
-    // Create transaction with hash data
-    // In production, this would call a smart contract
+    // Log wallet address for verification
+    console.log(`🔑 Using wallet address: ${wallet.address}`);
+    
+    // Create transaction with hash data on Autheo blockchain
     const tx = await wallet.sendTransaction({
-      to: wallet.address, // Self-transaction for demo
-      value: ethers.parseEther("0.0001"), // Small amount
+      to: wallet.address, // Self-transaction for anchoring demonstration
+      value: ethers.parseEther("0.0001"), // Small amount for gas
       data: ethers.toUtf8Bytes(`AUTHEO_HASH:${hash}`),
       gasLimit: 21000
     });
 
-    console.log(`🔗 Blockchain transaction sent: ${tx.hash}`);
+    console.log(`🔗 Autheo blockchain transaction sent: ${tx.hash}`);
+    console.log(`🔍 Explorer URL: ${getExplorerUrl(tx.hash, useMainnet)}`);
     
     // Wait for confirmation
     const receipt = await tx.wait();
@@ -52,8 +70,8 @@ async function anchorToBlockchain(hash: string): Promise<string> {
     return tx.hash;
     
   } catch (error) {
-    console.error('Blockchain anchoring failed:', error);
-    throw new Error(`Blockchain anchoring failed: ${error.message}`);
+    console.error('Autheo blockchain anchoring failed:', error);
+    throw new Error(`Autheo blockchain anchoring failed: ${error.message}`);
   }
 }
 
