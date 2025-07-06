@@ -8,6 +8,8 @@ import { Search, Database } from 'lucide-react';
 import ZeroKnowledgeVerification from '../ZeroKnowledgeVerification';
 import BlockchainAnchoringStatus from '../BlockchainAnchoringStatus';
 import AtomicDataViewer from '@/components/medical/AtomicDataViewer';
+import WebhookEventsViewer from '../WebhookEventsViewer';
+import AnchoringSetupGuide from '../AnchoringSetupGuide';
 
 const ComplianceToolsTab: React.FC = () => {
   const [recordId, setRecordId] = useState('');
@@ -21,11 +23,17 @@ const ComplianceToolsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Anchoring Setup Guide */}
+      <AnchoringSetupGuide />
+      
       {/* Blockchain Anchoring Status */}
       <BlockchainAnchoringStatus />
       
       {/* Zero-Knowledge Verification */}
       <ZeroKnowledgeVerification />
+
+      {/* Webhook Events Monitoring */}
+      <WebhookEventsViewer />
 
       {/* Atomic Data Points Analysis */}
       <Card className="bg-slate-800 border-slate-700">

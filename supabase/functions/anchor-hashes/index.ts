@@ -1,6 +1,11 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { crypto } from 'https://deno.land/std@0.168.0/crypto/mod.ts';
+import { ethers } from 'https://esm.sh/ethers@6.8.0';
+
+// Cron scheduling - run every 10 minutes
+export const config = {
+  schedule: "*/10 * * * *"
+};
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,15 +20,54 @@ interface QueueItem {
   retry_count: number;
 }
 
-// Simulate blockchain anchoring (replace with real blockchain call later)
+// Real blockchain anchoring using Ethers.js
+async function anchorToBlockchain(hash: string): Promise<string> {
+  const rpcUrl = Deno.env.get('BLOCKCHAIN_RPC_URL') || 'https://rpc-mainnet.maticvigil.com/'; // Polygon mainnet
+  const privateKey = Deno.env.get('WALLET_PRIVATE_KEY');
+  
+  if (!privateKey) {
+    console.warn('No WALLET_PRIVATE_KEY provided, using simulation mode');
+    return simulateBlockchainAnchoring(hash);
+  }
+
+  try {
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    const wallet = new ethers.Wallet(privateKey, provider);
+    
+    // Create transaction with hash data
+    // In production, this would call a smart contract
+    const tx = await wallet.sendTransaction({
+      to: wallet.address, // Self-transaction for demo
+      value: ethers.parseEther("0.0001"), // Small amount
+      data: ethers.toUtf8Bytes(`AUTHEO_HASH:${hash}`),
+      gasLimit: 21000
+    });
+
+    console.log(`🔗 Blockchain transaction sent: ${tx.hash}`);
+    
+    // Wait for confirmation
+    const receipt = await tx.wait();
+    console.log(`✅ Transaction confirmed in block: ${receipt?.blockNumber}`);
+    
+    return tx.hash;
+    
+  } catch (error) {
+    console.error('Blockchain anchoring failed:', error);
+    throw new Error(`Blockchain anchoring failed: ${error.message}`);
+  }
+}
+
+// Fallback simulation for when no private key is provided
 async function simulateBlockchainAnchoring(hash: string): Promise<string> {
+  console.log('🎭 Using simulation mode (no WALLET_PRIVATE_KEY provided)');
+  
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
   
   // Generate mock transaction hash
   const timestamp = Date.now().toString();
   const hashPrefix = hash.substring(0, 8);
-  const mockTxHash = `0x${hashPrefix}${timestamp.substring(-8)}blockchain`;
+  const mockTxHash = `0x${hashPrefix}${timestamp.substring(-8)}autheo`;
   
   // Simulate occasional failures (5% chance)
   if (Math.random() < 0.05) {
@@ -31,6 +75,73 @@ async function simulateBlockchainAnchoring(hash: string): Promise<string> {
   }
   
   return mockTxHash;
+}
+
+// Send webhook notification
+async function sendWebhookNotification(
+  supabase: any,
+  recordId: string,
+  eventType: string,
+  payload: any
+): Promise<void> {
+  const webhookUrl = Deno.env.get('WEBHOOK_URL');
+  
+  if (!webhookUrl) {
+    console.log('📢 No WEBHOOK_URL configured, skipping notification');
+    return;
+  }
+
+  try {
+    console.log(`📢 Sending webhook: ${eventType} for record ${recordId}`);
+    
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Autheo-Anchoring-Service/1.0'
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        record_id: recordId,
+        timestamp: new Date().toISOString(),
+        ...payload
+      })
+    });
+
+    const responseBody = await response.text();
+    const success = response.ok;
+
+    // Log webhook event to database
+    await supabase.from('webhook_events').insert({
+      event_type: eventType,
+      record_id: recordId,
+      payload,
+      webhook_url: webhookUrl,
+      response_status: response.status,
+      response_body: responseBody,
+      success
+    });
+
+    if (success) {
+      console.log(`✅ Webhook sent successfully: ${response.status}`);
+    } else {
+      console.error(`❌ Webhook failed: ${response.status} - ${responseBody}`);
+    }
+
+  } catch (error) {
+    console.error('Webhook notification failed:', error);
+    
+    // Log failed webhook event
+    await supabase.from('webhook_events').insert({
+      event_type: eventType,
+      record_id: recordId,
+      payload,
+      webhook_url: webhookUrl,
+      response_status: 0,
+      response_body: error.message,
+      success: false
+    });
+  }
 }
 
 serve(async (req) => {
@@ -82,8 +193,8 @@ serve(async (req) => {
       try {
         console.log(`🔗 Anchoring hash: ${item.hash.substring(0, 16)}...`);
         
-        // Simulate blockchain anchoring
-        const blockchainTxHash = await simulateBlockchainAnchoring(item.hash);
+        // Use real blockchain anchoring (falls back to simulation if no private key)
+        const blockchainTxHash = await anchorToBlockchain(item.hash);
         
         // Update queue item as anchored
         const { error: updateError } = await supabase
@@ -101,16 +212,32 @@ serve(async (req) => {
         }
 
         console.log(`✅ Hash anchored successfully: ${blockchainTxHash}`);
+        
+        // Send webhook notification for successful anchoring
+        await sendWebhookNotification(
+          supabase,
+          item.record_id,
+          'anchoring_complete',
+          {
+            hash: item.hash,
+            blockchain_tx_hash: blockchainTxHash,
+            anchored_at: new Date().toISOString(),
+            status: 'anchored'
+          }
+        );
+        
         results.anchored++;
 
       } catch (error) {
         console.error(`❌ Failed to anchor hash ${item.id}:`, error);
         
-        // Update queue item as failed
+        const isFinalFailure = item.retry_count >= 2;
+        
+        // Update queue item as failed or pending for retry
         const { error: updateError } = await supabase
           .from('hash_anchor_queue')
           .update({
-            anchor_status: item.retry_count >= 2 ? 'failed' : 'pending',
+            anchor_status: isFinalFailure ? 'failed' : 'pending',
             retry_count: item.retry_count + 1,
             error_message: error.message
           })
@@ -118,6 +245,21 @@ serve(async (req) => {
 
         if (updateError) {
           console.error('Failed to update error status:', updateError);
+        }
+
+        // Send webhook notification for failed anchoring (only on final failure)
+        if (isFinalFailure) {
+          await sendWebhookNotification(
+            supabase,
+            item.record_id,
+            'anchoring_failed',
+            {
+              hash: item.hash,
+              error_message: error.message,
+              retry_count: item.retry_count + 1,
+              status: 'failed'
+            }
+          );
         }
 
         results.failed++;

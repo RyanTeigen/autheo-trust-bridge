@@ -1495,6 +1495,67 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_events: {
+        Row: {
+          event_type: string
+          id: string
+          payload: Json
+          record_id: string | null
+          response_body: string | null
+          response_status: number | null
+          retry_count: number | null
+          sent_at: string | null
+          success: boolean | null
+          webhook_url: string | null
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          payload: Json
+          record_id?: string | null
+          response_body?: string | null
+          response_status?: number | null
+          retry_count?: number | null
+          sent_at?: string | null
+          success?: boolean | null
+          webhook_url?: string | null
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          payload?: Json
+          record_id?: string | null
+          response_body?: string | null
+          response_status?: number | null
+          retry_count?: number | null
+          sent_at?: string | null
+          success?: boolean | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_events_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_events_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       clinical_records: {
