@@ -16,7 +16,7 @@ export class RecordHashingUtils {
    */
   public static async generateAndStoreRecordHash(
     recordId: string,
-    recordData: any,
+    payload: any,
     operation: string,
     patientId?: string,
     providerId?: string,
@@ -30,7 +30,7 @@ export class RecordHashingUtils {
           provider_id: providerId,
           operation,
           signer_id: signerId,
-          record_data: recordData
+          payload: payload
         }
       });
 

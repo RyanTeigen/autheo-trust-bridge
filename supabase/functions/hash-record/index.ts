@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { crypto } from 'https://deno.land/std@0.168.0/crypto/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,60 +14,35 @@ serve(async (req) => {
   }
 
   try {
-    const { 
-      record_id, 
-      patient_id, 
-      provider_id, 
-      operation, 
-      signer_id,
-      record_data 
-    } = await req.json();
-    
-    if (!record_id || !operation || !record_data) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: record_id, operation, record_data' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // Create standardized payload for hashing
-    const hashPayload = {
+    const { record_id, operation, payload, patient_id, provider_id, signer_id } = await req.json();
+
+    if (!record_id || !operation || !payload) {
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: record_id, operation, payload' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Stringify and hash the payload
+    const normalizedPayload = JSON.stringify(payload);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(normalizedPayload));
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+
+    console.log('🔍 Generating hash for record:', { record_id, operation, hash: hashHex.substring(0, 16) + '...' });
+
+    const { error } = await supabase.from('record_hashes').insert({
       record_id,
       patient_id,
       provider_id,
-      operation,
-      timestamp: new Date().toISOString(),
-      record_data: typeof record_data === 'string' ? record_data : JSON.stringify(record_data)
-    };
-
-    // Generate SHA-256 hash
-    const encoder = new TextEncoder();
-    const data = encoder.encode(JSON.stringify(hashPayload));
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    console.log('🔍 Generating hash for record:', { record_id, operation, hash: hash.substring(0, 16) + '...' });
-
-    // Store hash in record_hashes table
-    const { data: recordHash, error } = await supabase
-      .from('record_hashes')
-      .insert({
-        record_id,
-        patient_id,
-        provider_id,
-        hash,
-        operation,
-        signer_id,
-        timestamp: new Date().toISOString()
-      })
-      .select()
-      .single();
+      signer_id,
+      hash: hashHex,
+      operation
+    });
 
     if (error) {
       console.error('❌ Error storing record hash:', error);
@@ -76,19 +52,11 @@ serve(async (req) => {
       );
     }
 
-    console.log('✅ Record hash stored:', recordHash.id);
+    console.log('✅ Record hash stored successfully');
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        hash,
-        record_hash_id: recordHash.id,
-        message: 'Record hash generated and stored successfully'
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      JSON.stringify({ hash: hashHex }),
+      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
