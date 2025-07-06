@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Clock, FileText, Copy, CheckCircle } from 'lucide-react';
+import { Shield, Clock, FileText, Copy, CheckCircle, Link, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,20 +17,32 @@ interface RecordHash {
   signer_id: string;
 }
 
+interface AnchorStatus {
+  id: string;
+  anchor_status: string;
+  blockchain_tx_hash: string | null;
+  anchored_at: string | null;
+  queued_at: string;
+  retry_count: number;
+  error_message: string | null;
+}
+
 interface PatientRecordHashCardProps {
   recordId: string;
 }
 
 export default function PatientRecordHashCard({ recordId }: PatientRecordHashCardProps) {
   const [hashInfo, setHashInfo] = useState<RecordHash | null>(null);
+  const [anchorStatus, setAnchorStatus] = useState<AnchorStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchHash = async () => {
+    const fetchHashAndAnchorStatus = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch record hash
+        const { data: hashData, error: hashError } = await supabase
           .from('record_hashes')
           .select('*')
           .eq('record_id', recordId)
@@ -38,20 +50,37 @@ export default function PatientRecordHashCard({ recordId }: PatientRecordHashCar
           .limit(1)
           .maybeSingle();
 
-        if (error) {
-          console.error('Error fetching record hash:', error);
+        if (hashError) {
+          console.error('Error fetching record hash:', hashError);
           return;
         }
 
-        setHashInfo(data);
+        setHashInfo(hashData);
+
+        // Fetch anchor status if hash exists
+        if (hashData) {
+          const { data: anchorData, error: anchorError } = await supabase
+            .from('hash_anchor_queue')
+            .select('*')
+            .eq('record_id', recordId)
+            .order('queued_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (anchorError) {
+            console.error('Error fetching anchor status:', anchorError);
+          } else {
+            setAnchorStatus(anchorData);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching hash:', error);
+        console.error('Error fetching hash and anchor status:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHash();
+    fetchHashAndAnchorStatus();
   }, [recordId]);
 
   const copyToClipboard = async () => {
@@ -82,6 +111,35 @@ export default function PatientRecordHashCard({ recordId }: PatientRecordHashCar
       'updated': 'bg-blue-900/20 text-blue-400 border-blue-800',
     };
     return colorMap[operation.toLowerCase()] || 'bg-slate-900/20 text-slate-400 border-slate-800';
+  };
+
+  const getAnchorStatusDisplay = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return {
+          icon: <Loader2 className="h-3 w-3 animate-spin" />,
+          color: 'bg-yellow-900/20 text-yellow-400 border-yellow-800',
+          text: 'Pending'
+        };
+      case 'anchored':
+        return {
+          icon: <Link className="h-3 w-3" />,
+          color: 'bg-green-900/20 text-green-400 border-green-800',
+          text: 'Anchored'
+        };
+      case 'failed':
+        return {
+          icon: <AlertTriangle className="h-3 w-3" />,
+          color: 'bg-red-900/20 text-red-400 border-red-800',
+          text: 'Failed'
+        };
+      default:
+        return {
+          icon: <Clock className="h-3 w-3" />,
+          color: 'bg-slate-900/20 text-slate-400 border-slate-800',
+          text: 'Unknown'
+        };
+    }
   };
 
   if (loading) {
@@ -153,6 +211,48 @@ export default function PatientRecordHashCard({ recordId }: PatientRecordHashCar
             <div className="font-mono text-xs text-slate-200 break-all leading-relaxed">
               {hashInfo.hash}
             </div>
+          </div>
+
+          {/* Blockchain Anchoring Status */}
+          <div className="bg-slate-700/20 rounded-lg p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400 font-medium">Blockchain Status:</span>
+              {anchorStatus && (
+                <Badge variant="secondary" className={getAnchorStatusDisplay(anchorStatus.anchor_status).color}>
+                  <div className="flex items-center gap-1">
+                    {getAnchorStatusDisplay(anchorStatus.anchor_status).icon}
+                    {getAnchorStatusDisplay(anchorStatus.anchor_status).text}
+                  </div>
+                </Badge>
+              )}
+            </div>
+            
+            {anchorStatus?.blockchain_tx_hash && anchorStatus.anchor_status === 'anchored' && (
+              <div className="space-y-1">
+                <span className="text-xs text-slate-400">Transaction Hash:</span>
+                <div className="font-mono text-xs text-slate-200 break-all bg-slate-800/50 p-2 rounded">
+                  {anchorStatus.blockchain_tx_hash}
+                </div>
+              </div>
+            )}
+            
+            {anchorStatus?.error_message && anchorStatus.anchor_status === 'failed' && (
+              <div className="space-y-1">
+                <span className="text-xs text-red-400">Error:</span>
+                <div className="text-xs text-red-300 bg-red-900/20 p-2 rounded">
+                  {anchorStatus.error_message}
+                </div>
+              </div>
+            )}
+            
+            {!anchorStatus && (
+              <div className="text-xs text-slate-400">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  Queuing for blockchain anchoring...
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
