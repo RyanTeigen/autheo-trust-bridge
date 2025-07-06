@@ -35,6 +35,33 @@ const ComplianceOverviewTab: React.FC<ComplianceOverviewTabProps> = ({ onRunAudi
 
   useEffect(() => {
     fetchDashboardMetrics();
+    
+    // Set up real-time subscription for live updates
+    const channel = supabase
+      .channel('compliance-overview-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'medical_records'
+      }, () => {
+        fetchDashboardMetrics();
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'sharing_permissions'
+      }, () => {
+        fetchDashboardMetrics();
+      })
+      .subscribe();
+
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchDashboardMetrics, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
 
   const fetchDashboardMetrics = async () => {
