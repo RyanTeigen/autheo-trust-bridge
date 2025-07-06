@@ -12,6 +12,7 @@ import EncryptionDemo from '@/components/provider/EncryptionDemo';
 import KeyManagementDemo from '@/components/provider/KeyManagementDemo';
 import CryptoComparisonDemo from '@/components/provider/CryptoComparisonDemo';
 import ImportRecordForm from '@/components/provider/ImportRecordForm';
+import AuditTab from '@/components/provider/AuditTab';
 import ProviderAnalyticsTab from '@/components/provider/ProviderAnalyticsTab';
 
 interface Appointment {
@@ -47,7 +48,7 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
+        <TabsList className="grid w-full grid-cols-5 bg-slate-800 border-slate-700">
           <TabsTrigger 
             value="overview" 
             className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 flex items-center gap-2"
@@ -75,6 +76,13 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
           >
             <BarChart3 className="h-4 w-4" />
             Analytics
+          </TabsTrigger>
+          <TabsTrigger 
+            value="audit" 
+            className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900 flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Audit Logs
           </TabsTrigger>
         </TabsList>
 
@@ -104,6 +112,10 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
 
         <TabsContent value="analytics" className="mt-6">
           <ProviderAnalyticsTab />
+        </TabsContent>
+
+        <TabsContent value="audit" className="mt-6">
+          <AuditTab />
         </TabsContent>
       </Tabs>
     </div>

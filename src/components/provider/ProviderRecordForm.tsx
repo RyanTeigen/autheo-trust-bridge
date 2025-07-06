@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FileText, Shield } from 'lucide-react';
 import { encryptMedicalRecord, fetchPublicKey } from '@/lib/encryptMedicalRecord';
 import { anchorRecordToBlockchain } from '@/lib/encryption';
+import { auditLogger } from '@/services/audit/AuditLogger';
 
 export default function ProviderRecordForm() {
   const { user } = useAuth();
@@ -123,16 +124,18 @@ export default function ProviderRecordForm() {
 
       console.log('✅ Medical record created:', medicalRecord.id);
 
-      // Log the action for audit purposes
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'CREATE_RECORD',
-        resource: 'medical_record',
-        resource_id: medicalRecord.id,
-        status: 'success',
-        details: `Created encrypted ${form.type} record for patient ${patient.id}`,
-        timestamp: new Date().toISOString(),
-      });
+      // Log the action for comprehensive audit trail
+      console.log('📝 Logging audit action...');
+      try {
+        await auditLogger.logCreate(
+          'medical_record',
+          medicalRecord.id,
+          `Created encrypted ${form.type} record for patient ${patient.id} with ${algorithm} encryption`
+        );
+        console.log('✅ Audit log created successfully');
+      } catch (auditError) {
+        console.warn('⚠️ Audit logging failed:', auditError);
+      }
 
       // Anchor the record on blockchain for provenance
       console.log('⛓️ Anchoring to blockchain...');
