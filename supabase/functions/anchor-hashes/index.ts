@@ -95,33 +95,49 @@ async function simulateBlockchainAnchoring(hash: string): Promise<string> {
   return mockTxHash;
 }
 
-// Send webhook notification
+// Send webhook notification with security
 async function sendWebhookNotification(
   supabase: any,
   recordId: string,
   eventType: string,
   payload: any
 ): Promise<void> {
-  const webhookUrl = Deno.env.get('WEBHOOK_URL');
+  const isProduction = Deno.env.get('ENV') === 'production';
+  const webhookUrl = isProduction 
+    ? Deno.env.get('WEBHOOK_URL_PROD') || Deno.env.get('WEBHOOK_URL')
+    : Deno.env.get('WEBHOOK_URL_STAGING') || Deno.env.get('WEBHOOK_URL');
+  
+  const webhookSecret = Deno.env.get('WEBHOOK_SECRET');
   
   if (!webhookUrl) {
-    console.log('📢 No WEBHOOK_URL configured, skipping notification');
+    console.log(`📢 No webhook URL configured for ${isProduction ? 'production' : 'staging'}, skipping notification`);
     return;
   }
 
   try {
-    console.log(`📢 Sending webhook: ${eventType} for record ${recordId}`);
+    console.log(`📢 Sending ${isProduction ? 'production' : 'staging'} webhook: ${eventType} for record ${recordId}`);
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'User-Agent': 'Autheo-Anchoring-Service/1.0'
+    };
+
+    // Add security header if secret is configured
+    if (webhookSecret) {
+      headers['X-Webhook-Secret'] = webhookSecret;
+      console.log('🔐 Added webhook security header');
+    } else {
+      console.warn('⚠️ No WEBHOOK_SECRET configured - webhook is not secured');
+    }
     
     const response = await fetch(webhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Autheo-Anchoring-Service/1.0'
-      },
+      headers,
       body: JSON.stringify({
         event_type: eventType,
         record_id: recordId,
         timestamp: new Date().toISOString(),
+        environment: isProduction ? 'production' : 'staging',
         ...payload
       })
     });
@@ -133,7 +149,10 @@ async function sendWebhookNotification(
     await supabase.from('webhook_events').insert({
       event_type: eventType,
       record_id: recordId,
-      payload,
+      payload: {
+        ...payload,
+        environment: isProduction ? 'production' : 'staging'
+      },
       webhook_url: webhookUrl,
       response_status: response.status,
       response_body: responseBody,
@@ -153,7 +172,10 @@ async function sendWebhookNotification(
     await supabase.from('webhook_events').insert({
       event_type: eventType,
       record_id: recordId,
-      payload,
+      payload: {
+        ...payload,
+        environment: isProduction ? 'production' : 'staging'
+      },
       webhook_url: webhookUrl,
       response_status: 0,
       response_body: error.message,

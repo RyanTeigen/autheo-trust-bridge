@@ -51,11 +51,39 @@ export default function AnchoringSetupGuide() {
       note: 'Uses simulation mode if not provided'
     },
     {
+      name: 'ENV',
+      description: 'Environment setting for staging/production webhook routing',
+      example: 'staging',
+      required: false,
+      note: 'Set to "production" for production webhooks'
+    },
+    {
       name: 'WEBHOOK_URL',
-      description: 'Endpoint to receive anchoring notifications',
+      description: 'Default webhook endpoint (used if specific env URL not set)',
       example: 'https://your-app.com/webhooks/anchoring',
       required: false,
-      note: 'Skip webhook notifications if not provided'
+      note: 'Fallback webhook URL'
+    },
+    {
+      name: 'WEBHOOK_URL_STAGING',
+      description: 'Staging webhook endpoint for testing',
+      example: 'https://staging.your-app.com/webhooks/anchoring',
+      required: false,
+      note: 'Used when ENV != "production"'
+    },
+    {
+      name: 'WEBHOOK_URL_PROD',
+      description: 'Production webhook endpoint',
+      example: 'https://your-app.com/webhooks/anchoring',
+      required: false,
+      note: 'Used when ENV = "production"'
+    },
+    {
+      name: 'WEBHOOK_SECRET',
+      description: 'Shared secret for webhook authentication (highly recommended)',
+      example: 'your-secure-webhook-secret-key',
+      required: false,
+      note: 'Sent as X-Webhook-Secret header for security'
     }
   ];
 
@@ -179,14 +207,29 @@ export default function AnchoringSetupGuide() {
               <li className="flex items-start gap-2">
                 <span className="bg-autheo-primary text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">3</span>
                 <div>
-                  <strong>Test Anchoring:</strong>
+                  <strong>Set Up Webhook Security:</strong>
                   <p className="text-slate-400 mt-1">
-                    Use the test button below to verify the anchoring process works
+                    In your webhook handler, validate the X-Webhook-Secret header for security
                   </p>
+                  <div className="bg-slate-800/30 p-2 rounded mt-2 font-mono text-xs">
+                    <div className="text-slate-300">const secret = req.headers.get("x-webhook-secret");</div>
+                    <div className="text-slate-300">if (secret !== process.env.WEBHOOK_SECRET) &#123;</div>
+                    <div className="text-slate-300 pl-2">return new Response("Unauthorized", &#123; status: 403 &#125;);</div>
+                    <div className="text-slate-300">&#125;</div>
+                  </div>
                 </div>
               </li>
               <li className="flex items-start gap-2">
                 <span className="bg-autheo-primary text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">4</span>
+                <div>
+                  <strong>Test in Staging:</strong>
+                  <p className="text-slate-400 mt-1">
+                    Set ENV=staging and test with staging webhook URLs before production
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="bg-autheo-primary text-slate-900 rounded-full w-5 h-5 flex items-center justify-center text-xs font-semibold">5</span>
                 <div>
                   <strong>Monitor Activity:</strong>
                   <p className="text-slate-400 mt-1">
@@ -195,6 +238,47 @@ export default function AnchoringSetupGuide() {
                 </div>
               </li>
             </ol>
+          </div>
+        </div>
+
+        {/* Testing Instructions */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-slate-200 flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5" />
+            Testing in Staging
+          </h3>
+          
+          <div className="bg-slate-700/20 rounded-lg p-4 space-y-3">
+            <div className="space-y-3 text-sm text-slate-300">
+              <div>
+                <strong className="text-slate-200">1. Create Test Data:</strong>
+                <p className="text-slate-400 mt-1">
+                  Manually insert a test row in <code className="bg-slate-600/50 px-1 rounded">hash_anchor_queue</code> table:
+                </p>
+                <div className="bg-slate-800/30 p-2 rounded mt-2 font-mono text-xs">
+                  <div className="text-slate-300">INSERT INTO hash_anchor_queue (record_id, hash, anchor_status)</div>
+                  <div className="text-slate-300">VALUES ('test-record-id', 'test-hash-value', 'pending');</div>
+                </div>
+              </div>
+              
+              <div>
+                <strong className="text-slate-200">2. Manual Function Trigger:</strong>
+                <p className="text-slate-400 mt-1">Use the test button below or trigger via Supabase CLI:</p>
+                <div className="bg-slate-800/30 p-2 rounded mt-2 font-mono text-xs">
+                  <div className="text-slate-300">supabase functions invoke anchor-hashes --project-ref your-project-ref</div>
+                </div>
+              </div>
+              
+              <div>
+                <strong className="text-slate-200">3. Verify Results:</strong>
+                <ul className="text-slate-400 mt-1 space-y-1 list-disc list-inside">
+                  <li>Check staging webhook logs for receipt</li>
+                  <li>Verify row updated with <code className="bg-slate-600/50 px-1 rounded">anchored</code> status</li>
+                  <li>Confirm <code className="bg-slate-600/50 px-1 rounded">blockchain_tx_hash</code> is set</li>
+                  <li>Review webhook events in the monitoring section</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
 
