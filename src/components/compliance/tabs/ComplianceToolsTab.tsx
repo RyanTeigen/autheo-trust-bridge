@@ -10,6 +10,7 @@ import BlockchainAnchoringStatus from '../BlockchainAnchoringStatus';
 import AtomicDataViewer from '@/components/medical/AtomicDataViewer';
 import WebhookEventsViewer from '../WebhookEventsViewer';
 import AnchoringSetupGuide from '../AnchoringSetupGuide';
+import BlockchainVerificationTab from '../BlockchainVerificationTab';
 
 const ComplianceToolsTab: React.FC = () => {
   const [recordId, setRecordId] = useState('');
@@ -25,6 +26,9 @@ const ComplianceToolsTab: React.FC = () => {
     <div className="space-y-6">
       {/* Anchoring Setup Guide */}
       <AnchoringSetupGuide />
+      
+      {/* Blockchain Verification Records */}
+      <BlockchainVerificationTab />
       
       {/* Blockchain Anchoring Status */}
       <BlockchainAnchoringStatus />
