@@ -709,6 +709,7 @@ export type Database = {
           encrypted_data: string
           encrypted_key: string | null
           encrypted_payload: string | null
+          encryption_scheme: string | null
           id: string
           iv: string | null
           patient_id: string | null
@@ -724,6 +725,7 @@ export type Database = {
           encrypted_data: string
           encrypted_key?: string | null
           encrypted_payload?: string | null
+          encryption_scheme?: string | null
           id?: string
           iv?: string | null
           patient_id?: string | null
@@ -739,6 +741,7 @@ export type Database = {
           encrypted_data?: string
           encrypted_key?: string | null
           encrypted_payload?: string | null
+          encryption_scheme?: string | null
           id?: string
           iv?: string | null
           patient_id?: string | null
