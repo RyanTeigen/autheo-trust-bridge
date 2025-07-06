@@ -3,7 +3,7 @@
  * Uses mock Kyber utilities for development - will be replaced with real crypto
  */
 
-import { generateAESKey, encryptWithAES, encryptWithKyber } from './kyber-utils';
+import { generateAESKey, encryptWithAES, encryptWithKyber, isValidKyberPublicKey, generateKyberKeyPair } from './kyber-utils';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface EncryptedMedicalRecord {
@@ -41,7 +41,7 @@ export async function encryptMedicalRecord(
     return {
       encryptedPayload,
       encryptedKey,
-      algorithm: 'AES-256-GCM + Kyber-768',
+      algorithm: 'AES-256-GCM + ML-KEM-768',
       timestamp: new Date().toISOString()
     };
   } catch (error) {
@@ -51,15 +51,15 @@ export async function encryptMedicalRecord(
 }
 
 /**
- * Fetch patient's Kyber public key from database
+ * Fetch patient's ML-KEM public key from database
  * @param patientId - Patient's UUID
- * @returns Patient's Kyber public key
+ * @returns Patient's ML-KEM public key
  */
 export async function fetchPublicKey(patientId: string): Promise<string> {
   try {
-    console.log('🔍 Fetching patient public key for:', patientId);
+    console.log('🔍 Fetching patient ML-KEM public key for:', patientId);
     
-    // First try to get from patients table (check if kyber_public_key column exists)
+    // Get patient data from database
     const { data: patientData, error: patientError } = await supabase
       .from('patients')
       .select('user_id')
@@ -74,7 +74,7 @@ export async function fetchPublicKey(patientId: string): Promise<string> {
       throw new Error('Patient not found');
     }
 
-    // Try to get from profiles table using user_id
+    // Try to get existing key from profiles table
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('encryption_public_key')
@@ -82,39 +82,54 @@ export async function fetchPublicKey(patientId: string): Promise<string> {
       .single();
 
     if (!profileError && profileData?.encryption_public_key) {
-      console.log('✅ Found encryption public key in profiles table');
-      return profileData.encryption_public_key;
+      // Check if it's a real ML-KEM key (1184 bytes when decoded)
+      try {
+        const keyBytes = Uint8Array.from(atob(profileData.encryption_public_key), c => c.charCodeAt(0));
+        if (keyBytes.length === 1184) {
+          console.log('✅ Found real ML-KEM public key in profiles table');
+          return profileData.encryption_public_key;
+        }
+      } catch {
+        // Invalid key format, generate new one
+      }
     }
 
-    // If no key found, generate a mock key for development
-    console.warn('⚠️ No public key found, generating mock key for patient:', patientId);
-    const mockKey = btoa(`MOCK_KYBER_PUBLIC_KEY::${patientId}::${Date.now()}`);
+    // Generate a real ML-KEM key pair for the patient
+    console.log('🔑 Generating new ML-KEM-768 key pair for patient...');
+    const { publicKey, privateKey } = await generateKyberKeyPair();
     
-    // Store the mock key for consistency
+    // Store the public key in profiles table
     await supabase
       .from('profiles')
-      .update({ encryption_public_key: mockKey })
+      .update({ encryption_public_key: publicKey })
       .eq('id', patientData.user_id);
-    console.log('💾 Stored mock public key in profiles table');
-
-    return mockKey;
-  } catch (error) {
-    console.error('❌ Failed to fetch public key:', error);
     
-    // Fallback: generate a mock key
-    const fallbackKey = btoa(`FALLBACK_KYBER_KEY::${patientId}::${Date.now()}`);
-    console.log('🔄 Using fallback mock key');
-    return fallbackKey;
+    console.log('💾 Stored new ML-KEM public key in profiles table');
+    console.log('🔑 Generated real ML-KEM-768 key pair for patient');
+    
+    // In a real system, you'd securely deliver the private key to the patient
+    // For demo purposes, we'll log it (DON'T DO THIS IN PRODUCTION!)
+    console.warn('🚨 DEMO ONLY - Private key:', privateKey.substring(0, 50) + '...');
+
+    return publicKey;
+  } catch (error) {
+    console.error('❌ Failed to fetch/generate public key:', error);
+    throw error;
   }
 }
 
 /**
- * Store patient's Kyber public key in database
+ * Store patient's ML-KEM public key in database
  * @param patientId - Patient's UUID
- * @param publicKey - Kyber public key to store
+ * @param publicKey - ML-KEM public key to store
  */
 export async function storePublicKey(patientId: string, publicKey: string): Promise<void> {
   try {
+    // Validate key format before storing
+    if (!isValidKyberPublicKey(publicKey)) {
+      throw new Error('Invalid ML-KEM public key format');
+    }
+    
     // Get user_id from patients table
     const { data: patientData } = await supabase
       .from('patients')
@@ -133,7 +148,7 @@ export async function storePublicKey(patientId: string, publicKey: string): Prom
       }
     }
 
-    console.log('✅ Public key stored successfully');
+    console.log('✅ ML-KEM public key stored successfully');
   } catch (error) {
     console.error('❌ Failed to store public key:', error);
     throw error;

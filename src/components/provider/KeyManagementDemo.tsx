@@ -26,7 +26,7 @@ export default function KeyManagementDemo() {
       
       toast({
         title: "Keys Generated",
-        description: "Mock Kyber-768 key pair generated successfully",
+        description: "Real ML-KEM-768 key pair generated successfully",
       });
     } catch (error) {
       console.error('Key generation error:', error);
@@ -84,12 +84,12 @@ export default function KeyManagementDemo() {
       <CardHeader>
         <CardTitle className="text-autheo-primary flex items-center gap-2">
           <Key className="h-5 w-5" />
-          Kyber Key Management Demo
+          ML-KEM-768 Key Management (Real Crypto)
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-slate-300 text-sm">
-          Generate mock Kyber-768 key pairs for quantum-safe encryption testing.
+          Generate real ML-KEM-768 key pairs for production quantum-safe encryption.
         </p>
         
         <div className="flex gap-2">
@@ -174,7 +174,7 @@ export default function KeyManagementDemo() {
             </div>
             
             <div className="text-xs text-slate-400 bg-slate-700/50 p-2 rounded">
-              <strong>Note:</strong> These are mock keys for development. In production, use real Kyber-768 implementation with proper key derivation and storage.
+              <strong>Production Ready:</strong> These are real ML-KEM-768 keys (1184-byte public, 2400-byte private). Store private keys securely and never log in production!
             </div>
           </div>
         )}

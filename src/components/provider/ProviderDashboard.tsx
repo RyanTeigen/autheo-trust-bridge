@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProviderRecordForm from '@/components/provider/ProviderRecordForm';
 import EncryptionDemo from '@/components/provider/EncryptionDemo';
 import KeyManagementDemo from '@/components/provider/KeyManagementDemo';
+import CryptoComparisonDemo from '@/components/provider/CryptoComparisonDemo';
 import ImportRecordForm from '@/components/provider/ImportRecordForm';
 import ProviderAnalyticsTab from '@/components/provider/ProviderAnalyticsTab';
 
@@ -93,6 +94,7 @@ const ProviderDashboard: React.FC<ProviderDashboardProps> = ({
               <EncryptionDemo />
               <KeyManagementDemo />
             </div>
+            <CryptoComparisonDemo />
           </div>
         </TabsContent>
 

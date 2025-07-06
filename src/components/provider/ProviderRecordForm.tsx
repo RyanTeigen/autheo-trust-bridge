@@ -187,7 +187,7 @@ export default function ProviderRecordForm() {
         </CardTitle>
         <div className="flex items-center gap-2 mt-2">
           <Shield className="h-4 w-4 text-green-400" />
-          <span className="text-sm text-green-400">Quantum-safe hybrid encryption enabled</span>
+          <span className="text-sm text-green-400">Real ML-KEM-768 quantum-safe encryption enabled</span>
         </div>
       </CardHeader>
       <CardContent className="p-6">

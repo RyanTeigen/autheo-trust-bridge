@@ -7,7 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Shield, Link2, CheckCircle } from 'lucide-react';
-import { encryptMedicalRecord, anchorRecordToBlockchain, generateRecordHash } from '@/lib/encryption';
+import { encryptMedicalRecord } from '@/lib/encryptMedicalRecord';
+import { anchorRecordToBlockchain, generateRecordHash } from '@/lib/encryption';
+import { generateKyberKeyPair } from '@/lib/kyber-utils';
 import { useToast } from '@/hooks/use-toast';
 
 export default function EncryptionDemo() {
@@ -34,7 +36,10 @@ export default function EncryptionDemo() {
       };
       
       const mockPatientId = 'demo-patient-123';
-      const mockPublicKey = 'mock_kyber_public_key_demo';
+      
+      // Generate a real ML-KEM key pair for the demo
+      console.log('🔑 Generating real ML-KEM key pair...');
+      const { publicKey: mockPublicKey } = await generateKyberKeyPair();
       
       // Step 1: Encrypt the record
       console.log('🔐 Encrypting medical record...');
@@ -46,7 +51,7 @@ export default function EncryptionDemo() {
       setResults(prev => ({ ...prev, encrypted }));
       toast({
         title: "Encryption Complete",
-        description: "Medical record encrypted with hybrid AES + Kyber",
+        description: "Medical record encrypted with real AES-256-GCM + ML-KEM-768",
       });
       
       // Wait a bit for UI update
@@ -94,12 +99,12 @@ export default function EncryptionDemo() {
       <CardHeader>
         <CardTitle className="text-autheo-primary flex items-center gap-2">
           <Shield className="h-5 w-5" />
-          Hybrid Encryption + Blockchain Demo
+          Real ML-KEM-768 Encryption + Blockchain Demo
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-slate-300 text-sm">
-          This demo shows the complete flow: AES + Kyber encryption → SHA-256 hash → Blockchain anchoring
+          This demo shows the complete flow: Real AES-256-GCM + ML-KEM-768 encryption → SHA-256 hash → Blockchain anchoring
         </p>
         
         <Button 
@@ -120,7 +125,7 @@ export default function EncryptionDemo() {
               </Badge>
             </div>
             <div className="bg-slate-700 p-3 rounded text-xs font-mono">
-              <div><strong>Algorithm:</strong> Hybrid AES + Kyber</div>
+              <div><strong>Algorithm:</strong> Real AES-256-GCM + ML-KEM-768</div>
               <div><strong>Payload:</strong> {results.encrypted.encryptedPayload.substring(0, 50)}...</div>
               <div><strong>Key:</strong> {results.encrypted.encryptedKey.substring(0, 50)}...</div>
             </div>
