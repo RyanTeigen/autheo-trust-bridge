@@ -612,6 +612,64 @@ export type Database = {
         }
         Relationships: []
       }
+      hash_anchor_queue: {
+        Row: {
+          anchor_status: string | null
+          anchored_at: string | null
+          blockchain_tx_hash: string | null
+          error_message: string | null
+          hash: string
+          id: string
+          queued_at: string | null
+          record_id: string | null
+          retry_count: number | null
+        }
+        Insert: {
+          anchor_status?: string | null
+          anchored_at?: string | null
+          blockchain_tx_hash?: string | null
+          error_message?: string | null
+          hash: string
+          id?: string
+          queued_at?: string | null
+          record_id?: string | null
+          retry_count?: number | null
+        }
+        Update: {
+          anchor_status?: string | null
+          anchored_at?: string | null
+          blockchain_tx_hash?: string | null
+          error_message?: string | null
+          hash?: string
+          id?: string
+          queued_at?: string | null
+          record_id?: string | null
+          retry_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hash_anchor_queue_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hash_anchor_queue_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hash_anchor_queue_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       health_data: {
         Row: {
           created_at: string | null
