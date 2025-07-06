@@ -1,5 +1,6 @@
 
 import { ChecksumGenerator } from '@/services/security/checksumUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface RecordHashData {
   id: string;
@@ -11,7 +12,41 @@ export interface RecordHashData {
 
 export class RecordHashingUtils {
   /**
-   * Generate a SHA-256 hash for a medical record
+   * Generate a SHA-256 hash for a medical record using the new hash-record edge function
+   */
+  public static async generateAndStoreRecordHash(
+    recordId: string,
+    recordData: any,
+    operation: string,
+    patientId?: string,
+    providerId?: string,
+    signerId?: string
+  ): Promise<string> {
+    try {
+      const { data, error } = await supabase.functions.invoke('hash-record', {
+        body: {
+          record_id: recordId,
+          patient_id: patientId,
+          provider_id: providerId,
+          operation,
+          signer_id: signerId,
+          record_data: recordData
+        }
+      });
+
+      if (error) {
+        throw new Error(`Hash generation failed: ${error.message}`);
+      }
+
+      return data.hash;
+    } catch (error) {
+      console.error('Failed to generate and store record hash:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate a SHA-256 hash for a medical record (legacy method)
    */
   public static async generateRecordHash(recordData: RecordHashData): Promise<string> {
     const hashInput = JSON.stringify({

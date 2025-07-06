@@ -951,6 +951,61 @@ export type Database = {
         }
         Relationships: []
       }
+      record_hashes: {
+        Row: {
+          hash: string
+          id: string
+          operation: string
+          patient_id: string | null
+          provider_id: string | null
+          record_id: string | null
+          signer_id: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          hash: string
+          id?: string
+          operation: string
+          patient_id?: string | null
+          provider_id?: string | null
+          record_id?: string | null
+          signer_id?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          hash?: string
+          id?: string
+          operation?: string
+          patient_id?: string | null
+          provider_id?: string | null
+          record_id?: string | null
+          signer_id?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "record_hashes_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "record_hashes_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "record_hashes_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       record_shares: {
         Row: {
           created_at: string | null
