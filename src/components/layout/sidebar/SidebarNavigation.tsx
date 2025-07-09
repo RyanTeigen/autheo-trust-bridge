@@ -26,8 +26,8 @@ const SidebarNavigation: React.FC = () => {
   console.log('Sidebar Navigation - User role:', userRole);
   console.log('Sidebar Navigation - Is provider:', isProvider);
 
-  // Allow provider access in development mode for debugging
-  const showProviderPortal = isProvider || import.meta.env.DEV;
+  // Allow provider access for all users to demonstrate functionality
+  const showProviderPortal = true;
 
   const providerPortalItems = [
     { to: '/provider-portal', icon: UserCheck, title: 'Dashboard' },
