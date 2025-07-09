@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Calendar, User, Shield, Clock } from 'lucide-react';
+import { FileText, Calendar, User, Shield, Clock, ExternalLink, Anchor } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { MedicalRecordsEncryption } from '@/services/encryption/MedicalRecordsEncryption';
+
+interface AnchorData {
+  anchor_status: string;
+  blockchain_tx_hash?: string;
+  anchored_at?: string;
+  queued_at?: string;
+}
 
 interface SharedMedicalRecord {
   id: string;
@@ -16,6 +23,7 @@ interface SharedMedicalRecord {
   created_at: string;
   record_hash: string;
   anchored_at?: string;
+  hash_anchor_queue?: AnchorData[];
 }
 
 interface DecryptedRecord extends Omit<SharedMedicalRecord, 'encrypted_data'> {
@@ -44,8 +52,8 @@ const PatientRecordViewer: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Call the Supabase function to get patient records
-      const { data, error: fetchError } = await supabase.rpc('get_patient_records', {
+      // Fetch patient records with anchoring status
+      const { data: sharedRecords, error: fetchError } = await supabase.rpc('get_patient_records', {
         current_user_id: user.id
       });
 
@@ -53,15 +61,28 @@ const PatientRecordViewer: React.FC = () => {
         throw fetchError;
       }
 
-      if (!data || data.length === 0) {
+      if (!sharedRecords || sharedRecords.length === 0) {
         setRecords([]);
         return;
       }
 
+      // Fetch anchoring data for these records
+      const recordIds = sharedRecords.map(r => r.id);
+      const { data: anchorData } = await supabase
+        .from('hash_anchor_queue')
+        .select('record_id, anchor_status, blockchain_tx_hash, anchored_at, queued_at')
+        .in('record_id', recordIds);
+
+      // Combine records with their anchoring data
+      const recordsWithAnchoring = sharedRecords.map(record => ({
+        ...record,
+        hash_anchor_queue: anchorData?.filter(anchor => anchor.record_id === record.id) || []
+      }));
+
       // Decrypt each record
       const decryptedRecords: DecryptedRecord[] = [];
       
-      for (const record of data) {
+      for (const record of recordsWithAnchoring) {
         try {
           let decryptedValue;
           
@@ -250,6 +271,57 @@ const PatientRecordViewer: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Blockchain Anchoring Status */}
+              {record.hash_anchor_queue && record.hash_anchor_queue.length > 0 && (
+                <div className="bg-slate-700/30 p-4 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Anchor className="h-4 w-4 text-orange-400" />
+                    <span className="text-sm font-medium text-slate-200">Blockchain Anchoring</span>
+                  </div>
+                  <div className="space-y-2">
+                    {record.hash_anchor_queue.map((anchor, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${
+                              anchor.anchor_status === 'anchored' 
+                                ? 'bg-green-900/20 text-green-400 border-green-800' 
+                                : anchor.anchor_status === 'pending'
+                                ? 'bg-yellow-900/20 text-yellow-400 border-yellow-800'
+                                : 'bg-red-900/20 text-red-400 border-red-800'
+                            }`}
+                          >
+                            {anchor.anchor_status.charAt(0).toUpperCase() + anchor.anchor_status.slice(1)}
+                          </Badge>
+                          {anchor.queued_at && (
+                            <span className="text-xs text-slate-400">
+                              Queued: {new Date(anchor.queued_at).toLocaleDateString()}
+                            </span>
+                          )}
+                          {anchor.anchored_at && (
+                            <span className="text-xs text-slate-400">
+                              Anchored: {new Date(anchor.anchored_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        {anchor.blockchain_tx_hash && (
+                          <a
+                            href={`https://polygonscan.com/tx/${anchor.blockchain_tx_hash}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-blue-400 hover:text-blue-300 text-xs"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            View on Blockchain
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Record Metadata */}
               <div className="flex items-center justify-between text-sm text-slate-400">
