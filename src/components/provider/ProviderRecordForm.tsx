@@ -12,6 +12,7 @@ import { FileText, Shield } from 'lucide-react';
 import { encryptMedicalRecord, fetchPublicKey } from '@/lib/encryptMedicalRecord';
 import { anchorRecordToBlockchain } from '@/lib/encryption';
 import { auditLogger } from '@/services/audit/AuditLogger';
+import { sha256 } from 'js-sha256';
 
 export default function ProviderRecordForm() {
   const { user } = useAuth();
@@ -124,6 +125,27 @@ export default function ProviderRecordForm() {
 
       console.log('✅ Medical record created:', medicalRecord.id);
 
+      // Hash the encrypted record content and queue for blockchain anchoring
+      console.log('🔗 Queueing for blockchain anchoring...');
+      try {
+        const recordHash = sha256(encryptedPayload);
+        const { error: queueError } = await supabase
+          .from('hash_anchor_queue')
+          .insert({
+            record_id: medicalRecord.id,
+            hash: recordHash,
+            anchor_status: 'pending'
+          });
+
+        if (queueError) {
+          console.warn('⚠️ Failed to queue for anchoring:', queueError);
+        } else {
+          console.log('✅ Record queued for blockchain anchoring');
+        }
+      } catch (queueError) {
+        console.warn('⚠️ Blockchain queueing failed:', queueError);
+      }
+
       // Log the action for comprehensive audit trail
       console.log('📝 Logging audit action...');
       try {
@@ -149,7 +171,7 @@ export default function ProviderRecordForm() {
         
         toast({
           title: "Success",
-          description: `Encrypted record saved & anchored! Algorithm: ${algorithm}`,
+          description: `Record saved, encrypted with ${algorithm}, and queued for blockchain anchoring!`,
         });
       } catch (error) {
         console.error('❌ Error anchoring record on blockchain:', error);
