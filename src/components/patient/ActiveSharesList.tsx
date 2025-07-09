@@ -45,6 +45,20 @@ const ActiveSharesList: React.FC = () => {
     }
   }, [user]);
 
+  // Helper function to generate readable titles from record type
+  const generateRecordTitle = (recordType: string, createdAt: string) => {
+    const formatType = (type: string) => {
+      return type
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+
+    const formattedType = formatType(recordType);
+    const date = new Date(createdAt).toLocaleDateString();
+    return `${formattedType} - ${date}`;
+  };
+
   const fetchSharedRecords = async () => {
     if (!user) return;
 
@@ -56,10 +70,16 @@ const ActiveSharesList: React.FC = () => {
         .from('patients')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (patientError || !patient) {
+      if (patientError) {
         console.error('Error fetching patient:', patientError);
+        throw patientError;
+      }
+
+      if (!patient) {
+        console.warn('No patient record found for user');
+        setSharedRecords([]);
         return;
       }
 
@@ -75,8 +95,7 @@ const ActiveSharesList: React.FC = () => {
           expires_at,
           medical_records!inner (
             record_type,
-            title,
-            description
+            created_at
           )
         `)
         .eq('patient_id', patient.id)
@@ -92,13 +111,16 @@ const ActiveSharesList: React.FC = () => {
             .from('profiles')
             .select('first_name, last_name, email')
             .eq('id', permission.grantee_id)
-            .single();
+            .maybeSingle();
+
+          const medicalRecord = (permission as any).medical_records;
+          const recordType = medicalRecord?.record_type || 'unknown';
+          const recordCreatedAt = medicalRecord?.created_at || permission.created_at;
 
           return {
             ...permission,
-            record_type: (permission as any).medical_records?.record_type || 'Unknown',
-            record_title: (permission as any).medical_records?.title || 
-                         (permission as any).medical_records?.description || 'Medical Record',
+            record_type: recordType,
+            record_title: generateRecordTitle(recordType, recordCreatedAt),
             provider_name: provider ? 
               `${provider.first_name || ''} ${provider.last_name || ''}`.trim() || 
               provider.email : 
