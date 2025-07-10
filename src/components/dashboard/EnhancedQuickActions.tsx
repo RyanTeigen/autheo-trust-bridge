@@ -14,12 +14,47 @@ import {
   Eye
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedQuickActionsProps {
   className?: string;
 }
 
 const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleViewRecords = () => {
+    navigate('/patient-dashboard', { state: { activeTab: 'shared-records' } });
+  };
+
+  const handleQuantumShare = () => {
+    navigate('/patient-dashboard', { state: { activeTab: 'shared-records', focusSharing: true } });
+  };
+
+  const handleSchedule = () => {
+    toast({
+      title: "Coming Soon",
+      description: "Scheduling features are currently under development.",
+    });
+  };
+
+  const handleMessages = () => {
+    toast({
+      title: "Coming Soon", 
+      description: "Messaging features are currently under development.",
+    });
+  };
+
+  const handleShareRecords = () => {
+    navigate('/patient-dashboard', { state: { activeTab: 'shared-records', focusSharing: true } });
+  };
+
+  const handleManageAccess = () => {
+    navigate('/patient-dashboard', { state: { activeTab: 'access-requests' } });
+  };
+
   return (
     <Card className={cn("bg-slate-800 border-slate-700 text-slate-100", className)}>
       <CardHeader className="border-b border-slate-700 bg-slate-700/30">
@@ -30,6 +65,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }
           <Button 
             variant="outline" 
             className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary"
+            onClick={handleViewRecords}
           >
             <FileText className="h-5 w-5 text-autheo-primary" />
             <span className="text-sm">View Records</span>
@@ -38,6 +74,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }
           <Button 
             variant="outline" 
             className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary relative"
+            onClick={handleQuantumShare}
           >
             <div className="flex items-center gap-1">
               <Share2 className="h-5 w-5 text-autheo-primary" />
@@ -51,6 +88,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }
           <Button 
             variant="outline" 
             className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary"
+            onClick={handleSchedule}
           >
             <Calendar className="h-5 w-5 text-autheo-primary" />
             <span className="text-sm">Schedule</span>
@@ -59,6 +97,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }
           <Button 
             variant="outline" 
             className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary"
+            onClick={handleMessages}
           >
             <MessageCircle className="h-5 w-5 text-autheo-primary" />
             <span className="text-sm">Messages</span>
@@ -82,6 +121,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }
             <Button 
               variant="ghost" 
               className="justify-start text-left h-auto p-3 hover:bg-autheo-primary/10"
+              onClick={handleShareRecords}
             >
               <div className="flex items-center gap-3">
                 <div className="bg-autheo-primary/20 p-2 rounded-lg">
@@ -97,6 +137,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }
             <Button 
               variant="ghost" 
               className="justify-start text-left h-auto p-3 hover:bg-autheo-primary/10"
+              onClick={handleManageAccess}
             >
               <div className="flex items-center gap-3">
                 <div className="bg-autheo-primary/20 p-2 rounded-lg">

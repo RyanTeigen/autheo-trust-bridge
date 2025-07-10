@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, FileText, Calendar, Activity, UserCheck, Share2 } from 'lucide-react';
 import SimplifiedHealthRecordsTab from './SimplifiedHealthRecordsTab';
@@ -8,6 +8,7 @@ import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
 import AccessRequestsTab from './AccessRequestsTab';
 import ActiveSharesList from '@/components/patient/ActiveSharesList';
+import { useLocation } from 'react-router-dom';
 
 interface RevampedDashboardTabsProps {
   handleToggleShare: (id: string, shared: boolean) => void;
@@ -30,6 +31,17 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
   activeSection,
   setActiveSection,
 }) => {
+  const location = useLocation();
+
+  // Handle navigation state from quick actions
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveSection(location.state.activeTab);
+      // Clear the state after using it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, setActiveSection]);
+
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
       <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
