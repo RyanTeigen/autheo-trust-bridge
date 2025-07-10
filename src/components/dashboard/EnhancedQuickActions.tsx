@@ -41,10 +41,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }
   };
 
   const handleMessages = () => {
-    toast({
-      title: "Coming Soon", 
-      description: "Messaging features are currently under development.",
-    });
+    navigate('/patient-dashboard', { state: { activeTab: 'messages' } });
   };
 
   const handleShareRecords = () => {
