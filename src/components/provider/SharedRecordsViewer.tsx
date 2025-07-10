@@ -5,6 +5,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, Unlock, Eye, AlertCircle } from 'lucide-react';
 import { useSharedRecordsAPI, SharedRecord, DecryptedSharedRecord } from '@/hooks/useSharedRecordsAPI';
 import { useToast } from '@/hooks/use-toast';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { supabase } from '@/integrations/supabase/client';
 import SharedRecordsHeader from './shared-records/SharedRecordsHeader';
 import EncryptedRecordCard from './shared-records/EncryptedRecordCard';
 import DecryptedRecordCard from './shared-records/DecryptedRecordCard';
@@ -20,6 +22,7 @@ const SharedRecordsViewer: React.FC = () => {
   const [showPrivateKeyDialog, setShowPrivateKeyDialog] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { logAccess, logError } = useAuditLog();
   
   const { loading, getSharedRecords, getDecryptedSharedRecords, decryptSharedRecord } = useSharedRecordsAPI();
 
@@ -30,15 +33,38 @@ const SharedRecordsViewer: React.FC = () => {
   const fetchSharedRecords = async () => {
     try {
       setError(null);
-      const result = await getSharedRecords();
-      if (result.success && result.data) {
-        setSharedRecords(result.data);
-      } else {
-        setError(result.error || 'Failed to fetch shared records');
+      
+      // Use the new edge function for better audit logging
+      const { data, error } = await supabase.functions.invoke('get_provider_accessible_records');
+      
+      if (error) {
+        throw error;
       }
-    } catch (err) {
+
+      if (data.success) {
+        // Transform the data to match the existing interface
+        const transformedRecords = data.data.map((record: any) => ({
+          shareId: record.sharing_permissions[0]?.id || record.id,
+          recordId: record.id,
+          recordType: record.record_type,
+          patientName: record.patients.full_name,
+          patientEmail: record.patients.email,
+          sharedAt: record.sharing_permissions[0]?.responded_at || record.created_at,
+          encryptedKey: record.encrypted_data, // This would be the actual encrypted key in practice
+          sharedBy: record.patients.user_id
+        }));
+        
+        setSharedRecords(transformedRecords);
+        
+        // Log the access
+        await logAccess('medical_records', '', `Fetched ${transformedRecords.length} shared records`);
+      } else {
+        throw new Error(data.error || 'Failed to fetch shared records');
+      }
+    } catch (err: any) {
       console.error('Error fetching shared records:', err);
       setError('An unexpected error occurred while fetching shared records');
+      await logError('FETCH_SHARED_RECORDS', 'medical_records', err.message);
     }
   };
 
@@ -92,12 +118,22 @@ const SharedRecordsViewer: React.FC = () => {
       if (result.success && result.data) {
         setSelectedRecord(result.data);
         setActiveTab('viewer');
+        
+        // Log the record view
+        await logAccess('medical_records', result.data.recordId, `Viewed decrypted record: ${result.data.record.recordType}`);
+        
+        toast({
+          title: "Record Accessed",
+          description: `Successfully decrypted and viewing ${result.data.record.recordType}`,
+        });
       } else {
         setError(result.error || 'Failed to decrypt record');
+        await logError('DECRYPT_RECORD', 'medical_records', result.error || 'Unknown error', shareId);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error viewing record:', err);
       setError('An unexpected error occurred while viewing the record');
+      await logError('VIEW_RECORD', 'medical_records', err.message, shareId);
     }
   };
 

@@ -13,18 +13,6 @@ serve(async (req) => {
   }
 
   try {
-    const { medical_record_id, grantee_id, decision, note } = await req.json();
-    
-    if (!['approved', 'rejected'].includes(decision)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid decision. Must be "approved" or "rejected"' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
     // Get the authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -66,31 +54,16 @@ serve(async (req) => {
       )
     }
 
-    // Verify the patient owns the medical record first
-    const { data: recordData, error: recordError } = await supabase
-      .from('medical_records')
-      .select(`
-        id,
-        patient_id,
-        patients!inner(user_id)
-      `)
-      .eq('id', medical_record_id)
+    // Verify user is a provider
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
       .single()
 
-    if (recordError || !recordData) {
+    if (!profile || profile.role !== 'provider') {
       return new Response(
-        JSON.stringify({ error: 'Medical record not found' }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Check if the current user is the patient who owns the record
-    if (recordData.patients.user_id !== user.id) {
-      return new Response(
-        JSON.stringify({ error: 'You can only respond to requests for your own medical records' }),
+        JSON.stringify({ error: 'Access denied. Provider role required.' }),
         { 
           status: 403, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -98,22 +71,36 @@ serve(async (req) => {
       )
     }
 
-    // Update the sharing permission status
-    const { error: updateError } = await supabase
-      .from('sharing_permissions')
-      .update({ 
-        status: decision,
-        decision_note: note || null,
-        responded_at: new Date().toISOString()
-      })
-      .eq('medical_record_id', medical_record_id)
-      .eq('grantee_id', grantee_id)
-      .eq('status', 'pending')
+    // Get records accessible to this provider
+    const { data: accessibleRecords, error: recordsError } = await supabase
+      .from('medical_records')
+      .select(`
+        id,
+        record_type,
+        created_at,
+        patient_id,
+        encrypted_data,
+        patients!inner(
+          id,
+          full_name,
+          email,
+          user_id
+        ),
+        sharing_permissions!inner(
+          id,
+          permission_type,
+          status,
+          responded_at,
+          decision_note
+        )
+      `)
+      .eq('sharing_permissions.grantee_id', user.id)
+      .eq('sharing_permissions.status', 'approved')
 
-    if (updateError) {
-      console.error('Error updating sharing permission:', updateError)
+    if (recordsError) {
+      console.error('Error fetching accessible records:', recordsError)
       return new Response(
-        JSON.stringify({ error: 'Failed to update permission' }),
+        JSON.stringify({ error: 'Failed to fetch accessible records' }),
         { 
           status: 500, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -121,25 +108,24 @@ serve(async (req) => {
       )
     }
 
-    // Log the decision
+    // Log the access attempt
     await supabase.from('audit_logs').insert({
       user_id: user.id,
-      action: `ACCESS_REQUEST_${decision.toUpperCase()}`,
-      resource: 'sharing_permissions',
+      action: 'VIEWED_ACCESSIBLE_RECORDS',
+      resource: 'medical_records',
       status: 'success',
-      details: `${decision} access request for medical record ${medical_record_id} from user ${grantee_id}`,
+      details: `Provider accessed ${accessibleRecords?.length || 0} shared medical records`,
       metadata: {
-        medical_record_id,
-        grantee_id,
-        decision,
-        note: note || null
+        record_count: accessibleRecords?.length || 0,
+        access_timestamp: new Date().toISOString()
       }
     })
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Access request ${decision} successfully` 
+        data: accessibleRecords || [],
+        count: accessibleRecords?.length || 0
       }),
       { 
         status: 200, 
