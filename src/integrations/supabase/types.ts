@@ -625,6 +625,8 @@ export type Database = {
           error_message: string | null
           hash: string
           id: string
+          patient_id: string | null
+          provider_id: string | null
           queued_at: string | null
           record_id: string | null
           retry_count: number | null
@@ -636,6 +638,8 @@ export type Database = {
           error_message?: string | null
           hash: string
           id?: string
+          patient_id?: string | null
+          provider_id?: string | null
           queued_at?: string | null
           record_id?: string | null
           retry_count?: number | null
@@ -647,6 +651,8 @@ export type Database = {
           error_message?: string | null
           hash?: string
           id?: string
+          patient_id?: string | null
+          provider_id?: string | null
           queued_at?: string | null
           record_id?: string | null
           retry_count?: number | null

@@ -125,15 +125,20 @@ export default function ProviderRecordForm() {
 
       console.log('✅ Medical record created:', medicalRecord.id);
 
-      // Hash the encrypted record content and queue for blockchain anchoring
+      // Hash the record data and queue for blockchain anchoring
       console.log('🔗 Queueing for blockchain anchoring...');
       try {
-        const recordHash = sha256(encryptedPayload);
+        // Create hash from record data (not encrypted payload)
+        const hashInput = `${form.type}|${form.value}|${form.unit}|${form.timestamp}|${patient.id}|${user.id}`;
+        const recordHash = sha256(hashInput);
+        
         const { error: queueError } = await supabase
           .from('hash_anchor_queue')
           .insert({
             record_id: medicalRecord.id,
             hash: recordHash,
+            patient_id: patient.user_id,
+            provider_id: user.id,
             anchor_status: 'pending'
           });
 
