@@ -71,7 +71,40 @@ serve(async (req) => {
       )
     }
 
-    // Get records accessible to this provider
+    // Get sharing permissions for this provider first
+    const { data: permissions, error: permissionsError } = await supabase
+      .from('sharing_permissions')
+      .select('medical_record_id, permission_type, responded_at, id')
+      .eq('grantee_id', user.id)
+      .eq('status', 'approved')
+
+    if (permissionsError) {
+      console.error('Error fetching permissions:', permissionsError)
+      return new Response(
+        JSON.stringify({ error: 'Failed to fetch permissions' }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    if (!permissions || permissions.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: [],
+          count: 0
+        }),
+        { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Get the medical records for approved permissions
+    const recordIds = permissions.map(p => p.medical_record_id)
     const { data: accessibleRecords, error: recordsError } = await supabase
       .from('medical_records')
       .select(`
@@ -79,23 +112,9 @@ serve(async (req) => {
         record_type,
         created_at,
         patient_id,
-        encrypted_data,
-        patients!inner(
-          id,
-          full_name,
-          email,
-          user_id
-        ),
-        sharing_permissions!inner(
-          id,
-          permission_type,
-          status,
-          responded_at,
-          decision_note
-        )
+        encrypted_data
       `)
-      .eq('sharing_permissions.grantee_id', user.id)
-      .eq('sharing_permissions.status', 'approved')
+      .in('id', recordIds)
 
     if (recordsError) {
       console.error('Error fetching accessible records:', recordsError)
@@ -108,15 +127,34 @@ serve(async (req) => {
       )
     }
 
+    // Get patient information for each record
+    const patientIds = [...new Set(accessibleRecords?.map(r => r.patient_id).filter(Boolean))]
+    const { data: patients } = await supabase
+      .from('patients')
+      .select('id, full_name, email, user_id')
+      .in('id', patientIds)
+
+    // Combine the data
+    const enrichedRecords = accessibleRecords?.map(record => {
+      const patient = patients?.find(p => p.id === record.patient_id)
+      const permission = permissions.find(p => p.medical_record_id === record.id)
+      
+      return {
+        ...record,
+        patients: patient || { full_name: 'Unknown Patient', email: null, user_id: null },
+        sharing_permissions: [permission || { permission_type: 'read', responded_at: record.created_at }]
+      }
+    }) || []
+
     // Log the access attempt
     await supabase.from('audit_logs').insert({
       user_id: user.id,
       action: 'VIEWED_ACCESSIBLE_RECORDS',
       resource: 'medical_records',
       status: 'success',
-      details: `Provider accessed ${accessibleRecords?.length || 0} shared medical records`,
+      details: `Provider accessed ${enrichedRecords.length} shared medical records`,
       metadata: {
-        record_count: accessibleRecords?.length || 0,
+        record_count: enrichedRecords.length,
         access_timestamp: new Date().toISOString()
       }
     })
@@ -124,8 +162,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        data: accessibleRecords || [],
-        count: accessibleRecords?.length || 0
+        data: enrichedRecords,
+        count: enrichedRecords.length
       }),
       { 
         status: 200, 
