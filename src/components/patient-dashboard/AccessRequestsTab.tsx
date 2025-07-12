@@ -42,24 +42,49 @@ const AccessRequestsTab: React.FC = () => {
     if (!user) return;
     
     try {
+      // Get patient ID first
+      const { data: patientData, error: patientError } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single()
+
+      if (patientError || !patientData) {
+        throw new Error('Failed to fetch patient data')
+      }
+
       const { data, error } = await supabase
         .from('sharing_permissions')
-        .select(`
-          *,
-          profiles:grantee_id (
-            first_name,
-            last_name,
-            email
-          ),
-          medical_records (
-            record_type
-          )
-        `)
+        .select('*')
         .eq('status', 'pending')
-        .eq('patient_id', user.id);
+        .eq('patient_id', patientData.id)
 
-      if (error) throw error;
-      setRequests((data as unknown as AccessRequest[]) || []);
+      if (error) throw error
+
+      // Fetch profile information for each grantee
+      const requestsWithProfiles = await Promise.all(
+        (data || []).map(async (request) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, email')
+            .eq('id', request.grantee_id)
+            .single()
+
+          const { data: medicalRecord } = await supabase
+            .from('medical_records')
+            .select('record_type')
+            .eq('id', request.medical_record_id)
+            .single()
+
+          return {
+            ...request,
+            profiles: profile,
+            medical_records: medicalRecord
+          }
+        })
+      )
+
+      setRequests(requestsWithProfiles || [])
     } catch (error) {
       console.error('Error fetching access requests:', error);
       toast({
@@ -76,12 +101,11 @@ const AccessRequestsTab: React.FC = () => {
     setProcessingId(requestId);
     
     try {
-      const { data, error } = await supabase.functions.invoke('respond_to_access_request', {
+      const { data, error } = await supabase.functions.invoke('respond_to_share_request', {
         body: {
-          medical_record_id: medicalRecordId,
-          grantee_id: granteeId,
+          request_id: requestId,
           decision,
-          note: notes[requestId] || null
+          decision_note: notes[requestId] || null
         }
       });
 
