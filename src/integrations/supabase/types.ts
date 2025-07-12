@@ -1703,6 +1703,18 @@ export type Database = {
           recipient_id: string
         }[]
       }
+      get_provider_visible_records: {
+        Args: { current_user_id: string }
+        Returns: {
+          id: string
+          patient_id: string
+          record_type: string
+          encrypted_data: string
+          created_at: string
+          permission_type: string
+          patient_name: string
+        }[]
+      }
       get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
