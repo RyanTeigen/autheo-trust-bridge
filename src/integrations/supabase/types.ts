@@ -922,6 +922,36 @@ export type Database = {
           },
         ]
       }
+      policy_acknowledgments: {
+        Row: {
+          acknowledged_at: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          policy_version: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          policy_version?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          policy_version?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null

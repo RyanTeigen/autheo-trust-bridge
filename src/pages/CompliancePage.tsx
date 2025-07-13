@@ -10,6 +10,7 @@ import ComplianceMonitoringTab from '@/components/compliance/tabs/ComplianceMoni
 import ComplianceAuditTab from '@/components/compliance/tabs/ComplianceAuditTab';
 import ComplianceToolsTab from '@/components/compliance/tabs/ComplianceToolsTab';
 import ComplianceReportsTab from '@/components/compliance/tabs/ComplianceReportsTab';
+import PolicyAcknowledgmentAdmin from '@/components/compliance/PolicyAcknowledgmentAdmin';
 
 const CompliancePage = () => {
   const { toast } = useToast();
@@ -51,7 +52,7 @@ const CompliancePage = () => {
 
         {/* Main Tabbed Interface */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-card border-border">
+          <TabsList className="grid w-full grid-cols-6 bg-card border-border">
             <TabsTrigger 
               value="overview" 
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -69,6 +70,12 @@ const CompliancePage = () => {
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               Audit
+            </TabsTrigger>
+            <TabsTrigger 
+              value="policy-acks" 
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Policy Acks
             </TabsTrigger>
             <TabsTrigger 
               value="tools" 
@@ -94,6 +101,10 @@ const CompliancePage = () => {
 
           <TabsContent value="audit" className="mt-6">
             <ComplianceAuditTab />
+          </TabsContent>
+
+          <TabsContent value="policy-acks" className="mt-6">
+            <PolicyAcknowledgmentAdmin />
           </TabsContent>
 
           <TabsContent value="tools" className="mt-6">
