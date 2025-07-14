@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -84,6 +84,7 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
   const [acknowledging, setAcknowledging] = useState(false);
   const [hasRead, setHasRead] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
 
   // Debug logging
   console.log('PolicyAcknowledgmentCard render:', {
@@ -91,6 +92,8 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
     userId: user?.id,
     loading,
     acknowledged,
+    hasRead,
+    hasScrolled,
     shouldRender: !loading && !acknowledged && !!user
   });
 
@@ -134,15 +137,49 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
     checkAcknowledgment();
   }, [user?.id, policyVersion, toast]);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const element = e.target as HTMLDivElement;
-    const { scrollTop, scrollHeight, clientHeight } = element;
+  // Fallback timer to enable checkbox after 10 seconds if scroll detection fails
+  useEffect(() => {
+    const fallbackTimer = setTimeout(() => {
+      if (!hasScrolled) {
+        console.log('PolicyAcknowledgmentCard: Enabling checkbox via fallback timer');
+        setHasScrolled(true);
+      }
+    }, 10000);
+
+    return () => clearTimeout(fallbackTimer);
+  }, [hasScrolled]);
+
+  // Set up direct scroll monitoring on the viewport
+  useEffect(() => {
+    const viewport = scrollViewportRef.current;
+    if (!viewport) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = viewport;
+      const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
+      
+      console.log('Direct scroll event:', {
+        scrollTop,
+        scrollHeight,
+        clientHeight,
+        scrolledToBottom,
+        threshold: scrollHeight - 10
+      });
+
+      if (scrolledToBottom && !hasScrolled) {
+        console.log('PolicyAcknowledgmentCard: User has scrolled to bottom');
+        setHasScrolled(true);
+      }
+    };
+
+    viewport.addEventListener('scroll', handleScroll);
     
-    // Consider "scrolled to bottom" when within 50px of the bottom
-    if (scrollTop + clientHeight >= scrollHeight - 50) {
-      setHasScrolled(true);
-    }
-  };
+    // Also check immediately in case content is already short enough
+    handleScroll();
+
+    return () => viewport.removeEventListener('scroll', handleScroll);
+  }, [hasScrolled]);
+
 
   const handleAcknowledge = async () => {
     if (!user?.id) {
@@ -262,11 +299,11 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
               </h3>
             </div>
 
-            <ScrollArea 
-              className="h-96 w-full border border-slate-200 rounded-lg p-4 bg-slate-50"
-              onScrollCapture={handleScroll}
-            >
-              <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap">
+            <ScrollArea className="h-96 w-full border border-slate-200 rounded-lg bg-slate-50">
+              <div 
+                ref={scrollViewportRef}
+                className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap p-4"
+              >
                 {HIPAA_POLICY_TEXT}
               </div>
             </ScrollArea>
@@ -276,6 +313,10 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
                 <AlertTriangle className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800">
                   Please scroll through the entire policy to continue.
+                  <br />
+                  <span className="text-xs text-blue-600 mt-1 block">
+                    (Checkbox will also be enabled automatically after 10 seconds)
+                  </span>
                 </AlertDescription>
               </Alert>
             )}
@@ -289,6 +330,7 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
                 onCheckedChange={(checked) => setHasRead(checked as boolean)}
                 className="mt-1"
                 disabled={!hasScrolled}
+                data-testid="acknowledge-checkbox"
               />
               <label htmlFor="policy-read" className="text-sm text-slate-700 cursor-pointer">
                 <strong>I confirm that I have read and understood the entire HIPAA compliance policy.</strong>
