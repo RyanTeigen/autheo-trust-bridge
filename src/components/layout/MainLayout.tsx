@@ -61,7 +61,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </SidebarProvider>
         
         {/* HIPAA Policy Acknowledgment Modal */}
-        <PolicyAcknowledgmentCard />
+        <div style={{ position: 'relative', zIndex: 10000 }}>
+          <PolicyAcknowledgmentCard />
+        </div>
       </div>
     </ErrorBoundary>
   );

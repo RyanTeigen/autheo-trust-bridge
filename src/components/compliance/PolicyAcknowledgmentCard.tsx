@@ -85,6 +85,15 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
   const [hasRead, setHasRead] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
+  // Debug logging
+  console.log('PolicyAcknowledgmentCard render:', {
+    user: !!user,
+    userId: user?.id,
+    loading,
+    acknowledged,
+    shouldRender: !loading && !acknowledged && !!user
+  });
+
   useEffect(() => {
     if (!user?.id) {
       setLoading(false);
@@ -194,15 +203,31 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
     }
   };
 
-  // Don't render if loading or already acknowledged
-  if (loading || acknowledged) return null;
+  // Debug early returns
+  if (loading) {
+    console.log('PolicyAcknowledgmentCard: Not rendering - still loading');
+    return null;
+  }
+  
+  if (acknowledged) {
+    console.log('PolicyAcknowledgmentCard: Not rendering - already acknowledged');
+    return null;
+  }
 
-  // Don't render if no user (not authenticated)
-  if (!user) return null;
+  if (!user) {
+    console.log('PolicyAcknowledgmentCard: Not rendering - no user');
+    return null;
+  }
+
+  console.log('PolicyAcknowledgmentCard: Rendering modal');
 
   return (
-    <div className={`fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 ${className}`}>
-      <Card className="w-full max-w-4xl max-h-[90vh] bg-white border-2 border-amber-500 shadow-xl">
+    <div 
+      className={`fixed inset-0 bg-black/50 flex items-center justify-center p-4 ${className}`}
+      style={{ zIndex: 9999 }}
+      data-testid="policy-acknowledgment-modal"
+    >
+      <Card className="w-full max-w-4xl max-h-[90vh] bg-white border-2 border-amber-500 shadow-xl relative">
         <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0">
