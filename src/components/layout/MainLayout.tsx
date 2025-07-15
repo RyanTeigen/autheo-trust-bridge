@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import ErrorBoundary from '../ux/ErrorBoundary';
 import LoadingStates from '../ux/LoadingStates';
-import PolicyAcknowledgmentCard from '../compliance/PolicyAcknowledgmentCard';
+
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -59,11 +59,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             </ErrorBoundary>
           </div>
         </SidebarProvider>
-        
-        {/* HIPAA Policy Acknowledgment Modal */}
-        <div style={{ position: 'relative', zIndex: 10000 }}>
-          <PolicyAcknowledgmentCard />
-        </div>
       </div>
     </ErrorBoundary>
   );
