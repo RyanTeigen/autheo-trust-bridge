@@ -3,6 +3,7 @@ import React from 'react';
 import RealTimeComplianceMonitor from '@/components/compliance/RealTimeComplianceMonitor';
 import QuantumSecurityDashboard from '@/components/security/QuantumSecurityDashboard';
 import ComplianceQuantumScoreCard from '@/components/compliance/ComplianceQuantumScoreCard';
+import IncidentReportReviewTable from '@/components/compliance/IncidentReportReviewTable';
 import { useEncryptedAnalytics } from '@/hooks/useEncryptedAnalytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -134,6 +135,7 @@ const ComplianceMonitoringTab: React.FC = () => {
         )}
       </div>
       
+      <IncidentReportReviewTable />
       <RealTimeComplianceMonitor />
       <QuantumSecurityDashboard />
     </div>
