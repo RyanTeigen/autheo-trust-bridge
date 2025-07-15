@@ -737,26 +737,32 @@ export type Database = {
       }
       incident_reports: {
         Row: {
+          assigned_to: string | null
           created_at: string | null
           date: string
           description: string | null
           id: string
+          status: string | null
           type: string
           user_id: string | null
         }
         Insert: {
+          assigned_to?: string | null
           created_at?: string | null
           date: string
           description?: string | null
           id?: string
+          status?: string | null
           type: string
           user_id?: string | null
         }
         Update: {
+          assigned_to?: string | null
           created_at?: string | null
           date?: string
           description?: string | null
           id?: string
+          status?: string | null
           type?: string
           user_id?: string | null
         }
