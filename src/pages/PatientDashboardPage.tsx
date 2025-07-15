@@ -10,6 +10,7 @@ import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import IncidentReportModal from '@/components/compliance/IncidentReportModal';
 
 
 const PatientDashboardPage = () => {
@@ -110,24 +111,27 @@ const PatientDashboardPage = () => {
           icon={<Heart className="h-8 w-8 text-autheo-primary" />}
         />
         
-        <Button 
-          onClick={handleExportRecords}
-          disabled={exportLoading}
-          variant="outline"
-          className="bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700"
-        >
-          {exportLoading ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-autheo-primary mr-2"></div>
-              Exporting...
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4 mr-2" />
-              Download My Records
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <IncidentReportModal />
+          <Button 
+            onClick={handleExportRecords}
+            disabled={exportLoading}
+            variant="outline"
+            className="bg-slate-800 border-slate-600 text-slate-200 hover:bg-slate-700"
+          >
+            {exportLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-autheo-primary mr-2"></div>
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Download My Records
+              </>
+            )}
+          </Button>
+        </div>
       </div>
       
       <RevampedDashboardTabs

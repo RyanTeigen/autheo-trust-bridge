@@ -735,6 +735,33 @@ export type Database = {
           },
         ]
       }
+      incident_reports: {
+        Row: {
+          created_at: string | null
+          date: string
+          description: string | null
+          id: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       insurance_info: {
         Row: {
           created_at: string | null
