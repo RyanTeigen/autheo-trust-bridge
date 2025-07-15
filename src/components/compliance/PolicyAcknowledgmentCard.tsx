@@ -149,35 +149,55 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
     return () => clearTimeout(fallbackTimer);
   }, [hasScrolled]);
 
-  // Set up direct scroll monitoring on the viewport
+  // Set up scroll monitoring - find the actual scrollable element
   useEffect(() => {
-    const viewport = scrollViewportRef.current;
-    if (!viewport) return;
-
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = viewport;
-      const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 10; // 10px threshold
-      
-      console.log('Direct scroll event:', {
-        scrollTop,
-        scrollHeight,
-        clientHeight,
-        scrolledToBottom,
-        threshold: scrollHeight - 10
-      });
-
-      if (scrolledToBottom && !hasScrolled) {
-        console.log('PolicyAcknowledgmentCard: User has scrolled to bottom');
-        setHasScrolled(true);
-      }
+    const findScrollableElement = () => {
+      // ScrollArea creates a viewport element with data-radix-scroll-area-viewport
+      const viewport = document.querySelector('[data-radix-scroll-area-viewport]');
+      return viewport as HTMLElement;
     };
 
-    viewport.addEventListener('scroll', handleScroll);
-    
-    // Also check immediately in case content is already short enough
-    handleScroll();
+    const viewport = findScrollableElement();
+    if (!viewport) {
+      console.log('PolicyAcknowledgmentCard: Viewport not found, retrying...');
+      // Retry after a short delay if viewport not found
+      const retryTimer = setTimeout(() => {
+        const retryViewport = findScrollableElement();
+        if (retryViewport) {
+          setupScrollListener(retryViewport);
+        }
+      }, 100);
+      return () => clearTimeout(retryTimer);
+    }
 
-    return () => viewport.removeEventListener('scroll', handleScroll);
+    const setupScrollListener = (element: HTMLElement) => {
+      const handleScroll = () => {
+        const { scrollTop, scrollHeight, clientHeight } = element;
+        const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 10;
+        
+        console.log('Scroll event detected:', {
+          scrollTop,
+          scrollHeight,
+          clientHeight,
+          scrolledToBottom,
+          threshold: scrollHeight - 10
+        });
+
+        if (scrolledToBottom && !hasScrolled) {
+          console.log('PolicyAcknowledgmentCard: User scrolled to bottom - enabling checkbox');
+          setHasScrolled(true);
+        }
+      };
+
+      element.addEventListener('scroll', handleScroll);
+      
+      // Check immediately in case content fits without scrolling
+      handleScroll();
+
+      return () => element.removeEventListener('scroll', handleScroll);
+    };
+
+    return setupScrollListener(viewport);
   }, [hasScrolled]);
 
 
