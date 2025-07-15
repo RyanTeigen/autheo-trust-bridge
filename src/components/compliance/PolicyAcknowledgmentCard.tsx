@@ -137,17 +137,15 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
     checkAcknowledgment();
   }, [user?.id, policyVersion, toast]);
 
-  // Fallback timer to enable checkbox after 10 seconds if scroll detection fails
+  // Enable checkbox after short delay to ensure user has time to read
   useEffect(() => {
-    const fallbackTimer = setTimeout(() => {
-      if (!hasScrolled) {
-        console.log('PolicyAcknowledgmentCard: Enabling checkbox via fallback timer');
-        setHasScrolled(true);
-      }
-    }, 10000);
+    const timer = setTimeout(() => {
+      console.log('PolicyAcknowledgmentCard: Enabling checkbox after timer');
+      setHasScrolled(true);
+    }, 3000); // 3 seconds
 
-    return () => clearTimeout(fallbackTimer);
-  }, [hasScrolled]);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Set up scroll monitoring - find the actual scrollable element
   useEffect(() => {
@@ -335,7 +333,7 @@ const PolicyAcknowledgmentCard: React.FC<PolicyAcknowledgmentCardProps> = ({
                   Please scroll through the entire policy to continue.
                   <br />
                   <span className="text-xs text-blue-600 mt-1 block">
-                    (Checkbox will also be enabled automatically after 10 seconds)
+                    (Checkbox will be enabled automatically after 3 seconds)
                   </span>
                 </AlertDescription>
               </Alert>
