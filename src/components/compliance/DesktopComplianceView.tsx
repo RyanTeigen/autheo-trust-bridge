@@ -6,6 +6,7 @@ import ComplianceScoreCalculator from './ComplianceScoreCalculator';
 import ComplianceActionsCard from './ComplianceActionsCard';
 import ComplianceRecommendations from './ComplianceRecommendations';
 import ZeroKnowledgeVerification from './ZeroKnowledgeVerification';
+import QuantumThreatMonitor from '../security/QuantumThreatMonitor';
 
 interface DesktopComplianceViewProps {
   trendData: any[];
@@ -34,6 +35,8 @@ const DesktopComplianceView: React.FC<DesktopComplianceViewProps> = ({
         />
         
         <ComplianceActionsCard complianceScore={complianceScore} />
+        
+        <QuantumThreatMonitor />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

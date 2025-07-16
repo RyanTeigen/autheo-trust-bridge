@@ -1056,6 +1056,27 @@ export type Database = {
           },
         ]
       }
+      quantum_threat_monitor: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       record_anchors: {
         Row: {
           anchor_hash: string
