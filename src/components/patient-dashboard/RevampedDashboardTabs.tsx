@@ -7,7 +7,7 @@ import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard'
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
 import AccessRequestsTab from './AccessRequestsTab';
-import ActiveSharesList from '@/components/patient/ActiveSharesList';
+import PatientSharingManager from '@/components/patient/PatientSharingManager';
 import PatientMessaging from '@/components/patient/PatientMessaging';
 import { useLocation } from 'react-router-dom';
 
@@ -124,7 +124,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       </TabsContent>
       
       <TabsContent value="shared-records">
-        <ActiveSharesList />
+        <PatientSharingManager />
       </TabsContent>
       
       <TabsContent value="messages">

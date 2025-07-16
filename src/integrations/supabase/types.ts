@@ -1803,6 +1803,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      revoke_sharing_permission: {
+        Args: { permission_id: string }
+        Returns: undefined
+      }
       update_wallet_address: {
         Args: { user_id: string; wallet: string }
         Returns: undefined
