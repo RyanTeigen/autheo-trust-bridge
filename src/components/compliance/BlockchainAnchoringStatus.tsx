@@ -83,9 +83,12 @@ const BlockchainAnchoringStatus: React.FC = () => {
             <CardTitle className="text-slate-200 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-autheo-primary" />
               Blockchain Anchoring Status
+              <Badge variant="outline" className="ml-2 text-xs text-amber-400 border-amber-600">
+                🎭 Simulation Mode
+              </Badge>
             </CardTitle>
             <CardDescription>
-              Track cryptographic integrity anchors on the blockchain
+              Track cryptographic integrity anchors on the blockchain (simulation mode active)
             </CardDescription>
           </div>
           <Button

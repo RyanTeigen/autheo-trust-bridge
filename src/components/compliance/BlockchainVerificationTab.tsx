@@ -115,6 +115,9 @@ export default function BlockchainVerificationTab() {
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold text-foreground">Blockchain Verification</h2>
+          <Badge variant="outline" className="text-xs text-amber-600 border-amber-500">
+            🎭 Simulation Mode
+          </Badge>
         </div>
         <Button onClick={fetchAnchoredRecords} variant="outline" size="sm">
           Refresh
@@ -232,8 +235,9 @@ export default function BlockchainVerificationTab() {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Medical records are automatically queued for blockchain anchoring to ensure immutable audit trails. 
-          The Autheo blockchain provides cryptographic proof of data integrity and timestamp verification.
+          🎭 <strong>Simulation Mode Active:</strong> Medical records are being anchored using simulated blockchain transactions. 
+          The system is ready for production - just add your Autheo blockchain credentials to enable real anchoring.
+          All functionality including audit trails and verification works identically to production mode.
         </AlertDescription>
       </Alert>
     </div>
