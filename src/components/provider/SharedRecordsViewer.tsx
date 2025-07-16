@@ -6,6 +6,7 @@ import { FileText, Unlock, Eye, AlertCircle } from 'lucide-react';
 import { useSharedRecordsAPI, SharedRecord, DecryptedSharedRecord } from '@/hooks/useSharedRecordsAPI';
 import { useToast } from '@/hooks/use-toast';
 import { useAuditLog } from '@/hooks/useAuditLog';
+import { AccessLogger } from '@/services/audit/AccessLogger';
 import { supabase } from '@/integrations/supabase/client';
 import SharedRecordsHeader from './shared-records/SharedRecordsHeader';
 import EncryptedRecordCard from './shared-records/EncryptedRecordCard';
@@ -121,6 +122,11 @@ const SharedRecordsViewer: React.FC = () => {
         
         // Log the record view
         await logAccess('medical_records', result.data.recordId, `Viewed decrypted record: ${result.data.record.recordType}`);
+        
+        // Also log to access_logs table for medical record access tracking
+        if (result.data.record.patient?.id) {
+          await AccessLogger.logRecordView(result.data.recordId, result.data.record.patient.id);
+        }
         
         toast({
           title: "Record Accessed",

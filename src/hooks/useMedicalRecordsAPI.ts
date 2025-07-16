@@ -1,7 +1,9 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAuditLog } from './useAuditLog';
+import { AccessLogger } from '@/services/audit/AccessLogger';
 
 interface MedicalRecord {
   id: string;
@@ -35,6 +37,7 @@ interface GetRecordsOptions {
 
 export const useMedicalRecordsAPI = () => {
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   const { logAccess, logCreate, logUpdate, logDelete, logError } = useAuditLog();
 
   const getRecords = async (options: GetRecordsOptions = {}) => {
@@ -102,6 +105,12 @@ export const useMedicalRecordsAPI = () => {
       
       if (result.success) {
         await logAccess('medical_record', id, `Accessed record: ${result.data.data.title || 'Untitled'}`);
+        
+        // Also log to access_logs table for medical record access tracking
+        if (result.data.data.patient_id) {
+          await AccessLogger.logRecordView(id, result.data.data.patient_id, user?.id);
+        }
+        
         return result;
       } else {
         await logError('GET_RECORD', 'medical_record', result.error, id);
