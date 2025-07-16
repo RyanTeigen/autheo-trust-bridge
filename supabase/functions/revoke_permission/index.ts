@@ -1,6 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { createHash } from 'https://deno.land/std@0.168.0/hash/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -88,7 +87,7 @@ serve(async (req) => {
       created_at: new Date().toISOString()
     }
 
-    // Generate hash for the revocation event
+    // Generate hash for the revocation event using Web Crypto API
     const eventDataString = JSON.stringify({
       action: 'REVOKE_PERMISSION',
       permission_id,
@@ -99,9 +98,11 @@ serve(async (req) => {
       reason: reason || 'Revoked by patient'
     })
     
-    const hash = createHash('sha256')
-    hash.update(eventDataString)
-    const eventHash = hash.toString('hex')
+    const encoder = new TextEncoder()
+    const data = encoder.encode(eventDataString)
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const eventHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 
     // Insert revocation event with hash for blockchain anchoring
     const { error: revocationEventError } = await supabase
