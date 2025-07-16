@@ -1317,6 +1317,8 @@ export type Database = {
           patient_id: string | null
           permission_type: string
           responded_at: string | null
+          revoked_at: string | null
+          revoked_reason: string | null
           signed_consent: string | null
           status: string
           updated_at: string | null
@@ -1331,6 +1333,8 @@ export type Database = {
           patient_id?: string | null
           permission_type: string
           responded_at?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
           signed_consent?: string | null
           status?: string
           updated_at?: string | null
@@ -1345,6 +1349,8 @@ export type Database = {
           patient_id?: string | null
           permission_type?: string
           responded_at?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
           signed_consent?: string | null
           status?: string
           updated_at?: string | null
