@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          log_timestamp: string | null
+          patient_id: string | null
+          provider_id: string | null
+          record_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          log_timestamp?: string | null
+          patient_id?: string | null
+          provider_id?: string | null
+          record_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          log_timestamp?: string | null
+          patient_id?: string | null
+          provider_id?: string | null
+          record_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_logs_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_logs_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_logs_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_logs_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anchored_hashes: {
         Row: {
           anchor_tx_url: string | null
@@ -1768,6 +1834,16 @@ export type Database = {
       extend_session: {
         Args: { session_token_param: string }
         Returns: boolean
+      }
+      get_access_logs_by_patient: {
+        Args: { current_patient_id: string }
+        Returns: {
+          id: string
+          provider_id: string
+          action: string
+          record_id: string
+          log_timestamp: string
+        }[]
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>

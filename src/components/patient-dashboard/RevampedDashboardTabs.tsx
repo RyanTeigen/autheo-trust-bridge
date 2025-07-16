@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Calendar, Activity, UserCheck, Share2, MessageCircle } from 'lucide-react';
+import { User, FileText, Calendar, Activity, UserCheck, Share2, MessageCircle, History } from 'lucide-react';
 import SimplifiedHealthRecordsTab from './SimplifiedHealthRecordsTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
@@ -9,6 +9,7 @@ import HealthTrackerTabContent from './HealthTrackerTabContent';
 import AccessRequestsTab from './AccessRequestsTab';
 import PatientSharingManager from '@/components/patient/PatientSharingManager';
 import PatientMessaging from '@/components/patient/PatientMessaging';
+import PatientAccessLogViewer from '@/components/patient/PatientAccessLogViewer';
 import { useLocation } from 'react-router-dom';
 
 interface RevampedDashboardTabsProps {
@@ -45,7 +46,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-7 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-8 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -95,6 +96,13 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
           <MessageCircle className="h-4 w-4" />
           <span className="hidden sm:inline">Messages</span>
         </TabsTrigger>
+        <TabsTrigger 
+          value="access-logs" 
+          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
+        >
+          <History className="h-4 w-4" />
+          <span className="hidden sm:inline">Access Logs</span>
+        </TabsTrigger>
       </TabsList>
       
       <TabsContent value="dashboard">
@@ -129,6 +137,10 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       
       <TabsContent value="messages">
         <PatientMessaging />
+      </TabsContent>
+      
+      <TabsContent value="access-logs">
+        <PatientAccessLogViewer />
       </TabsContent>
     </Tabs>
   );
