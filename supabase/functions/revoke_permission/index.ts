@@ -42,7 +42,7 @@ serve(async (req) => {
       .select('*')
       .eq('id', permission_id)
       .eq('patient_id', patient_id)
-      .single()
+      .maybeSingle()
 
     if (fetchError || !permission) {
       console.error('Permission fetch error:', fetchError)
