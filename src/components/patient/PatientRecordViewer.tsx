@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Calendar, User, Shield, Clock, ExternalLink, Anchor } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { FileText, Calendar, User, Shield, Clock, ExternalLink, Anchor, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +18,7 @@ interface AnchorData {
 interface SharedMedicalRecord {
   id: string;
   patient_id: string;
+  provider_id: string;
   record_type: string;
   encrypted_data: string;
   iv: string;
@@ -24,6 +26,7 @@ interface SharedMedicalRecord {
   record_hash: string;
   anchored_at?: string;
   hash_anchor_queue?: AnchorData[];
+  recipient_id: string; // This is the sharing permission ID we need for revocation
 }
 
 interface DecryptedRecord extends Omit<SharedMedicalRecord, 'encrypted_data'> {
@@ -44,6 +47,46 @@ const PatientRecordViewer: React.FC = () => {
       fetchSharedRecords();
     }
   }, [user?.id]);
+
+  const revokeAccess = async (permissionId: string, recordType: string) => {
+    if (!user?.id) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('revoke_permission', {
+        body: {
+          permission_id: permissionId,
+          patient_id: user.id,
+          reason: `Patient revoked access to ${recordType} record`
+        }
+      });
+
+      if (error) {
+        console.error('Revocation error:', error);
+        toast({
+          title: "Failed to Revoke Access",
+          description: error.message || "An error occurred while revoking access",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Access Revoked",
+        description: `Access to ${recordType} record has been revoked successfully`,
+        variant: "default"
+      });
+
+      // Refresh the records list
+      fetchSharedRecords();
+    } catch (err) {
+      console.error('Revocation error:', err);
+      toast({
+        title: "Failed to Revoke Access",
+        description: "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
+  };
 
   const fetchSharedRecords = async () => {
     if (!user?.id) return;
@@ -247,6 +290,15 @@ const PatientRecordViewer: React.FC = () => {
                       Verified
                     </Badge>
                   )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => revokeAccess(record.recipient_id, record.record_type)}
+                    className="bg-red-900/20 text-red-400 border-red-800 hover:bg-red-900/30 hover:text-red-300"
+                  >
+                    <UserX className="h-4 w-4 mr-1" />
+                    Revoke Access
+                  </Button>
                 </div>
               </div>
             </CardHeader>
