@@ -1274,6 +1274,53 @@ export type Database = {
           },
         ]
       }
+      revocation_events: {
+        Row: {
+          anchored: boolean | null
+          anchored_at: string | null
+          blockchain_tx_hash: string | null
+          created_at: string | null
+          event_hash: string | null
+          id: string
+          patient_id: string
+          permission_id: string
+          provider_id: string
+          record_id: string | null
+        }
+        Insert: {
+          anchored?: boolean | null
+          anchored_at?: string | null
+          blockchain_tx_hash?: string | null
+          created_at?: string | null
+          event_hash?: string | null
+          id?: string
+          patient_id: string
+          permission_id: string
+          provider_id: string
+          record_id?: string | null
+        }
+        Update: {
+          anchored?: boolean | null
+          anchored_at?: string | null
+          blockchain_tx_hash?: string | null
+          created_at?: string | null
+          event_hash?: string | null
+          id?: string
+          patient_id?: string
+          permission_id?: string
+          provider_id?: string
+          record_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revocation_events_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "sharing_permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revoked_shares: {
         Row: {
           id: string

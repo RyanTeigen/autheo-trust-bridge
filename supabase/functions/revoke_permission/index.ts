@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createHash } from 'https://deno.land/std@0.168.0/hash/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -76,6 +77,43 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
+    }
+
+    // Create revocation event for blockchain anchoring
+    const revocationEventData = {
+      permission_id,
+      patient_id,
+      provider_id: permission.grantee_id,
+      record_id: permission.medical_record_id,
+      created_at: new Date().toISOString()
+    }
+
+    // Generate hash for the revocation event
+    const eventDataString = JSON.stringify({
+      action: 'REVOKE_PERMISSION',
+      permission_id,
+      patient_id,
+      provider_id: permission.grantee_id,
+      record_id: permission.medical_record_id,
+      timestamp: revocationEventData.created_at,
+      reason: reason || 'Revoked by patient'
+    })
+    
+    const hash = createHash('sha256')
+    hash.update(eventDataString)
+    const eventHash = hash.toString('hex')
+
+    // Insert revocation event with hash for blockchain anchoring
+    const { error: revocationEventError } = await supabase
+      .from('revocation_events')
+      .insert({
+        ...revocationEventData,
+        event_hash: eventHash
+      })
+
+    if (revocationEventError) {
+      console.error('Failed to create revocation event:', revocationEventError)
+      // Don't fail the revocation if event creation fails
     }
 
     // Log the revocation in audit logs
