@@ -42,15 +42,23 @@ const statusLabels = {
 export default function IncidentReportReviewTable() {
   const [reports, setReports] = useState<IncidentReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [filterAssignee, setFilterAssignee] = useState<string | null>(null);
   const { toast } = useToast();
   const { session } = useAuth();
 
   const fetchReports = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('incident_reports')
       .select('id, user_id, type, description, date, status, assigned_to, created_at')
       .order('date', { ascending: false });
+
+    if (filterStatus) query = query.eq('status', filterStatus);
+    if (filterAssignee === 'me' && session?.user.id) query = query.eq('assigned_to', session.user.id);
+    if (filterAssignee === 'unassigned') query = query.is('assigned_to', null);
+
+    const { data, error } = await query;
 
     if (error) {
       toast({
@@ -120,6 +128,35 @@ export default function IncidentReportReviewTable() {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="flex gap-4 items-center mb-4">
+          <Select value={filterStatus || ''} onValueChange={(value) => setFilterStatus(value || null)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="in_review">In Review</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filterAssignee || ''} onValueChange={(value) => setFilterAssignee(value || null)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All Assignees" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Assignees</SelectItem>
+              <SelectItem value="me">Assigned to Me</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button onClick={fetchReports} variant="outline">
+            Apply Filters
+          </Button>
+        </div>
+        
         {loading ? (
           <p className="text-muted-foreground text-sm">Loading reports...</p>
         ) : reports.length === 0 ? (
