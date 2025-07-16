@@ -5,7 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, ShieldOff, Loader2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Shield, ShieldOff, Loader2, AlertTriangle } from 'lucide-react';
 
 interface SharingPermission {
   id: string;
@@ -101,11 +102,26 @@ export default function PatientSharingManager() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
-        return <Badge variant="default" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Active</Badge>;
+        return (
+          <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20 transition-colors">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full mr-1.5"></div>
+            Active
+          </Badge>
+        );
       case 'revoked':
-        return <Badge variant="secondary" className="bg-red-500/10 text-red-600 border-red-500/20">Revoked</Badge>;
+        return (
+          <Badge className="bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20 transition-colors">
+            <div className="w-2 h-2 bg-red-500 rounded-full mr-1.5"></div>
+            Revoked
+          </Badge>
+        );
       case 'pending':
-        return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">Pending</Badge>;
+        return (
+          <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20 transition-colors">
+            <div className="w-2 h-2 bg-amber-500 rounded-full mr-1.5"></div>
+            Pending
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -122,7 +138,8 @@ export default function PatientSharingManager() {
   }
 
   return (
-    <Card className="bg-slate-800 border-slate-700">
+    <TooltipProvider>
+      <Card className="bg-slate-800 border-slate-700">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-slate-200">
           <Shield className="h-5 w-5" />
@@ -145,7 +162,13 @@ export default function PatientSharingManager() {
             {permissions.map((permission) => (
               <div
                 key={permission.id}
-                className="flex items-center justify-between p-4 bg-slate-700/50 border border-slate-600/50 rounded-lg"
+                className={`
+                  flex items-center justify-between p-5 rounded-lg border transition-all duration-200 hover:scale-[1.01]
+                  ${permission.status === 'approved' 
+                    ? 'bg-slate-700/50 border-slate-600/50 hover:bg-slate-700/70 hover:border-slate-600/70' 
+                    : 'bg-slate-800/80 border-slate-700/80 opacity-75'
+                  }
+                `}
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -164,22 +187,32 @@ export default function PatientSharingManager() {
                 </div>
                 
                 {permission.status === 'approved' && (
-                  <Button
-                    onClick={() => revokeAccess(permission.id)}
-                    disabled={revokingId === permission.id}
-                    variant="destructive"
-                    size="sm"
-                    className="ml-4"
-                  >
-                    {revokingId === permission.id ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Revoking...
-                      </>
-                    ) : (
-                      'Revoke Access'
-                    )}
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => revokeAccess(permission.id)}
+                        disabled={revokingId === permission.id}
+                        variant="destructive"
+                        size="sm"
+                        className="ml-4 hover:scale-105 transition-transform"
+                      >
+                        {revokingId === permission.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                            Revoking...
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="h-4 w-4 mr-2" />
+                            Revoke Access
+                          </>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Permanently revoke this provider's access to your records</p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             ))}
@@ -187,5 +220,6 @@ export default function PatientSharingManager() {
         )}
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }
