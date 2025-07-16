@@ -1,15 +1,13 @@
 
 import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Calendar, Activity, UserCheck, Share2, MessageCircle, History } from 'lucide-react';
+import { User, FileText, Calendar, Activity, Shield, MessageCircle } from 'lucide-react';
 import SimplifiedHealthRecordsTab from './SimplifiedHealthRecordsTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
-import AccessRequestsTab from './AccessRequestsTab';
-import PatientSharingManager from '@/components/patient/PatientSharingManager';
+import PrivacySecurityTab from './PrivacySecurityTab';
 import PatientMessaging from '@/components/patient/PatientMessaging';
-import PatientAccessLogViewer from '@/components/patient/PatientAccessLogViewer';
 import { useLocation } from 'react-router-dom';
 
 interface RevampedDashboardTabsProps {
@@ -46,7 +44,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-8 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -76,18 +74,11 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
           <span className="hidden sm:inline">Tracker</span>
         </TabsTrigger>
         <TabsTrigger 
-          value="access-requests" 
+          value="privacy-security" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
         >
-          <UserCheck className="h-4 w-4" />
-          <span className="hidden sm:inline">Access Requests</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="shared-records" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Shared Records</span>
+          <Shield className="h-4 w-4" />
+          <span className="hidden sm:inline">Privacy & Security</span>
         </TabsTrigger>
         <TabsTrigger 
           value="messages" 
@@ -95,13 +86,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         >
           <MessageCircle className="h-4 w-4" />
           <span className="hidden sm:inline">Messages</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="access-logs" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <History className="h-4 w-4" />
-          <span className="hidden sm:inline">Access Logs</span>
         </TabsTrigger>
       </TabsList>
       
@@ -127,20 +111,12 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         <HealthTrackerTabContent />
       </TabsContent>
       
-      <TabsContent value="access-requests">
-        <AccessRequestsTab />
-      </TabsContent>
-      
-      <TabsContent value="shared-records">
-        <PatientSharingManager />
+      <TabsContent value="privacy-security">
+        <PrivacySecurityTab />
       </TabsContent>
       
       <TabsContent value="messages">
         <PatientMessaging />
-      </TabsContent>
-      
-      <TabsContent value="access-logs">
-        <PatientAccessLogViewer />
       </TabsContent>
     </Tabs>
   );
