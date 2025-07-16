@@ -4,6 +4,7 @@ import { Shield, Settings, History, UserCheck } from 'lucide-react';
 import AccessRequestsTab from './AccessRequestsTab';
 import PatientSharingManager from '@/components/patient/PatientSharingManager';
 import PatientAccessLogViewer from '@/components/patient/PatientAccessLogViewer';
+import PatientAccessManager from '@/components/patient/PatientAccessManager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -65,14 +66,29 @@ const PrivacySecurityTab: React.FC = () => {
               <CardHeader>
                 <CardTitle className="text-slate-200 flex items-center">
                   <Settings className="h-5 w-5 mr-2 text-autheo-primary" />
-                  Access Control Management
+                  Share New Records
                 </CardTitle>
                 <CardDescription className="text-slate-400">
-                  Manage who has access to your medical records and control sharing permissions.
+                  Grant access to your medical records to healthcare providers.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <PatientSharingManager />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-slate-200 flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-autheo-primary" />
+                  Manage Shared Access
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  View and revoke existing sharing permissions for your medical records.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PatientAccessManager />
               </CardContent>
             </Card>
           </div>

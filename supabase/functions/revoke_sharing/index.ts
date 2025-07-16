@@ -73,17 +73,12 @@ serve(async (req) => {
     }
 
     // Log the audit trail
-    await supabase
-      .from('audit_logs')
-      .insert({
-        user_id: user.id,
-        action: 'REVOKE_SHARING_PERMISSION',
-        resource: 'sharing_permissions',
-        resource_id: record_id,
-        status: 'success',
-        details: `Patient revoked sharing permission${reason ? `: ${reason}` : ''}`,
-        timestamp: new Date().toISOString()
-      })
+    await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      action: 'revoke_access',
+      details: `Patient revoked provider access to record ${record_id}`,
+      metadata: { record_id, reason },
+    })
 
     console.log('Successfully revoked sharing permission for record:', record_id)
 
