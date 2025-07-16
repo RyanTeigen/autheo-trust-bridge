@@ -129,24 +129,24 @@ export default function IncidentReportReviewTable() {
       </CardHeader>
       <CardContent>
         <div className="flex gap-4 items-center mb-4">
-          <Select value={filterStatus || ''} onValueChange={(value) => setFilterStatus(value || null)}>
+          <Select value={filterStatus || 'all'} onValueChange={(value) => setFilterStatus(value === 'all' ? null : value)}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="in_review">In Review</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select value={filterAssignee || ''} onValueChange={(value) => setFilterAssignee(value || null)}>
+          <Select value={filterAssignee || 'all'} onValueChange={(value) => setFilterAssignee(value === 'all' ? null : value)}>
             <SelectTrigger className="w-48">
               <SelectValue placeholder="All Assignees" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Assignees</SelectItem>
+              <SelectItem value="all">All Assignees</SelectItem>
               <SelectItem value="me">Assigned to Me</SelectItem>
               <SelectItem value="unassigned">Unassigned</SelectItem>
             </SelectContent>
