@@ -695,6 +695,7 @@ export type Database = {
           provider_id: string | null
           queued_at: string | null
           record_id: string | null
+          record_type: string | null
           retry_count: number | null
         }
         Insert: {
@@ -708,6 +709,7 @@ export type Database = {
           provider_id?: string | null
           queued_at?: string | null
           record_id?: string | null
+          record_type?: string | null
           retry_count?: number | null
         }
         Update: {
@@ -721,6 +723,7 @@ export type Database = {
           provider_id?: string | null
           queued_at?: string | null
           record_id?: string | null
+          record_type?: string | null
           retry_count?: number | null
         }
         Relationships: [
@@ -1930,6 +1933,16 @@ export type Database = {
       }
       get_user_role: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      provider_submit_record: {
+        Args: {
+          provider_id_param: string
+          patient_id_param: string
+          record_type_param: string
+          encrypted_data_param: string
+          iv_param: string
+        }
         Returns: string
       }
       revoke_sharing_permission: {
