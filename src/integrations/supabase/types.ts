@@ -1675,6 +1675,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "sharing_permissions_grantee_id_fkey"
+            columns: ["grantee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "sharing_permissions_medical_record_id_fkey"
             columns: ["medical_record_id"]
             isOneToOne: false
