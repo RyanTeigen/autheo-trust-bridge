@@ -80,6 +80,57 @@ export type Database = {
           },
         ]
       }
+      access_request_audit: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          new_status: string | null
+          notes: string | null
+          old_status: string | null
+          performed_by: string | null
+          request_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          notes?: string | null
+          old_status?: string | null
+          performed_by?: string | null
+          request_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_status?: string | null
+          notes?: string | null
+          old_status?: string | null
+          performed_by?: string | null
+          request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_request_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_request_audit_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "sharing_permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       anchored_hashes: {
         Row: {
           anchor_tx_url: string | null
@@ -965,6 +1016,56 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          expires_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          notification_type: string
+          patient_id: string | null
+          priority: string | null
+          read_at: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          notification_type: string
+          patient_id?: string | null
+          priority?: string | null
+          read_at?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          notification_type?: string
+          patient_id?: string | null
+          priority?: string | null
+          read_at?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_notifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patients: {
         Row: {
           address: string | null
@@ -1358,52 +1459,76 @@ export type Database = {
       }
       sharing_permissions: {
         Row: {
+          auto_approved: boolean | null
+          clinical_justification: string | null
           created_at: string | null
           decision_note: string | null
+          department: string | null
           expires_at: string | null
           grantee_id: string
+          hospital_id: string | null
           id: string
+          last_reminder_sent: string | null
           medical_record_id: string | null
           patient_id: string | null
           permission_type: string
+          reminder_count: number | null
+          request_type: string | null
           responded_at: string | null
           revoked_at: string | null
           revoked_reason: string | null
           signed_consent: string | null
           status: string
           updated_at: string | null
+          urgency_level: string | null
         }
         Insert: {
+          auto_approved?: boolean | null
+          clinical_justification?: string | null
           created_at?: string | null
           decision_note?: string | null
+          department?: string | null
           expires_at?: string | null
           grantee_id: string
+          hospital_id?: string | null
           id?: string
+          last_reminder_sent?: string | null
           medical_record_id?: string | null
           patient_id?: string | null
           permission_type: string
+          reminder_count?: number | null
+          request_type?: string | null
           responded_at?: string | null
           revoked_at?: string | null
           revoked_reason?: string | null
           signed_consent?: string | null
           status?: string
           updated_at?: string | null
+          urgency_level?: string | null
         }
         Update: {
+          auto_approved?: boolean | null
+          clinical_justification?: string | null
           created_at?: string | null
           decision_note?: string | null
+          department?: string | null
           expires_at?: string | null
           grantee_id?: string
+          hospital_id?: string | null
           id?: string
+          last_reminder_sent?: string | null
           medical_record_id?: string | null
           patient_id?: string | null
           permission_type?: string
+          reminder_count?: number | null
+          request_type?: string | null
           responded_at?: string | null
           revoked_at?: string | null
           revoked_reason?: string | null
           signed_consent?: string | null
           status?: string
           updated_at?: string | null
+          urgency_level?: string | null
         }
         Relationships: [
           {
@@ -1769,6 +1894,50 @@ export type Database = {
             columns: ["record_id"]
             isOneToOne: false
             referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_automation_rules: {
+        Row: {
+          actions: Json
+          conditions: Json
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          rule_name: string
+          rule_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          actions: Json
+          conditions: Json
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          rule_name: string
+          rule_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          actions?: Json
+          conditions?: Json
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          rule_name?: string
+          rule_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

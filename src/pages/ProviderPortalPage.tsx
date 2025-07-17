@@ -65,9 +65,9 @@ const ProviderPortalContent: React.FC = () => {
             />
           </TabsContent>
           
-          <TabsContent value="patient-records" className="mt-6">
-            <ConsolidatedPatientRecordsTab />
-          </TabsContent>
+        <TabsContent value="patient-records" className="mt-6">
+          <ConsolidatedPatientRecordsTab />
+        </TabsContent>
           
           <TabsContent value="messaging" className="mt-6">
             <MessagingTab />
