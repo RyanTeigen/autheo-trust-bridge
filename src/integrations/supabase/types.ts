@@ -402,6 +402,101 @@ export type Database = {
         }
         Relationships: []
       }
+      cross_hospital_requests: {
+        Row: {
+          audit_trail: Json | null
+          clinical_justification: string
+          created_at: string
+          data_shared_at: string | null
+          expires_at: string | null
+          id: string
+          inter_hospital_approved: boolean | null
+          inter_hospital_approved_at: string | null
+          patient_consent_at: string | null
+          patient_consent_given: boolean | null
+          patient_id: string
+          permission_type: string
+          provider_id: string
+          receiving_hospital_id: string
+          request_type: string
+          requesting_hospital_id: string
+          status: string
+          updated_at: string
+          urgency_level: string
+        }
+        Insert: {
+          audit_trail?: Json | null
+          clinical_justification: string
+          created_at?: string
+          data_shared_at?: string | null
+          expires_at?: string | null
+          id?: string
+          inter_hospital_approved?: boolean | null
+          inter_hospital_approved_at?: string | null
+          patient_consent_at?: string | null
+          patient_consent_given?: boolean | null
+          patient_id: string
+          permission_type?: string
+          provider_id: string
+          receiving_hospital_id: string
+          request_type?: string
+          requesting_hospital_id: string
+          status?: string
+          updated_at?: string
+          urgency_level?: string
+        }
+        Update: {
+          audit_trail?: Json | null
+          clinical_justification?: string
+          created_at?: string
+          data_shared_at?: string | null
+          expires_at?: string | null
+          id?: string
+          inter_hospital_approved?: boolean | null
+          inter_hospital_approved_at?: string | null
+          patient_consent_at?: string | null
+          patient_consent_given?: boolean | null
+          patient_id?: string
+          permission_type?: string
+          provider_id?: string
+          receiving_hospital_id?: string
+          request_type?: string
+          requesting_hospital_id?: string
+          status?: string
+          updated_at?: string
+          urgency_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cross_hospital_requests_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_hospital_requests_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cross_hospital_requests_receiving_hospital_id_fkey"
+            columns: ["receiving_hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospital_registry"
+            referencedColumns: ["hospital_id"]
+          },
+          {
+            foreignKeyName: "cross_hospital_requests_requesting_hospital_id_fkey"
+            columns: ["requesting_hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospital_registry"
+            referencedColumns: ["hospital_id"]
+          },
+        ]
+      }
       distributed_records: {
         Row: {
           created_at: string
@@ -854,6 +949,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hospital_registry: {
+        Row: {
+          address: string | null
+          api_endpoint: string | null
+          certification_data: Json | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          hospital_id: string
+          hospital_name: string
+          id: string
+          public_key: string | null
+          updated_at: string
+          verification_status: string
+          verified_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          api_endpoint?: string | null
+          certification_data?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          hospital_id: string
+          hospital_name: string
+          id?: string
+          public_key?: string | null
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          api_endpoint?: string | null
+          certification_data?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          hospital_id?: string
+          hospital_name?: string
+          id?: string
+          public_key?: string | null
+          updated_at?: string
+          verification_status?: string
+          verified_at?: string | null
+        }
+        Relationships: []
       }
       incident_reports: {
         Row: {

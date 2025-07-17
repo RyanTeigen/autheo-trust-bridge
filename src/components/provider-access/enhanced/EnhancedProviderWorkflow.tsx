@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FileText, Shield, Building2, Clock, Zap } from 'lucide-react';
 import EnhancedAccessRequestForm from './EnhancedAccessRequestForm';
 import EnhancedAccessRequestsList from './EnhancedAccessRequestsList';
+import CrossHospitalRequestForm from '../cross-hospital/CrossHospitalRequestForm';
 
 const EnhancedProviderWorkflow: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -34,13 +35,20 @@ const EnhancedProviderWorkflow: React.FC = () => {
       </Alert>
 
       <Tabs defaultValue="request" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-slate-800 border border-slate-700">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-800 border border-slate-700">
           <TabsTrigger 
             value="request" 
             className="data-[state=active]:bg-autheo-primary data-[state=active]:text-white text-slate-300"
           >
             <FileText className="h-4 w-4 mr-2" />
             New Request
+          </TabsTrigger>
+          <TabsTrigger 
+            value="cross-hospital" 
+            className="data-[state=active]:bg-autheo-primary data-[state=active]:text-white text-slate-300"
+          >
+            <Building2 className="h-4 w-4 mr-2" />
+            Cross-Hospital
           </TabsTrigger>
           <TabsTrigger 
             value="tracking" 
@@ -86,6 +94,20 @@ const EnhancedProviderWorkflow: React.FC = () => {
             </div>
 
             <EnhancedAccessRequestForm onRequestCreated={handleRequestCreated} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="cross-hospital" className="mt-6">
+          <div className="space-y-6">
+            <Alert className="border-amber-500/30 bg-amber-900/20">
+              <Shield className="h-4 w-4" />
+              <AlertDescription className="text-slate-200">
+                <strong>Cross-Hospital Protocol:</strong> Requests require patient consent and receiving hospital verification. 
+                All data transfers are encrypted and fully audited for compliance.
+              </AlertDescription>
+            </Alert>
+            
+            <CrossHospitalRequestForm onRequestCreated={handleRequestCreated} />
           </div>
         </TabsContent>
 
