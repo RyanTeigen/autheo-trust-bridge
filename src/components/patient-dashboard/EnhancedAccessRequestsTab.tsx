@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import AutoApprovalRulesConfig from './AutoApprovalRulesConfig';
-import AccessRequestNotifications from './AccessRequestNotifications';
+import EnhancedNotificationCenter from '@/components/patient/EnhancedNotificationCenter';
 
 interface AccessRequest {
   id: string;
@@ -372,7 +372,7 @@ const EnhancedAccessRequestsTab: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="notifications">
-          <AccessRequestNotifications />
+          <EnhancedNotificationCenter />
         </TabsContent>
       </Tabs>
     </div>

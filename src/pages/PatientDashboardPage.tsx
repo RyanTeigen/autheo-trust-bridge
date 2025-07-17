@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import IncidentReportModal from '@/components/compliance/IncidentReportModal';
 import PolicyAcknowledgmentModal from '@/components/patient/PolicyAcknowledgmentModal';
+import NotificationDrivenApprovalAlert from '@/components/patient/NotificationDrivenApprovalAlert';
 
 
 const PatientDashboardPage = () => {
@@ -106,6 +107,10 @@ const PatientDashboardPage = () => {
   return (
     <div className="space-y-6">
       <PolicyAcknowledgmentModal />
+      
+      {/* Prominent Approval Alerts */}
+      <NotificationDrivenApprovalAlert />
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <PageHeader
           title="My Health Dashboard"

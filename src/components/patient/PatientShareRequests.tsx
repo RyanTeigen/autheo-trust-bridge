@@ -98,10 +98,18 @@ export default function PatientShareRequests() {
 
   const handleDecision = async (requestId: string, decision: 'approved' | 'rejected') => {
     try {
-      const { data, error } = await supabase.functions.invoke('respond_to_share_request', {
+      // Find the request to get the medical_record_id and grantee_id
+      const request = requests.find(r => r.id === requestId);
+      if (!request) {
+        throw new Error('Request not found');
+      }
+
+      const { data, error } = await supabase.functions.invoke('respond_to_access_request', {
         body: {
-          request_id: requestId,
+          medical_record_id: request.medical_record_id,
+          grantee_id: request.grantee_id,
           decision,
+          note: `Request ${decision} by patient`
         }
       })
 
