@@ -21,6 +21,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import AutoApprovalRulesConfig from './AutoApprovalRulesConfig';
 import EnhancedNotificationCenter from '@/components/patient/EnhancedNotificationCenter';
+import NotificationSystemDashboard from '@/components/patient/NotificationSystemDashboard';
 
 interface AccessRequest {
   id: string;
@@ -204,7 +205,7 @@ const EnhancedAccessRequestsTab: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Pending ({pendingCount})
@@ -224,6 +225,10 @@ const EnhancedAccessRequestsTab: React.FC = () => {
           <TabsTrigger value="notifications">
             <Bell className="h-4 w-4" />
             Notifications
+          </TabsTrigger>
+          <TabsTrigger value="system">
+            <AlertTriangle className="h-4 w-4" />
+            System
           </TabsTrigger>
         </TabsList>
 
@@ -373,6 +378,10 @@ const EnhancedAccessRequestsTab: React.FC = () => {
 
         <TabsContent value="notifications">
           <EnhancedNotificationCenter />
+        </TabsContent>
+
+        <TabsContent value="system">
+          <NotificationSystemDashboard />
         </TabsContent>
       </Tabs>
     </div>

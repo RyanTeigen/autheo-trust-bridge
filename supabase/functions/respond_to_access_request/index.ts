@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,151 +9,199 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { medical_record_id, grantee_id, decision, note } = await req.json();
-    
-    if (!['approved', 'rejected'].includes(decision)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid decision. Must be "approved" or "rejected"' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Get the authorization header
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Initialize Supabase client
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        },
-        global: {
-          headers: {
-            Authorization: authHeader
-          }
-        }
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
+    const { requestId, request_id, medical_record_id, grantee_id, decision, status, decision_note } = await req.json()
 
-    // Verify the patient owns the medical record first
-    const { data: recordData, error: recordError } = await supabase
-      .from('medical_records')
-      .select(`
-        id,
-        patient_id,
-        patients!inner(user_id)
-      `)
-      .eq('id', medical_record_id)
-      .single()
-
-    if (recordError || !recordData) {
-      return new Response(
-        JSON.stringify({ error: 'Medical record not found' }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Check if the current user is the patient who owns the record
-    if (recordData.patients.user_id !== user.id) {
-      return new Response(
-        JSON.stringify({ error: 'You can only respond to requests for your own medical records' }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Update the sharing permission status
-    const { error: updateError } = await supabase
-      .from('sharing_permissions')
-      .update({ 
-        status: decision,
-        decision_note: note || null,
-        responded_at: new Date().toISOString()
-      })
-      .eq('medical_record_id', medical_record_id)
-      .eq('grantee_id', grantee_id)
-      .eq('status', 'pending')
-
-    if (updateError) {
-      console.error('Error updating sharing permission:', updateError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to update permission' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Log the decision
-    await supabase.from('audit_logs').insert({
-      user_id: user.id,
-      action: `ACCESS_REQUEST_${decision.toUpperCase()}`,
-      resource: 'sharing_permissions',
-      status: 'success',
-      details: `${decision} access request for medical record ${medical_record_id} from user ${grantee_id}`,
-      metadata: {
-        medical_record_id,
-        grantee_id,
-        decision,
-        note: note || null
-      }
+    console.log('Processing access request response:', {
+      requestId,
+      request_id,
+      medical_record_id,
+      grantee_id,
+      decision,
+      status,
+      decision_note
     })
+
+    // Get the authorization header
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader) {
+      throw new Error('No authorization header')
+    }
+
+    // Verify the user is authenticated
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    )
+
+    if (userError || !userData.user) {
+      console.error('User authentication error:', userError)
+      throw new Error('User not authenticated')
+    }
+
+    const userId = userData.user.id
+
+    // Handle different parameter formats
+    const actualRequestId = requestId || request_id
+    const actualDecision = decision || status
+    
+    let updateData: any = {}
+
+    if (actualRequestId) {
+      // Update by request ID
+      updateData = {
+        status: actualDecision,
+        responded_at: new Date().toISOString(),
+        decision_note: decision_note || null
+      }
+
+      // First get the request details
+      const { data: requestData, error: requestError } = await supabaseClient
+        .from('sharing_permissions')
+        .select('*')
+        .eq('id', actualRequestId)
+        .single()
+
+      if (requestError) {
+        console.error('Error fetching request:', requestError)
+        throw new Error('Request not found')
+      }
+
+      // Verify the user owns this request (patient can respond to their own requests)
+      if (requestData.patient_id !== userId) {
+        throw new Error('Unauthorized: You can only respond to your own requests')
+      }
+
+      // Update the request
+      const { error: updateError } = await supabaseClient
+        .from('sharing_permissions')
+        .update(updateData)
+        .eq('id', actualRequestId)
+
+      if (updateError) {
+        console.error('Error updating request:', updateError)
+        throw new Error('Failed to update request')
+      }
+
+    } else if (medical_record_id && grantee_id) {
+      // Update by medical record and grantee IDs
+      updateData = {
+        status: actualDecision,
+        responded_at: new Date().toISOString(),
+        decision_note: decision_note || null
+      }
+
+      const { error: updateError } = await supabaseClient
+        .from('sharing_permissions')
+        .update(updateData)
+        .eq('medical_record_id', medical_record_id)
+        .eq('grantee_id', grantee_id)
+        .eq('status', 'pending')
+
+      if (updateError) {
+        console.error('Error updating request:', updateError)
+        throw new Error('Failed to update request')
+      }
+    } else {
+      throw new Error('Invalid request parameters')
+    }
+
+    // Create audit log entry
+    const auditData = {
+      request_id: actualRequestId,
+      action: actualDecision === 'approved' ? 'APPROVE' : 'REJECT',
+      old_status: 'pending',
+      new_status: actualDecision,
+      performed_by: userId,
+      notes: decision_note || null,
+      metadata: {
+        timestamp: new Date().toISOString(),
+        user_agent: req.headers.get('user-agent'),
+        ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip')
+      }
+    }
+
+    const { error: auditError } = await supabaseClient
+      .from('access_request_audit')
+      .insert(auditData)
+
+    if (auditError) {
+      console.error('Error creating audit log:', auditError)
+      // Don't fail the request for audit log errors
+    }
+
+    // Create notification for status change
+    if (actualRequestId) {
+      const { data: requestData } = await supabaseClient
+        .from('sharing_permissions')
+        .select('patient_id, grantee_id')
+        .eq('id', actualRequestId)
+        .single()
+
+      if (requestData) {
+        const notificationMessage = actualDecision === 'approved' 
+          ? 'Your access request has been approved by the patient.'
+          : 'Your access request has been declined by the patient.'
+
+        const { error: notificationError } = await supabaseClient
+          .from('patient_notifications')
+          .insert({
+            patient_id: requestData.patient_id,
+            notification_type: actualDecision === 'approved' ? 'access_granted' : 'access_revoked',
+            title: actualDecision === 'approved' ? 'Access Granted' : 'Access Declined',
+            message: notificationMessage,
+            priority: 'normal',
+            data: {
+              request_id: actualRequestId,
+              grantee_id: requestData.grantee_id,
+              decision: actualDecision,
+              decision_note: decision_note
+            }
+          })
+
+        if (notificationError) {
+          console.error('Error creating notification:', notificationError)
+        }
+      }
+    }
+
+    console.log('Access request response processed successfully')
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Access request ${decision} successfully` 
+        message: 'Access request updated successfully',
+        status: actualDecision
       }),
       { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
       }
     )
 
   } catch (error) {
-    console.error('Unexpected error:', error)
+    console.error('Error processing access request:', error)
+    
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        success: false, 
+        error: error.message || 'Failed to process access request' 
+      }),
       { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        status: 400,
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
       }
     )
   }
