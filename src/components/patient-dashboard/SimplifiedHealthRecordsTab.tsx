@@ -13,10 +13,13 @@ import {
   User, 
   Share2, 
   Shield,
-  Clock
+  Clock,
+  UserCheck,
+  AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ExportRecordsButton from '@/components/patient/ExportRecordsButton';
+import NotificationDrivenApprovalAlert from '@/components/patient/NotificationDrivenApprovalAlert';
 
 // Mock data for better UX
 const mockPersonalRecords = [
@@ -159,7 +162,7 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
 
       {/* Records Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-slate-800 border-slate-700">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-800 border-slate-700">
           <TabsTrigger 
             value="personal" 
             className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
@@ -171,6 +174,12 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
             className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
           >
             Shared with Me ({filteredSharedRecords.length})
+          </TabsTrigger>
+          <TabsTrigger 
+            value="requests" 
+            className="text-slate-300 data-[state=active]:bg-autheo-primary data-[state=active]:text-slate-900"
+          >
+            Access Requests
           </TabsTrigger>
         </TabsList>
         
@@ -333,6 +342,56 @@ const SimplifiedHealthRecordsTab: React.FC<SimplifiedHealthRecordsTabProps> = ({
               ))
             )}
           </div>
+        </TabsContent>
+        
+        <TabsContent value="requests" className="mt-6">
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="bg-autheo-primary/20 p-2 rounded-lg">
+                  <UserCheck className="h-5 w-5 text-autheo-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-slate-200">Access Requests Management</CardTitle>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Manage healthcare provider requests to access your medical records
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-700">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-slate-200 mb-2">Streamlined Access Management</h4>
+                      <p className="text-sm text-slate-400 mb-3">
+                        We've simplified access request management. New requests appear as notifications at the top of your dashboard where you can quickly approve or deny them.
+                      </p>
+                      <ul className="text-sm text-slate-400 space-y-1">
+                        <li>• Instant notifications for new access requests</li>
+                        <li>• Quick approve/deny buttons right from the notification</li>
+                        <li>• Detailed review option if you need more information</li>
+                        <li>• All actions are logged for your security</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Embedded notification component for immediate access */}
+                <div className="border border-slate-700 rounded-lg">
+                  <div className="p-4 border-b border-slate-700">
+                    <h4 className="font-medium text-slate-200">Current Access Requests</h4>
+                    <p className="text-sm text-slate-400">Active notifications requiring your attention</p>
+                  </div>
+                  <div className="p-1">
+                    <NotificationDrivenApprovalAlert />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

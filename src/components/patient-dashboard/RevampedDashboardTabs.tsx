@@ -45,7 +45,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-7 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -58,7 +58,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
         >
           <FileText className="h-4 w-4" />
-          <span className="hidden sm:inline">Records</span>
+          <span className="hidden sm:inline">My Records</span>
         </TabsTrigger>
         <TabsTrigger 
           value="scheduling" 
@@ -80,13 +80,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         >
           <Shield className="h-4 w-4" />
           <span className="hidden sm:inline">Privacy & Security</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="access-requests" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <UserCheck className="h-4 w-4" />
-          <span className="hidden sm:inline">Access</span>
         </TabsTrigger>
         <TabsTrigger 
           value="messages" 
@@ -123,9 +116,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         <PrivacySecurityTab />
       </TabsContent>
       
-      <TabsContent value="access-requests">
-        <EnhancedAccessRequestsTab />
-      </TabsContent>
       
       <TabsContent value="messages">
         <PatientMessaging />
