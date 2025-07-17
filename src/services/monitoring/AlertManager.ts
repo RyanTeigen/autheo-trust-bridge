@@ -284,6 +284,43 @@ class AlertManager {
     this.rules = this.rules.filter(r => r.id !== ruleId);
   }
 
+  async createAlert(
+    alertType: SystemAlert['type'],
+    severity: AlertSeverity,
+    message: string,
+    details?: Record<string, any>
+  ): Promise<string> {
+    const alert: SystemAlert = {
+      id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type: alertType,
+      severity,
+      message,
+      context: details,
+      timestamp: new Date(),
+      acknowledged: false,
+    };
+
+    this.alerts.push(alert);
+    await this.processAlert(alert);
+    return alert.id;
+  }
+
+  getActiveAlerts(): SystemAlert[] {
+    return this.alerts.filter(alert => !alert.acknowledged);
+  }
+
+  getCriticalAlerts(): SystemAlert[] {
+    return this.alerts.filter(alert => alert.severity === 'critical' && !alert.acknowledged);
+  }
+
+  async resolveAlert(alertId: string): Promise<void> {
+    const alert = this.alerts.find(a => a.id === alertId);
+    if (alert) {
+      alert.acknowledged = true;
+      alert.acknowledgedAt = new Date();
+    }
+  }
+
   // Health check for alert system
   async healthCheck(): Promise<{
     status: 'healthy' | 'degraded' | 'error';
@@ -315,3 +352,4 @@ class AlertManager {
 }
 
 export default AlertManager;
+export { AlertManager };

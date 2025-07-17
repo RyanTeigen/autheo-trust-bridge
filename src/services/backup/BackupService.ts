@@ -58,7 +58,7 @@ class BackupService {
 
       for (const table of metadata.tables) {
         const { data, error } = await supabase
-          .from(table)
+          .from(table as any)
           .select('*');
 
         if (error) {
@@ -143,7 +143,7 @@ class BackupService {
         // In production, you'd want more sophisticated restore logic
         // This is a simplified version for demonstration
         const { error } = await supabase
-          .from(table)
+          .from(table as any)
           .delete()
           .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
 
@@ -154,7 +154,7 @@ class BackupService {
 
         // Insert backup data
         const { error: insertError } = await supabase
-          .from(table)
+          .from(table as any)
           .insert(backupData[table]);
 
         if (insertError) {
@@ -172,7 +172,7 @@ class BackupService {
         metadata: {
           backupId,
           tables: tablesToRestore,
-          originalTimestamp: metadata.timestamp,
+          originalTimestamp: metadata.timestamp.toISOString(),
         },
       });
 

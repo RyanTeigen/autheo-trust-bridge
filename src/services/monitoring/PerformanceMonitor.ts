@@ -137,6 +137,39 @@ class PerformanceMonitor {
     });
   }
 
+  measureAPICall<T>(
+    endpoint: string,
+    method: string,
+    apiCall: () => Promise<T>
+  ): Promise<T> {
+    const startTime = performance.now();
+    
+    return apiCall().finally(() => {
+      const endTime = performance.now();
+      this.recordMetric({
+        name: `api-call-${method}-${endpoint}`,
+        value: endTime - startTime,
+        timestamp: Date.now(),
+        metadata: { 
+          type: 'api-call',
+          endpoint,
+          method 
+        },
+      });
+    });
+  }
+
+  startMonitoring(): void {
+    console.log('Performance monitoring started');
+  }
+
+  stopMonitoring(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+    console.log('Performance monitoring stopped');
+  }
+
   private sendMetricToBackend(metric: PerformanceMetric): void {
     // Queue metric for batch sending
     if (performanceConfig.enableMetrics) {
@@ -186,8 +219,8 @@ class PerformanceMonitor {
         'dns-lookup': navigation.domainLookupEnd - navigation.domainLookupStart,
         'tcp-connection': navigation.connectEnd - navigation.connectStart,
         'request-response': navigation.responseEnd - navigation.requestStart,
-        'dom-processing': navigation.domComplete - navigation.domLoading,
-        'page-load': navigation.loadEventEnd - navigation.navigationStart,
+        'dom-processing': navigation.domComplete - navigation.responseStart,
+        'page-load': navigation.loadEventEnd - navigation.fetchStart,
       };
 
       Object.entries(metrics).forEach(([name, value]) => {
