@@ -148,7 +148,17 @@ export interface FHIRObservation extends FHIRResource {
   effective?: string | FHIRPeriod;
   issued?: string;
   performer?: FHIRReference[];
+  // Generic value field (deprecated in favor of specific value types)
   value?: FHIRQuantity | FHIRCodeableConcept | string | boolean | number | FHIRRange;
+  // Specific value types as per FHIR R4 specification
+  valueQuantity?: FHIRQuantity;
+  valueCodeableConcept?: FHIRCodeableConcept;
+  valueString?: string;
+  valueBoolean?: boolean;
+  valueInteger?: number;
+  valueRange?: FHIRRange;
+  valueDateTime?: string;
+  valuePeriod?: FHIRPeriod;
   dataAbsentReason?: FHIRCodeableConcept;
   interpretation?: FHIRCodeableConcept[];
   note?: FHIRAnnotation[];
