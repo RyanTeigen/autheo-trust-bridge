@@ -13,12 +13,21 @@ import { encryptMedicalRecord, fetchPublicKey } from '@/lib/encryptMedicalRecord
 import { anchorRecordToBlockchain } from '@/lib/encryption';
 import { auditLogger } from '@/services/audit/AuditLogger';
 import { sha256 } from 'js-sha256';
+import PatientSearch from './PatientSearch';
+
+interface Patient {
+  id: string;
+  user_id: string;
+  full_name: string;
+  email: string;
+  date_of_birth?: string;
+}
 
 export default function ProviderRecordForm() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [form, setForm] = useState({
-    patientId: '',
     type: 'blood_pressure',
     value: '',
     unit: '',
@@ -40,10 +49,10 @@ export default function ProviderRecordForm() {
       return;
     }
 
-    if (!form.patientId || !form.value) {
+    if (!selectedPatient || !form.value) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please select a patient and fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -52,39 +61,9 @@ export default function ProviderRecordForm() {
     setLoading(true);
     
     try {
-      // First, try to find the patient by ID or email
-      let patientQuery = supabase
-        .from('patients')
-        .select('id, user_id')
-        .eq('id', form.patientId);
-
-      // If it looks like an email, search by email instead
-      if (form.patientId.includes('@')) {
-        patientQuery = supabase
-          .from('patients')
-          .select('id, user_id')
-          .eq('email', form.patientId);
-      }
-
-      const { data: patient, error: patientError } = await patientQuery.maybeSingle();
-
-      if (patientError) {
-        throw new Error('Error finding patient: ' + patientError.message);
-      }
-
-      if (!patient) {
-        toast({
-          title: "Error",
-          description: "Patient not found",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
       // Get patient's public key for encryption
       console.log('🔍 Fetching patient public key...');
-      const patientPublicKey = await fetchPublicKey(patient.id);
+      const patientPublicKey = await fetchPublicKey(selectedPatient.id);
 
       // Create the medical record data
       const recordData = {
@@ -107,9 +86,9 @@ export default function ProviderRecordForm() {
       const { data: medicalRecord, error: insertError } = await supabase
         .from('medical_records')
         .insert({
-          patient_id: patient.id,
+          patient_id: selectedPatient.id,
           provider_id: user.id,
-          user_id: patient.user_id,
+          user_id: selectedPatient.user_id,
           record_type: form.type,
           encrypted_data: encryptedPayload,
           encrypted_payload: encryptedPayload,
@@ -129,7 +108,7 @@ export default function ProviderRecordForm() {
       console.log('🔗 Queueing for blockchain anchoring...');
       try {
         // Create hash from record data (not encrypted payload)
-        const hashInput = `${form.type}|${form.value}|${form.unit}|${form.timestamp}|${patient.id}|${user.id}`;
+        const hashInput = `${form.type}|${form.value}|${form.unit}|${form.timestamp}|${selectedPatient.id}|${user.id}`;
         const recordHash = sha256(hashInput);
         
         const { error: queueError } = await supabase
@@ -137,7 +116,7 @@ export default function ProviderRecordForm() {
           .insert({
             record_id: medicalRecord.id,
             hash: recordHash,
-            patient_id: patient.user_id,
+            patient_id: selectedPatient.user_id,
             provider_id: user.id,
             anchor_status: 'pending'
           });
@@ -157,7 +136,7 @@ export default function ProviderRecordForm() {
         await auditLogger.logCreate(
           'medical_record',
           medicalRecord.id,
-          `Created encrypted ${form.type} record for patient ${patient.id} with ${algorithm} encryption`
+          `Created encrypted ${form.type} record for patient ${selectedPatient.id} with ${algorithm} encryption`
         );
         console.log('✅ Audit log created successfully');
       } catch (auditError) {
@@ -169,7 +148,7 @@ export default function ProviderRecordForm() {
       try {
         const anchorResult = await anchorRecordToBlockchain(
           medicalRecord.id,
-          patient.user_id,
+          selectedPatient.user_id,
           form.type
         );
         console.log('✅ Record anchored:', anchorResult);
@@ -188,8 +167,8 @@ export default function ProviderRecordForm() {
       }
 
       // Reset form
+      setSelectedPatient(null);
       setForm({
-        patientId: '',
         type: 'blood_pressure',
         value: '',
         unit: '',
@@ -222,18 +201,12 @@ export default function ProviderRecordForm() {
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="patient" className="text-slate-200">Patient ID or Email</Label>
-              <Input 
-                id="patient" 
-                value={form.patientId} 
-                onChange={(e) => handleChange('patientId', e.target.value)}
-                placeholder="Enter patient ID or email"
-                className="bg-slate-700 border-slate-600 text-slate-100"
-              />
-            </div>
+          <PatientSearch
+            onPatientSelect={setSelectedPatient}
+            selectedPatient={selectedPatient}
+          />
 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-slate-200">Record Type</Label>
               <Select value={form.type} onValueChange={(v) => handleChange('type', v)}>
@@ -273,7 +246,7 @@ export default function ProviderRecordForm() {
               />
             </div>
 
-            <div className="space-y-2 md:col-span-2">
+            <div className="space-y-2">
               <Label className="text-slate-200">Timestamp</Label>
               <Input 
                 type="datetime-local" 
@@ -285,7 +258,7 @@ export default function ProviderRecordForm() {
           </div>
 
           <Button 
-            disabled={loading || !form.patientId || !form.value} 
+            disabled={loading || !selectedPatient || !form.value} 
             onClick={handleSubmit}
             className="w-full bg-autheo-primary hover:bg-autheo-primary/90"
           >
