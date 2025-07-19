@@ -4,149 +4,125 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
+  Calendar, 
   FileText, 
   Share2, 
-  Calendar, 
-  MessageCircle, 
-  Shield,
-  Zap,
-  Plus,
-  Eye
+  Shield, 
+  Activity, 
+  Bell,
+  ArrowRight,
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 
 interface EnhancedQuickActionsProps {
   className?: string;
 }
 
-const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className }) => {
+const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className = "" }) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleViewRecords = () => {
-    navigate('/patient-dashboard', { state: { activeTab: 'shared-records' } });
-  };
-
-  const handleQuantumShare = () => {
-    navigate('/patient-dashboard', { state: { activeTab: 'shared-records', focusSharing: true } });
-  };
-
-  const handleSchedule = () => {
-    toast({
-      title: "Coming Soon",
-      description: "Scheduling features are currently under development.",
-    });
-  };
-
-  const handleMessages = () => {
-    navigate('/patient-dashboard', { state: { activeTab: 'messages' } });
-  };
-
-  const handleShareRecords = () => {
-    navigate('/patient-dashboard', { state: { activeTab: 'shared-records', focusSharing: true } });
-  };
-
-  const handleManageAccess = () => {
-    navigate('/patient-dashboard', { state: { activeTab: 'access-requests' } });
-  };
+  const quickActions = [
+    {
+      title: 'Schedule Appointment',
+      description: 'Book a new appointment with your healthcare provider',
+      icon: <Calendar className="h-5 w-5" />,
+      action: () => navigate('/patient-dashboard', { state: { activeTab: 'scheduling' } }),
+      color: 'text-blue-400',
+      bgColor: 'bg-blue-500/10',
+      borderColor: 'border-blue-500/20'
+    },
+    {
+      title: 'View Medical Records',
+      description: 'Access your complete medical history and documents',
+      icon: <FileText className="h-5 w-5" />,
+      action: () => navigate('/patient-dashboard', { state: { activeTab: 'records' } }),
+      color: 'text-green-400',
+      bgColor: 'bg-green-500/10',
+      borderColor: 'border-green-500/20'
+    },
+    {
+      title: 'Manage Notifications',
+      description: 'Review access requests and important alerts',
+      icon: <Bell className="h-5 w-5" />,
+      action: () => navigate('/patient-dashboard', { state: { activeTab: 'notifications' } }),
+      color: 'text-orange-400',
+      bgColor: 'bg-orange-500/10',
+      borderColor: 'border-orange-500/20',
+      badge: { text: 'New', variant: 'destructive' as const }
+    },
+    {
+      title: 'Health Tracker',
+      description: 'Monitor your vital signs and health metrics',
+      icon: <Activity className="h-5 w-5" />,
+      action: () => navigate('/patient-dashboard', { state: { activeTab: 'health-tracker' } }),
+      color: 'text-purple-400',
+      bgColor: 'bg-purple-500/10',
+      borderColor: 'border-purple-500/20'
+    },
+    {
+      title: 'Privacy & Security',
+      description: 'Manage your data sharing preferences and security settings',
+      icon: <Shield className="h-5 w-5" />,
+      action: () => navigate('/patient-dashboard', { state: { activeTab: 'privacy-security' } }),
+      color: 'text-amber-400',
+      bgColor: 'bg-amber-500/10',
+      borderColor: 'border-amber-500/20'
+    },
+    {
+      title: 'Share Records',
+      description: 'Grant access to your medical records to healthcare providers',
+      icon: <Share2 className="h-5 w-5" />,
+      action: () => navigate('/sharing'),
+      color: 'text-cyan-400',
+      bgColor: 'bg-cyan-500/10',
+      borderColor: 'border-cyan-500/20'
+    }
+  ];
 
   return (
-    <Card className={cn("bg-slate-800 border-slate-700 text-slate-100", className)}>
-      <CardHeader className="border-b border-slate-700 bg-slate-700/30">
-        <CardTitle className="text-autheo-primary">Quick Actions</CardTitle>
+    <Card className={`bg-slate-800 border-slate-700 ${className}`}>
+      <CardHeader>
+        <CardTitle className="text-slate-100 flex items-center gap-2">
+          <Clock className="h-5 w-5 text-autheo-primary" />
+          Quick Actions
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button 
-            variant="outline" 
-            className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary"
-            onClick={handleViewRecords}
-          >
-            <FileText className="h-5 w-5 text-autheo-primary" />
-            <span className="text-sm">View Records</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary relative"
-            onClick={handleQuantumShare}
-          >
-            <div className="flex items-center gap-1">
-              <Share2 className="h-5 w-5 text-autheo-primary" />
-              <Badge variant="secondary" className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-autheo-primary text-autheo-dark">
-                <Zap className="h-3 w-3" />
-              </Badge>
-            </div>
-            <span className="text-sm">Quantum Share</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary"
-            onClick={handleSchedule}
-          >
-            <Calendar className="h-5 w-5 text-autheo-primary" />
-            <span className="text-sm">Schedule</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="h-auto p-4 flex flex-col gap-2 border-slate-600 hover:bg-slate-700 hover:border-autheo-primary"
-            onClick={handleMessages}
-          >
-            <MessageCircle className="h-5 w-5 text-autheo-primary" />
-            <span className="text-sm">Messages</span>
-          </Button>
-        </div>
-        
-        {/* Highlighted Quantum Features */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-autheo-primary/10 to-autheo-secondary/10 rounded-lg border border-autheo-primary/20">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-autheo-primary" />
-              <h3 className="font-medium text-autheo-primary">Quantum-Safe Features</h3>
-            </div>
-            <Badge variant="secondary" className="bg-autheo-primary/20 text-autheo-primary border-autheo-primary/30">
-              <Zap className="h-3 w-3 mr-1" />
-              Advanced
-            </Badge>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Button 
-              variant="ghost" 
-              className="justify-start text-left h-auto p-3 hover:bg-autheo-primary/10"
-              onClick={handleShareRecords}
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {quickActions.map((action, index) => (
+            <Button
+              key={index}
+              onClick={action.action}
+              variant="ghost"
+              className={`h-auto p-4 justify-start text-left hover:bg-slate-700 border ${action.borderColor} ${action.bgColor} transition-all group`}
             >
-              <div className="flex items-center gap-3">
-                <div className="bg-autheo-primary/20 p-2 rounded-lg">
-                  <Plus className="h-4 w-4 text-autheo-primary" />
+              <div className="flex items-start gap-3 w-full">
+                <div className={`${action.color} group-hover:scale-110 transition-transform`}>
+                  {action.icon}
                 </div>
-                <div>
-                  <p className="font-medium text-slate-200">Share Records</p>
-                  <p className="text-xs text-slate-400">Post-quantum encryption</p>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-medium text-slate-200 group-hover:text-white">
+                      {action.title}
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      {action.badge && (
+                        <Badge variant={action.badge.variant} className="text-xs">
+                          {action.badge.text}
+                        </Badge>
+                      )}
+                      <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-autheo-primary group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-400 group-hover:text-slate-300">
+                    {action.description}
+                  </p>
                 </div>
               </div>
             </Button>
-            
-            <Button 
-              variant="ghost" 
-              className="justify-start text-left h-auto p-3 hover:bg-autheo-primary/10"
-              onClick={handleManageAccess}
-            >
-              <div className="flex items-center gap-3">
-                <div className="bg-autheo-primary/20 p-2 rounded-lg">
-                  <Eye className="h-4 w-4 text-autheo-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-200">Manage Access</p>
-                  <p className="text-xs text-slate-400">Control who sees what</p>
-                </div>
-              </div>
-            </Button>
-          </div>
+          ))}
         </div>
       </CardContent>
     </Card>

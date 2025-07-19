@@ -1,14 +1,14 @@
 
 import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, Calendar, Activity, Shield, MessageCircle, UserCheck } from 'lucide-react';
+import { User, FileText, Calendar, Activity, Shield, MessageCircle, Bell } from 'lucide-react';
 import SimplifiedHealthRecordsTab from './SimplifiedHealthRecordsTab';
 import PersonalizedDashboard from '@/components/dashboard/PersonalizedDashboard';
 import SchedulingTabContent from './SchedulingTabContent';
 import HealthTrackerTabContent from './HealthTrackerTabContent';
 import PrivacySecurityTab from './PrivacySecurityTab';
 import PatientMessaging from '@/components/patient/PatientMessaging';
-import EnhancedAccessRequestsTab from './EnhancedAccessRequestsTab';
+import NotificationsTabContent from './NotificationsTabContent';
 import { useLocation } from 'react-router-dom';
 
 interface RevampedDashboardTabsProps {
@@ -45,7 +45,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-7 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -66,6 +66,13 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         >
           <Calendar className="h-4 w-4" />
           <span className="hidden sm:inline">Schedule</span>
+        </TabsTrigger>
+        <TabsTrigger 
+          value="notifications" 
+          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="hidden sm:inline">Notifications</span>
         </TabsTrigger>
         <TabsTrigger 
           value="health-tracker" 
@@ -108,6 +115,10 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         <SchedulingTabContent />
       </TabsContent>
       
+      <TabsContent value="notifications">
+        <NotificationsTabContent />
+      </TabsContent>
+      
       <TabsContent value="health-tracker">
         <HealthTrackerTabContent />
       </TabsContent>
@@ -115,7 +126,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       <TabsContent value="privacy-security">
         <PrivacySecurityTab />
       </TabsContent>
-      
       
       <TabsContent value="messages">
         <PatientMessaging />
