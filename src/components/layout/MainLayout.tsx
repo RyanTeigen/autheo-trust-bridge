@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
@@ -12,7 +11,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import ErrorBoundary from '../ux/ErrorBoundary';
 import LoadingStates from '../ux/LoadingStates';
-
 
 interface MainLayoutProps {
   children: React.ReactNode;
