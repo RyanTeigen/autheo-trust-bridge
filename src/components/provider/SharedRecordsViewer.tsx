@@ -35,24 +35,24 @@ const SharedRecordsViewer: React.FC = () => {
     try {
       setError(null);
       
-      // Use the new edge function for better audit logging
-      const { data, error } = await supabase.functions.invoke('get_provider_accessible_records');
+      // Use the edge function for fetching shared records
+      const { data, error } = await supabase.functions.invoke('get-shared-records');
       
       if (error) {
         throw error;
       }
 
-      if (data.success) {
+      if (data && Array.isArray(data.data)) {
         // Transform the data to match the existing interface
         const transformedRecords = data.data.map((record: any) => ({
           shareId: record.sharing_permissions[0]?.id || record.id,
           recordId: record.id,
           recordType: record.record_type,
-          patientName: record.patients.full_name,
-          patientEmail: record.patients.email,
-          sharedAt: record.sharing_permissions[0]?.responded_at || record.created_at,
-          encryptedKey: record.encrypted_data, // This would be the actual encrypted key in practice
-          sharedBy: record.patients.user_id
+          patientName: `Patient ${record.patient_id}`, // Basic fallback since edge function doesn't include patient details
+          patientEmail: '',
+          sharedAt: record.sharing_permissions[0]?.granted_at || record.created_at,
+          encryptedKey: record.encrypted_data || '',
+          sharedBy: record.patient_id
         }));
         
         setSharedRecords(transformedRecords);
@@ -60,7 +60,7 @@ const SharedRecordsViewer: React.FC = () => {
         // Log the access
         await logAccess('medical_records', '', `Fetched ${transformedRecords.length} shared records`);
       } else {
-        throw new Error(data.error || 'Failed to fetch shared records');
+        throw new Error(data?.error || 'Failed to fetch shared records');
       }
     } catch (err: any) {
       console.error('Error fetching shared records:', err);
