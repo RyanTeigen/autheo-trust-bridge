@@ -94,7 +94,6 @@ export function useAppointments() {
         access_request_status,
         provider_id,
         profiles (
-          full_name,
           first_name,
           last_name,
           email
@@ -112,7 +111,7 @@ export function useAppointments() {
       const formattedAppointments: Appointment[] = appointmentsData.map(apt => {
         const appointmentDate = new Date(apt.appointment_date);
         const provider = apt.profiles 
-          ? apt.profiles.full_name || `${apt.profiles.first_name || ''} ${apt.profiles.last_name || ''}`.trim() || apt.profiles.email
+          ? `${apt.profiles.first_name || ''} ${apt.profiles.last_name || ''}`.trim() || apt.profiles.email
           : 'Unknown Provider';
 
         return {
