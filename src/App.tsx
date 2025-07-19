@@ -27,6 +27,7 @@ import SmartFormsPage from "./pages/SmartFormsPage";
 import SharedRecordsPage from "./pages/SharedRecordsPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 import RoleBasedDashboardRedirect from "./components/auth/RoleBasedDashboardRedirect";
+import CrossHospitalConsent from "./components/patient/CrossHospitalConsent";
 
 // Create a stable query client instance
 const queryClient = new QueryClient({
@@ -84,6 +85,14 @@ const App = () => {
                       <ProtectedRoute>
                         <MainLayout>
                           <SharedRecordsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/cross-hospital-consent" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <CrossHospitalConsent />
                         </MainLayout>
                       </ProtectedRoute>
                     } />

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Building2, Shield, Clock, AlertTriangle, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { useSearchParams } from 'react-router-dom';
 
 interface CrossHospitalRequest {
   id: string;
@@ -42,16 +43,20 @@ interface CrossHospitalRequest {
 const CrossHospitalConsent: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [requests, setRequests] = useState<CrossHospitalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingRequest, setProcessingRequest] = useState<string | null>(null);
   const [consentNotes, setConsentNotes] = useState<{ [key: string]: string }>({});
+  
+  // Get specific request ID from URL parameters
+  const requestIdFromUrl = searchParams.get('request_id');
 
   useEffect(() => {
     if (user) {
       fetchCrossHospitalRequests();
     }
-  }, [user]);
+  }, [user, requestIdFromUrl]);
 
   const fetchCrossHospitalRequests = async () => {
     if (!user) return;
@@ -70,13 +75,19 @@ const CrossHospitalConsent: React.FC = () => {
         return;
       }
 
-      // Fetch cross-hospital requests for this patient
-      const { data, error } = await supabase
+      // Build query for cross-hospital requests
+      let query = supabase
         .from('cross_hospital_requests')
         .select('*')
         .eq('patient_id', patientData.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+        .eq('status', 'pending');
+
+      // If we have a specific request ID from URL, filter by it
+      if (requestIdFromUrl) {
+        query = query.eq('id', requestIdFromUrl);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
 
@@ -112,6 +123,15 @@ const CrossHospitalConsent: React.FC = () => {
       );
 
       setRequests(requestsWithDetails);
+      
+      // If a specific request was requested but not found, show a message
+      if (requestIdFromUrl && (!requestsWithDetails || requestsWithDetails.length === 0)) {
+        toast({
+          title: "Request Not Found",
+          description: "The requested cross-hospital consent request was not found or has already been processed.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error fetching cross-hospital requests:', error);
       toast({
