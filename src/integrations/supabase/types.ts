@@ -402,6 +402,56 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_revocations: {
+        Row: {
+          anchored: boolean | null
+          anchored_at: string | null
+          blockchain_tx_hash: string | null
+          consent_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          revocation_hash: string
+          revoked_at: string
+          revoked_by: string
+          updated_at: string
+        }
+        Insert: {
+          anchored?: boolean | null
+          anchored_at?: string | null
+          blockchain_tx_hash?: string | null
+          consent_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          revocation_hash: string
+          revoked_at?: string
+          revoked_by: string
+          updated_at?: string
+        }
+        Update: {
+          anchored?: boolean | null
+          anchored_at?: string | null
+          blockchain_tx_hash?: string | null
+          consent_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          revocation_hash?: string
+          revoked_at?: string
+          revoked_by?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_revocations_consent_id_fkey"
+            columns: ["consent_id"]
+            isOneToOne: false
+            referencedRelation: "consents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       consents: {
         Row: {
           created_at: string
@@ -879,6 +929,7 @@ export type Database = {
           error_message: string | null
           hash: string
           id: string
+          metadata: Json | null
           patient_id: string | null
           provider_id: string | null
           queued_at: string | null
@@ -893,6 +944,7 @@ export type Database = {
           error_message?: string | null
           hash: string
           id?: string
+          metadata?: Json | null
           patient_id?: string | null
           provider_id?: string | null
           queued_at?: string | null
@@ -907,6 +959,7 @@ export type Database = {
           error_message?: string | null
           hash?: string
           id?: string
+          metadata?: Json | null
           patient_id?: string | null
           provider_id?: string | null
           queued_at?: string | null

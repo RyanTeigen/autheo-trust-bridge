@@ -18,6 +18,7 @@ import TelemedicinePage from "./pages/TelemedicinePage";
 import NotFound from "./pages/NotFound";
 import PatientRecordsPage from "./pages/PatientRecordsPage";
 import ProviderPortalPage from "./pages/ProviderPortalPage";
+import ProviderDashboardPage from "./pages/ProviderDashboardPage";
 import MedicalNotesPage from "./pages/MedicalNotesPage";
 import SettingsPage from "./pages/SettingsPage";
 import PatientDashboardPage from "./pages/PatientDashboardPage";
@@ -93,6 +94,16 @@ const App = () => {
                         <RoleBasedRoute allowedRoles={['provider']}>
                           <MainLayout>
                             <ProviderPortalPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/provider-dashboard" element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['provider']}>
+                          <MainLayout>
+                            <ProviderDashboardPage />
                           </MainLayout>
                         </RoleBasedRoute>
                       </ProtectedRoute>

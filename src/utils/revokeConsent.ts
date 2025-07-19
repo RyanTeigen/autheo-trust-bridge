@@ -9,7 +9,7 @@ export interface ConsentRevocationData {
   timestamp: string;
 }
 
-export interface RevocationEvent {
+export interface ConsentRevocation {
   id: string;
   consent_id: string;
   revoked_by: string;
@@ -17,7 +17,10 @@ export interface RevocationEvent {
   revoked_at: string;
   revocation_hash: string;
   blockchain_tx_hash?: string;
+  anchored: boolean;
+  anchored_at?: string;
   created_at: string;
+  updated_at: string;
 }
 
 export async function revokeConsent(
@@ -76,7 +79,7 @@ export async function revokeConsent(
 
     // Create a revocation event record (for audit trail)
     const { data: revocationEvent, error: revocationError } = await supabase
-      .from('revocation_events')
+      .from('consent_revocations')
       .insert({
         consent_id: consentId,
         revoked_by: user.id,
@@ -134,7 +137,7 @@ export async function revokeConsent(
             user_did: consent.user_did,
             requester: consent.requester,
             data_types: consent.data_types,
-            duration: consent.duration
+            duration: consent.duration ? String(consent.duration) : null
           }
         }
       });
@@ -173,10 +176,10 @@ export async function revokeConsent(
   }
 }
 
-export async function getConsentRevocations(consentId?: string): Promise<RevocationEvent[]> {
+export async function getConsentRevocations(consentId?: string): Promise<ConsentRevocation[]> {
   try {
     let query = supabase
-      .from('revocation_events')
+      .from('consent_revocations')
       .select('*')
       .order('revoked_at', { ascending: false });
 
@@ -187,7 +190,7 @@ export async function getConsentRevocations(consentId?: string): Promise<Revocat
     const { data, error } = await query;
 
     if (error) {
-      throw new Error(`Failed to fetch revocation events: ${error.message}`);
+      throw new Error(`Failed to fetch consent revocations: ${error.message}`);
     }
 
     return data || [];
