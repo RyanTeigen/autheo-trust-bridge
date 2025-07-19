@@ -12,6 +12,3 @@ export interface Patient {
   created_at: string;
   updated_at: string;
 }
-
-// Export for use in other components
-export type { Patient };
