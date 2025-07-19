@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useProviderNotifications } from '@/hooks/useProviderNotifications';
 import { useAuth } from '@/contexts/AuthContext';
-import { useProviderPortal } from '@/contexts/ProviderPortalContext';
+import { useProviderPortalSafe } from '@/hooks/useProviderPortalSafe';
 import { AppointmentAccessHandler } from './AppointmentAccessHandler';
 import { CrossHospitalNotificationHandler } from './CrossHospitalNotificationHandler';
 import { formatDistanceToNow } from 'date-fns';
@@ -26,19 +26,10 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
   const navigate = useNavigate();
   const { profile } = useAuth();
   
-  // Conditionally use provider portal context only when available
-  let setActiveTab: ((tab: string) => void) | undefined;
-  let setPatientRecordsSubTab: ((subTab: string) => void) | undefined;
-  
-  try {
-    const providerPortal = useProviderPortal();
-    setActiveTab = providerPortal.setActiveTab;
-    setPatientRecordsSubTab = providerPortal.setPatientRecordsSubTab;
-  } catch (error) {
-    // Provider portal context not available (e.g., on patient pages)
-    setActiveTab = undefined;
-    setPatientRecordsSubTab = undefined;
-  }
+  // Safely use provider portal context (null if not available)
+  const providerPortal = useProviderPortalSafe();
+  const setActiveTab = providerPortal?.setActiveTab;
+  const setPatientRecordsSubTab = providerPortal?.setPatientRecordsSubTab;
   
   // Patient notifications
   const {

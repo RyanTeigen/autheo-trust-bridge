@@ -39,7 +39,7 @@ interface ProviderPortalContextType {
 }
 
 // Create the context
-const ProviderPortalContext = createContext<ProviderPortalContextType | undefined>(undefined);
+export const ProviderPortalContext = createContext<ProviderPortalContextType | undefined>(undefined);
 
 // Mock data for the Provider Portal
 const mockProviderMetrics: ProviderMetricsType = {
