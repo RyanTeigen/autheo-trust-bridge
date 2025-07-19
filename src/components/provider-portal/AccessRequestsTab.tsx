@@ -87,10 +87,10 @@ const AccessRequestsTab: React.FC = () => {
         <div>
           <h3 className="text-xl font-bold text-slate-200 flex items-center">
             <UserCheck className="h-5 w-5 mr-2 text-autheo-primary" />
-            Patient Access Requests
+            Pending Access Requests
           </h3>
           <p className="text-slate-400 mt-1">
-            Manage patient record access requests and permissions
+            Review and respond to patient record access requests. Approved requests will appear in your notifications.
           </p>
         </div>
         <Badge variant="secondary" className="bg-autheo-primary/20 text-autheo-primary">
@@ -98,29 +98,21 @@ const AccessRequestsTab: React.FC = () => {
         </Badge>
       </div>
 
-      {pendingRequests.length === 0 && processedRequests.length === 0 ? (
+      {pendingRequests.length === 0 ? (
         <Alert>
           <UserCheck className="h-4 w-4" />
           <AlertDescription>
-            No access requests found. Requests will appear here when patients share their records or when emergency access is needed.
+            No pending access requests. New requests will appear here when patients share their records or when emergency access is needed.
           </AlertDescription>
         </Alert>
       ) : (
-        <div className="space-y-8">
-          <AccessRequestsList
-            title={`Pending Requests (${pendingRequests.length})`}
-            requests={pendingRequests}
-            showActions={true}
-            onApprove={handleApproveRequest}
-            onDeny={handleDenyRequest}
-          />
-          
-          <AccessRequestsList
-            title={`Recent Decisions (${processedRequests.length})`}
-            requests={processedRequests}
-            showActions={false}
-          />
-        </div>
+        <AccessRequestsList
+          title={`Pending Requests (${pendingRequests.length})`}
+          requests={pendingRequests}
+          showActions={true}
+          onApprove={handleApproveRequest}
+          onDeny={handleDenyRequest}
+        />
       )}
     </div>
   );
