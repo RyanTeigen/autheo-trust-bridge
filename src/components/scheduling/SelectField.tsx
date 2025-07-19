@@ -10,7 +10,7 @@ interface SelectFieldProps {
   name: "time" | "type";
   label: string;
   placeholder: string;
-  options: string[];
+  options: { value: string; label: string; }[];
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({ form, name, label, placeholder, options }) => {
@@ -31,8 +31,8 @@ const SelectField: React.FC<SelectFieldProps> = ({ form, name, label, placeholde
             </FormControl>
             <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
               {options.map(option => (
-                <SelectItem key={option} value={option}>
-                  {option}
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
