@@ -25,7 +25,20 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { profile } = useAuth();
-  const { setActiveTab, setPatientRecordsSubTab } = useProviderPortal();
+  
+  // Conditionally use provider portal context only when available
+  let setActiveTab: ((tab: string) => void) | undefined;
+  let setPatientRecordsSubTab: ((subTab: string) => void) | undefined;
+  
+  try {
+    const providerPortal = useProviderPortal();
+    setActiveTab = providerPortal.setActiveTab;
+    setPatientRecordsSubTab = providerPortal.setPatientRecordsSubTab;
+  } catch (error) {
+    // Provider portal context not available (e.g., on patient pages)
+    setActiveTab = undefined;
+    setPatientRecordsSubTab = undefined;
+  }
   
   // Patient notifications
   const {
@@ -102,9 +115,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
         if (notification.notification_type?.includes('access_granted') || 
             notification.notification_type?.includes('access_denied') ||
             notification.notification_type?.includes('cross_hospital_')) {
-          // Set the main tab to patient-records and sub-tab to shared-records
-          setActiveTab('patient-records');
-          setPatientRecordsSubTab('shared-records');
+          // Set the main tab to patient-records and sub-tab to shared-records only if context is available
+          if (setActiveTab && setPatientRecordsSubTab) {
+            setActiveTab('patient-records');
+            setPatientRecordsSubTab('shared-records');
+          }
           navigate('/provider-portal');
         }
       } else {
