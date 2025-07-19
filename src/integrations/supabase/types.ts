@@ -2543,6 +2543,10 @@ export type Database = {
           log_timestamp: string
         }[]
       }
+      get_appointment_details: {
+        Args: { appointment_id_param: string }
+        Returns: Json
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2586,6 +2590,14 @@ export type Database = {
           iv_param: string
         }
         Returns: string
+      }
+      respond_to_appointment_access_request: {
+        Args: {
+          appointment_id_param: string
+          decision_param: string
+          note_param?: string
+        }
+        Returns: Json
       }
       revoke_sharing_permission: {
         Args: { permission_id: string }

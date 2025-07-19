@@ -22,6 +22,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { AppointmentDetailsModal } from './AppointmentDetailsModal';
 
 interface PatientNotification {
   id: string;
@@ -40,6 +41,8 @@ const EnhancedNotificationsPanel: React.FC = () => {
   const [notifications, setNotifications] = useState<PatientNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedNotification, setExpandedNotification] = useState<string | null>(null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -179,6 +182,22 @@ const EnhancedNotificationsPanel: React.FC = () => {
     }
   };
 
+  const handleNotificationClick = (notification: PatientNotification) => {
+    // Handle appointment-related notifications
+    if (notification.notification_type === 'appointment_access_request' || 
+        notification.notification_type === 'access_auto_approved') {
+      const appointmentId = notification.data?.appointment_id;
+      if (appointmentId) {
+        setSelectedAppointmentId(appointmentId);
+        setAppointmentModalOpen(true);
+        // Mark as read when clicked
+        if (!notification.is_read) {
+          markAsRead(notification.id);
+        }
+      }
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   if (isLoading) {
@@ -246,7 +265,12 @@ const EnhancedNotificationsPanel: React.FC = () => {
                   notification.is_read 
                     ? 'bg-slate-700 border-slate-600' 
                     : `${getPriorityColor(notification.priority)} border-2`
+                } ${
+                  (notification.notification_type === 'appointment_access_request' || 
+                   notification.notification_type === 'access_auto_approved') ? 
+                  'cursor-pointer hover:bg-slate-600' : ''
                 }`}
+                onClick={() => handleNotificationClick(notification)}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-start gap-3">
@@ -262,6 +286,12 @@ const EnhancedNotificationsPanel: React.FC = () => {
                         <Badge variant="outline" className="text-xs">
                           {notification.priority}
                         </Badge>
+                        {(notification.notification_type === 'appointment_access_request' || 
+                          notification.notification_type === 'access_auto_approved') && (
+                          <Badge variant="secondary" className="text-xs">
+                            Click to view
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-slate-300 leading-relaxed">
                         {notification.message}
@@ -282,9 +312,12 @@ const EnhancedNotificationsPanel: React.FC = () => {
                   <div className="flex items-center gap-2">
                     {notification.data && Object.keys(notification.data).length > 0 && (
                       <Button
-                        onClick={() => setExpandedNotification(
-                          expandedNotification === notification.id ? null : notification.id
-                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedNotification(
+                            expandedNotification === notification.id ? null : notification.id
+                          );
+                        }}
                         variant="ghost"
                         size="sm"
                         className="text-slate-400 hover:bg-slate-600"
@@ -294,7 +327,10 @@ const EnhancedNotificationsPanel: React.FC = () => {
                     )}
                     {!notification.is_read && (
                       <Button
-                        onClick={() => markAsRead(notification.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notification.id);
+                        }}
                         variant="ghost"
                         size="sm"
                         className="text-slate-400 hover:bg-slate-600"
@@ -362,6 +398,16 @@ const EnhancedNotificationsPanel: React.FC = () => {
           </div>
         )}
       </CardContent>
+
+      {/* Appointment Details Modal */}
+      {selectedAppointmentId && (
+        <AppointmentDetailsModal
+          open={appointmentModalOpen}
+          onOpenChange={setAppointmentModalOpen}
+          appointmentId={selectedAppointmentId}
+          onAccessDecision={fetchNotifications}
+        />
+      )}
     </Card>
   );
 };
