@@ -1,16 +1,8 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { PatientRecord } from '@/components/emr/AdvancedPatientSearch';
-import { useProviderNotifications, ProviderNotificationData } from '@/hooks/useProviderNotifications';
 
 // Define the types for our context
-interface NotificationType {
-  id: string;
-  type: 'alert' | 'info';
-  message: string;
-  timestamp: string;
-}
-
 interface ProviderMetricsType {
   patientsToday: number;
   completedAppointments: number;
@@ -38,26 +30,16 @@ interface PatientType {
 interface ProviderPortalContextType {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  notifications: ProviderNotificationData[];
-  dismissNotification: (id: string) => void;
-  markNotificationAsRead: (id: string) => void;
   metrics: ProviderMetricsType;
   appointments: AppointmentType[];
   recentPatients: PatientType[];
   patientRecords: PatientRecord[];
-  unreadNotificationCount: number;
-  markAllNotificationsAsRead: () => void;
 }
 
 // Create the context
 const ProviderPortalContext = createContext<ProviderPortalContextType | undefined>(undefined);
 
 // Mock data for the Provider Portal
-const mockNotifications: NotificationType[] = [
-  { id: 'N1', type: 'alert', message: 'Lab results for patient John Doe require immediate review', timestamp: '10 min ago' },
-  { id: 'N2', type: 'info', message: 'New patient referral received from Dr. Williams', timestamp: '25 min ago' },
-];
-
 const mockProviderMetrics: ProviderMetricsType = {
   patientsToday: 8,
   completedAppointments: 3,
@@ -97,30 +79,14 @@ interface ProviderPortalProviderProps {
 export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ children }) => {
   // Updated default tab to match new structure
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { 
-    notifications, 
-    unreadCount, 
-    removeNotification, 
-    markAllAsRead,
-    markAsRead
-  } = useProviderNotifications();
 
-  const dismissNotification = (id: string) => {
-    removeNotification(id);
-  };
-  
   const value = {
     activeTab,
     setActiveTab,
-    notifications,
-    dismissNotification,
-    markNotificationAsRead: markAsRead,
     metrics: mockProviderMetrics,
     appointments: mockAppointments,
     recentPatients: mockRecentPatients,
     patientRecords: mockPatientRecords,
-    unreadNotificationCount: unreadCount,
-    markAllNotificationsAsRead: markAllAsRead,
   };
   
   return (

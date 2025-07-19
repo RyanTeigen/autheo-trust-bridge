@@ -10,9 +10,12 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useProviderNotifications } from '@/hooks/useProviderNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 import { AppointmentAccessHandler } from './AppointmentAccessHandler';
 import { CrossHospitalNotificationHandler } from './CrossHospitalNotificationHandler';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 export interface NotificationCenterProps {
   className?: string;
@@ -20,22 +23,57 @@ export interface NotificationCenterProps {
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+  
+  // Patient notifications
   const {
-    notifications,
-    loading,
-    unreadCount,
-    markAsRead,
-    markAllAsRead,
-    removeNotification,
-    refetch
+    notifications: patientNotifications,
+    loading: patientLoading,
+    unreadCount: patientUnreadCount,
+    markAsRead: markPatientAsRead,
+    markAllAsRead: markAllPatientAsRead,
+    removeNotification: removePatientNotification,
+    refetch: refetchPatient
   } = useNotifications();
+
+  // Provider notifications (only if user is a provider)
+  const {
+    notifications: providerNotifications = [],
+    loading: providerLoading = false,
+    unreadCount: providerUnreadCount = 0,
+    markAsRead: markProviderAsRead,
+    markAllAsRead: markAllProviderAsRead,
+    removeNotification: removeProviderNotification,
+    refetch: refetchProvider
+  } = profile?.role === 'provider' ? useProviderNotifications() : {
+    notifications: [],
+    loading: false,
+    unreadCount: 0,
+    markAsRead: () => {},
+    markAllAsRead: () => {},
+    removeNotification: () => {},
+    refetch: () => {}
+  };
+
+  // Combine notifications and sort by created_at
+  const allNotifications = [
+    ...patientNotifications.map(n => ({ ...n, source: 'patient' })),
+    ...providerNotifications.map(n => ({ ...n, source: 'provider' }))
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const totalUnreadCount = patientUnreadCount + providerUnreadCount;
+  const isLoading = patientLoading || providerLoading;
   
   const getNotificationIcon = (type: string) => {
     switch(type) {
       case 'appointment_access_request': return <Calendar className="h-4 w-4 text-blue-400" />;
       case 'cross_hospital_request': return <Hospital className="h-4 w-4 text-purple-400" />;
+      case 'cross_hospital_approved': return <CheckCircle className="h-4 w-4 text-green-400" />;
+      case 'cross_hospital_denied': return <X className="h-4 w-4 text-red-400" />;
       case 'access_granted': 
       case 'access_approved': return <CheckCircle className="h-4 w-4 text-green-400" />;
+      case 'access_denied': return <X className="h-4 w-4 text-red-400" />;
       case 'access_auto_approved': return <Shield className="h-4 w-4 text-green-400" />;
       case 'access_request': return <Shield className="h-4 w-4 text-yellow-400" />;
       case 'medication': return <Clock className="h-4 w-4 text-green-400" />;
@@ -56,12 +94,40 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
 
   const handleNotificationClick = (notification: any) => {
     if (!notification.is_read) {
-      markAsRead(notification.id);
+      if (notification.source === 'provider') {
+        markProviderAsRead(notification.id);
+        
+        // Navigate to provider portal for provider notifications
+        if (notification.notification_type?.includes('access_granted') || 
+            notification.notification_type?.includes('access_denied') ||
+            notification.notification_type?.includes('cross_hospital_')) {
+          navigate('/provider-portal');
+        }
+      } else {
+        markPatientAsRead(notification.id);
+      }
+    }
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllPatientAsRead();
+    if (profile?.role === 'provider') {
+      markAllProviderAsRead();
+    }
+  };
+
+  const handleRemoveNotification = (notification: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (notification.source === 'provider') {
+      removeProviderNotification(notification.id);
+    } else {
+      removePatientNotification(notification.id);
     }
   };
 
   const handleAccessDecision = () => {
-    refetch();
+    refetchPatient();
+    refetchProvider();
     setOpen(false);
   };
   
@@ -74,11 +140,11 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
           className={cn("relative", className)}
         >
           <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
+          {totalUnreadCount > 0 && (
             <Badge 
               className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center bg-autheo-primary text-white text-xs"
             >
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
             </Badge>
           )}
         </Button>
@@ -86,12 +152,12 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
       <PopoverContent className="w-96 p-0 bg-slate-800 border-slate-700" align="end">
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
           <h4 className="font-medium text-slate-200">Notifications</h4>
-          {unreadCount > 0 && (
+          {totalUnreadCount > 0 && (
             <Button 
               variant="ghost" 
               size="sm" 
               className="text-xs h-8 text-slate-400 hover:text-slate-200"
-              onClick={markAllAsRead}
+              onClick={handleMarkAllAsRead}
             >
               Mark all as read
             </Button>
@@ -99,21 +165,21 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
         </div>
         
         <div className="max-h-96 overflow-y-auto">
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-autheo-primary"></div>
             </div>
-          ) : notifications.length > 0 ? (
+          ) : allNotifications.length > 0 ? (
             <div className="divide-y divide-slate-700">
-              {notifications.map(notification => {
+              {allNotifications.map(notification => {
                 // Special handling for cross-hospital requests
                 if (notification.notification_type === 'cross_hospital_request') {
                   return (
                     <div key={notification.id} className="p-2">
                       <CrossHospitalNotificationHandler
                         notification={notification}
-                        onMarkAsRead={markAsRead}
-                        onDismiss={removeNotification}
+                        onMarkAsRead={notification.source === 'provider' ? markProviderAsRead : markPatientAsRead}
+                        onDismiss={notification.source === 'provider' ? removeProviderNotification : removePatientNotification}
                       />
                     </div>
                   );
@@ -151,10 +217,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
                             variant="ghost" 
                             size="icon" 
                             className="h-5 w-5 -mr-1 opacity-60 hover:opacity-100 text-slate-400"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeNotification(notification.id);
-                            }}
+                            onClick={(e) => handleRemoveNotification(notification, e)}
                           >
                             <X className="h-3 w-3" />
                           </Button>

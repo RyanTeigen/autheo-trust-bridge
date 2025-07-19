@@ -1,7 +1,5 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import NotificationBanner from '@/components/provider/NotificationBanner';
 import PortalHeader from '@/components/provider-portal/PortalHeader';
 import ProviderDashboardTab from '@/components/provider-portal/ProviderDashboardTab';
 import ConsolidatedPatientRecordsTab from '@/components/provider-portal/ConsolidatedPatientRecordsTab';
@@ -12,13 +10,9 @@ import { ProviderPortalProvider, useProviderPortal } from '@/contexts/ProviderPo
 const ProviderPortalContent: React.FC = () => {
   console.log('ProviderPortalContent rendering...');
   
-  const { toast } = useToast();
   const {
     activeTab,
     setActiveTab,
-    notifications,
-    dismissNotification,
-    markNotificationAsRead,
     metrics,
     appointments,
     recentPatients
@@ -26,48 +20,15 @@ const ProviderPortalContent: React.FC = () => {
 
   console.log('ProviderPortal data:', { 
     activeTab, 
-    notificationsCount: notifications.length,
     metricsLoaded: !!metrics,
     appointmentsCount: appointments.length,
     recentPatientsCount: recentPatients.length
   });
 
-  const handleDismissNotification = (id: string) => {
-    dismissNotification(id);
-    toast({
-      title: "Notification Dismissed",
-      description: "The notification has been removed from your list.",
-    });
-  };
-
-  const handleNotificationClick = (notification: any) => {
-    // Navigate to patient records tab for access-related notifications
-    if (notification.notification_type?.includes('access_') || 
-        notification.notification_type?.includes('cross_hospital_')) {
-      setActiveTab('patient-records');
-      
-      // Mark notification as read if not already
-      if (!notification.is_read) {
-        markNotificationAsRead(notification.id);
-      }
-      
-      toast({
-        title: "Viewing medical records",
-        description: `Opening records for ${notification.data?.patient_name || 'patient'}`,
-      });
-    }
-  };
-
   try {
     return (
       <div className="space-y-6 bg-slate-900 text-slate-100 min-h-screen p-6">
-        <PortalHeader notificationCount={notifications.length} />
-        
-        <NotificationBanner
-          notifications={notifications}
-          onDismiss={handleDismissNotification}
-          onNotificationClick={handleNotificationClick}
-        />
+        <PortalHeader notificationCount={0} />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
