@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Calendar from '@/components/scheduling/Calendar';
 import AppointmentForm from '@/components/scheduling/AppointmentForm';
+import ConsentPreferencesTab from './ConsentPreferencesTab';
+import AppointmentAccessViewer from './AppointmentAccessViewer';
 
 // Sample appointment data
 const sampleAppointments = [
@@ -82,11 +84,13 @@ const SchedulingTabContent: React.FC = () => {
           Calendar & Appointments
         </h2>
         <p className="text-sm text-slate-300 mt-1.5">
-          View your calendar and schedule new appointments
+          View your appointments, schedule new ones, and manage consent preferences
         </p>
-        
-        <Tabs defaultValue="calendar" className="w-full mt-4">
-          <TabsList className="bg-slate-700/50">
+      </div>
+      
+      <div className="p-6">
+        <Tabs defaultValue="calendar" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-slate-700/50 border-slate-600">
             <TabsTrigger 
               value="calendar" 
               className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
@@ -97,23 +101,43 @@ const SchedulingTabContent: React.FC = () => {
               value="schedule" 
               className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
             >
-              Schedule Appointment
+              Schedule
+            </TabsTrigger>
+            <TabsTrigger 
+              value="consent" 
+              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+            >
+              Consent
+            </TabsTrigger>
+            <TabsTrigger 
+              value="access" 
+              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
+            >
+              Access History
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="calendar" className="mt-6 px-6 pb-6">
-            <Calendar 
-              events={sampleAppointments} 
+          <TabsContent value="calendar" className="mt-6">
+            <Calendar
+              events={sampleAppointments}
               onDateSelect={setSelectedDate}
-              className="bg-slate-800 border-slate-700"
+              className="bg-slate-800 border-slate-700 text-slate-100"
             />
           </TabsContent>
           
-          <TabsContent value="schedule" className="mt-6 px-6 pb-6">
-            <AppointmentForm 
+          <TabsContent value="schedule" className="mt-6">
+            <AppointmentForm
               initialDate={selectedDate}
               className="bg-slate-800 border-slate-700 text-slate-100"
             />
+          </TabsContent>
+          
+          <TabsContent value="consent" className="mt-6">
+            <ConsentPreferencesTab />
+          </TabsContent>
+          
+          <TabsContent value="access" className="mt-6">
+            <AppointmentAccessViewer />
           </TabsContent>
         </Tabs>
       </div>

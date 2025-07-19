@@ -218,6 +218,101 @@ export type Database = {
           },
         ]
       }
+      appointment_access_mappings: {
+        Row: {
+          access_duration_hours: number | null
+          access_expires_at: string | null
+          access_granted: boolean | null
+          appointment_id: string
+          auto_granted: boolean | null
+          clinical_justification: string | null
+          created_at: string | null
+          id: string
+          patient_id: string
+          provider_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_duration_hours?: number | null
+          access_expires_at?: string | null
+          access_granted?: boolean | null
+          appointment_id: string
+          auto_granted?: boolean | null
+          clinical_justification?: string | null
+          created_at?: string | null
+          id?: string
+          patient_id: string
+          provider_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_duration_hours?: number | null
+          access_expires_at?: string | null
+          access_granted?: boolean | null
+          appointment_id?: string
+          auto_granted?: boolean | null
+          clinical_justification?: string | null
+          created_at?: string | null
+          id?: string
+          patient_id?: string
+          provider_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_access_mappings_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointment_audit_trail: {
+        Row: {
+          action: string
+          appointment_id: string | null
+          details: Json | null
+          id: string
+          mapping_id: string | null
+          performed_by: string
+          timestamp: string | null
+        }
+        Insert: {
+          action: string
+          appointment_id?: string | null
+          details?: Json | null
+          id?: string
+          mapping_id?: string | null
+          performed_by: string
+          timestamp?: string | null
+        }
+        Update: {
+          action?: string
+          appointment_id?: string | null
+          details?: Json | null
+          id?: string
+          mapping_id?: string | null
+          performed_by?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_audit_trail_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "enhanced_appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_audit_trail_mapping_id_fkey"
+            columns: ["mapping_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_access_mappings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       atomic_data_points: {
         Row: {
           created_at: string | null
@@ -630,6 +725,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      enhanced_appointments: {
+        Row: {
+          access_expires_at: string | null
+          access_granted_at: string | null
+          access_request_status: string | null
+          appointment_date: string
+          appointment_type: string
+          clinical_notes: string | null
+          created_at: string | null
+          id: string
+          patient_id: string
+          provider_id: string
+          status: string | null
+          updated_at: string | null
+          urgency_level: string | null
+        }
+        Insert: {
+          access_expires_at?: string | null
+          access_granted_at?: string | null
+          access_request_status?: string | null
+          appointment_date: string
+          appointment_type: string
+          clinical_notes?: string | null
+          created_at?: string | null
+          id?: string
+          patient_id: string
+          provider_id: string
+          status?: string | null
+          updated_at?: string | null
+          urgency_level?: string | null
+        }
+        Update: {
+          access_expires_at?: string | null
+          access_granted_at?: string | null
+          access_request_status?: string | null
+          appointment_date?: string
+          appointment_type?: string
+          clinical_notes?: string | null
+          created_at?: string | null
+          id?: string
+          patient_id?: string
+          provider_id?: string
+          status?: string | null
+          updated_at?: string | null
+          urgency_level?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enhanced_appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       enhanced_audit_logs: {
         Row: {
@@ -1253,6 +1404,53 @@ export type Database = {
           provider_name?: string
         }
         Relationships: []
+      }
+      patient_consent_preferences: {
+        Row: {
+          appointment_types_auto_approve: string[] | null
+          auto_approve_appointments: boolean | null
+          created_at: string | null
+          default_access_duration_hours: number | null
+          emergency_auto_approve: boolean | null
+          id: string
+          notification_preferences: Json | null
+          patient_id: string
+          trusted_providers: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_types_auto_approve?: string[] | null
+          auto_approve_appointments?: boolean | null
+          created_at?: string | null
+          default_access_duration_hours?: number | null
+          emergency_auto_approve?: boolean | null
+          id?: string
+          notification_preferences?: Json | null
+          patient_id: string
+          trusted_providers?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_types_auto_approve?: string[] | null
+          auto_approve_appointments?: boolean | null
+          created_at?: string | null
+          default_access_duration_hours?: number | null
+          emergency_auto_approve?: boolean | null
+          id?: string
+          notification_preferences?: Json | null
+          patient_id?: string
+          trusted_providers?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_consent_preferences_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: true
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_notifications: {
         Row: {
