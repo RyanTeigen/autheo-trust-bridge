@@ -14,8 +14,9 @@ interface NotificationItem {
   title: string;
   description: string;
   time: string;
-  type: 'message' | 'access' | 'schedule' | 'clinical';
+  type: 'message' | 'access_granted' | 'access_revoked' | 'access_requested' | 'schedule' | 'clinical';
   read: boolean;
+  data?: any;
 }
 
 const NotificationIndicator: React.FC = () => {
@@ -30,10 +31,10 @@ const NotificationIndicator: React.FC = () => {
     },
     {
       id: 'n2',
-      title: 'Access Request',
-      description: 'Dr. Michael Chen requested access to patient records',
+      title: 'Access Request Approved',
+      description: 'Your access request for patient records has been approved',
       time: '5h ago',
-      type: 'access',
+      type: 'access_granted',
       read: false
     },
     {
@@ -63,7 +64,9 @@ const NotificationIndicator: React.FC = () => {
   const getIconForType = (type: string) => {
     switch(type) {
       case 'message': return <Bell className="h-4 w-4 text-blue-400" />;
-      case 'access': return <Bell className="h-4 w-4 text-green-400" />;
+      case 'access_granted': return <Bell className="h-4 w-4 text-green-400" />;
+      case 'access_revoked': return <Bell className="h-4 w-4 text-red-400" />;
+      case 'access_requested': return <Bell className="h-4 w-4 text-orange-400" />;
       case 'schedule': return <Bell className="h-4 w-4 text-yellow-400" />;
       case 'clinical': return <Bell className="h-4 w-4 text-red-400" />;
       default: return <Bell className="h-4 w-4 text-slate-400" />;
