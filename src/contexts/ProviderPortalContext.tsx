@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { PatientRecord } from '@/components/emr/AdvancedPatientSearch';
+import { useProviderNotifications, ProviderNotificationData } from '@/hooks/useProviderNotifications';
 
 // Define the types for our context
 interface NotificationType {
@@ -37,12 +38,14 @@ interface PatientType {
 interface ProviderPortalContextType {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  notifications: NotificationType[];
+  notifications: ProviderNotificationData[];
   dismissNotification: (id: string) => void;
   metrics: ProviderMetricsType;
   appointments: AppointmentType[];
   recentPatients: PatientType[];
   patientRecords: PatientRecord[];
+  unreadNotificationCount: number;
+  markAllNotificationsAsRead: () => void;
 }
 
 // Create the context
@@ -93,10 +96,15 @@ interface ProviderPortalProviderProps {
 export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ children }) => {
   // Updated default tab to match new structure
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const { 
+    notifications, 
+    unreadCount, 
+    removeNotification, 
+    markAllAsRead 
+  } = useProviderNotifications();
 
   const dismissNotification = (id: string) => {
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    removeNotification(id);
   };
   
   const value = {
@@ -108,6 +116,8 @@ export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ 
     appointments: mockAppointments,
     recentPatients: mockRecentPatients,
     patientRecords: mockPatientRecords,
+    unreadNotificationCount: unreadCount,
+    markAllNotificationsAsRead: markAllAsRead,
   };
   
   return (
