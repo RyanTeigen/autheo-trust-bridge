@@ -1,14 +1,15 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, Share2, UserCheck, Stethoscope } from 'lucide-react';
+import { useProviderPortal } from '@/contexts/ProviderPortalContext';
 import SharedRecordsTab from './SharedRecordsTab';
 import PatientSearchTab from './PatientSearchTab';
 import AccessRequestsTab from './AccessRequestsTab';
 import ClinicalRecordsTab from './ClinicalRecordsTab';
 
 const ConsolidatedPatientRecordsTab: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('clinical-records');
+  const { patientRecordsSubTab, setPatientRecordsSubTab } = useProviderPortal();
 
   return (
     <div className="space-y-6">
@@ -19,7 +20,7 @@ const ConsolidatedPatientRecordsTab: React.FC = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={patientRecordsSubTab} onValueChange={setPatientRecordsSubTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 bg-slate-800 border-slate-700">
           <TabsTrigger 
             value="clinical-records" 

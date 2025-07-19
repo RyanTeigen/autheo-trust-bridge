@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Bell, X, Clock, Calendar, FileText, Heart, Shield, AlertTriangle, CheckCircle, Hospital } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useProviderNotifications } from '@/hooks/useProviderNotifications';
 import { useAuth } from '@/contexts/AuthContext';
+import { useProviderPortal } from '@/contexts/ProviderPortalContext';
 import { AppointmentAccessHandler } from './AppointmentAccessHandler';
 import { CrossHospitalNotificationHandler } from './CrossHospitalNotificationHandler';
 import { formatDistanceToNow } from 'date-fns';
@@ -25,6 +25,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { profile } = useAuth();
+  const { setActiveTab, setPatientRecordsSubTab } = useProviderPortal();
   
   // Patient notifications
   const {
@@ -97,10 +98,13 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
       if (notification.source === 'provider') {
         markProviderAsRead(notification.id);
         
-        // Navigate to provider portal for provider notifications
+        // Navigate to provider portal and set appropriate tabs for provider notifications
         if (notification.notification_type?.includes('access_granted') || 
             notification.notification_type?.includes('access_denied') ||
             notification.notification_type?.includes('cross_hospital_')) {
+          // Set the main tab to patient-records and sub-tab to shared-records
+          setActiveTab('patient-records');
+          setPatientRecordsSubTab('shared-records');
           navigate('/provider-portal');
         }
       } else {

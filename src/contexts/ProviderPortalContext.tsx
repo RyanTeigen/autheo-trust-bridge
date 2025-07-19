@@ -30,6 +30,8 @@ interface PatientType {
 interface ProviderPortalContextType {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  patientRecordsSubTab: string;
+  setPatientRecordsSubTab: (subTab: string) => void;
   metrics: ProviderMetricsType;
   appointments: AppointmentType[];
   recentPatients: PatientType[];
@@ -77,12 +79,14 @@ interface ProviderPortalProviderProps {
 }
 
 export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ children }) => {
-  // Updated default tab to match new structure
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [patientRecordsSubTab, setPatientRecordsSubTab] = useState('clinical-records');
 
   const value = {
     activeTab,
     setActiveTab,
+    patientRecordsSubTab,
+    setPatientRecordsSubTab,
     metrics: mockProviderMetrics,
     appointments: mockAppointments,
     recentPatients: mockRecentPatients,
