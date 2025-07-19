@@ -1,9 +1,8 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 interface RequestBody {
@@ -12,23 +11,26 @@ interface RequestBody {
   note?: string;
 }
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("Missing authorization header");
+    // Get the authorization header
+    const authorization = req.headers.get('Authorization');
+    if (!authorization) {
+      throw new Error('No authorization header');
     }
 
+    // Create Supabase client with user's auth token
     const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: authHeader },
+          headers: { Authorization: authorization },
         },
       }
     );
@@ -36,12 +38,26 @@ serve(async (req) => {
     const { appointmentId, decision, note }: RequestBody = await req.json();
 
     if (!appointmentId || !decision) {
-      throw new Error("Missing required fields: appointmentId and decision");
+      return new Response(
+        JSON.stringify({ error: 'Missing required fields: appointmentId and decision' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    if (!['approve', 'deny'].includes(decision)) {
-      throw new Error("Decision must be 'approve' or 'deny'");
+    if (decision !== 'approve' && decision !== 'deny') {
+      return new Response(
+        JSON.stringify({ error: 'Decision must be "approve" or "deny"' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
+
+    console.log(`Processing ${decision} decision for appointment ${appointmentId}`);
 
     // Call the database function to process the appointment access request
     const { data, error } = await supabaseClient.rpc('respond_to_appointment_access_request', {
@@ -51,25 +67,33 @@ serve(async (req) => {
     });
 
     if (error) {
-      console.error("Database error:", error);
-      throw new Error(error.message);
+      console.error('Database function error:', error);
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    console.log(`Successfully processed ${decision} decision:`, data);
+
+    return new Response(
+      JSON.stringify(data),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
-    console.error("Error processing appointment access request:", error);
+    console.error('Error in respond-to-appointment-access-request function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message || "Internal server error",
-        success: false 
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
+      JSON.stringify({ error: error.message }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
