@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Calendar from '@/components/scheduling/Calendar';
 import AppointmentForm from '@/components/scheduling/AppointmentForm';
 import ConsentPreferencesTab from './ConsentPreferencesTab';
-import AppointmentAccessViewer from './AppointmentAccessViewer';
 
 // Sample appointment data
 const sampleAppointments = [
@@ -90,7 +89,7 @@ const SchedulingTabContent: React.FC = () => {
       
       <div className="p-6">
         <Tabs defaultValue="calendar" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-slate-700/50 border-slate-600">
+          <TabsList className="grid w-full grid-cols-3 bg-slate-700/50 border-slate-600">
             <TabsTrigger 
               value="calendar" 
               className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
@@ -107,13 +106,7 @@ const SchedulingTabContent: React.FC = () => {
               value="consent" 
               className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
             >
-              Consent
-            </TabsTrigger>
-            <TabsTrigger 
-              value="access" 
-              className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark"
-            >
-              Access History
+              Consent Preferences
             </TabsTrigger>
           </TabsList>
           
@@ -134,10 +127,6 @@ const SchedulingTabContent: React.FC = () => {
           
           <TabsContent value="consent" className="mt-6">
             <ConsentPreferencesTab />
-          </TabsContent>
-          
-          <TabsContent value="access" className="mt-6">
-            <AppointmentAccessViewer />
           </TabsContent>
         </Tabs>
       </div>
