@@ -810,6 +810,13 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "enhanced_appointments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       enhanced_audit_logs: {
@@ -1547,7 +1554,7 @@ export type Database = {
           mrn: string | null
           phone: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           address?: string | null
@@ -1557,13 +1564,13 @@ export type Database = {
           email?: string | null
           emergency_contact?: string | null
           full_name?: string | null
-          id: string
+          id?: string
           insurance_info?: Json | null
           kyber_public_key?: string | null
           mrn?: string | null
           phone?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           address?: string | null
@@ -1579,7 +1586,7 @@ export type Database = {
           mrn?: string | null
           phone?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
