@@ -1,25 +1,67 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { hashConsent } from "@/utils/hashConsent";
+import { anchorConsentToBlockchain, ConsentData } from "@/utils/anchorConsent";
+import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface ConsentRequestCardProps {
   requester: string;
   dataTypes: string[];
   duration: string;
-  onConsent: () => void;
+  userId?: string;
+  userDid?: string;
+  onConsent: (txId?: string) => void;
 }
 
 export default function ConsentRequestCard({ 
   requester, 
   dataTypes, 
   duration, 
+  userId,
+  userDid,
   onConsent 
 }: ConsentRequestCardProps) {
   const [checked, setChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleConsent = () => {
-    if (checked) {
-      onConsent();
+  const handleConsent = async () => {
+    if (!checked) return;
+    
+    setIsLoading(true);
+    
+    try {
+      const consentPayload: ConsentData = {
+        userDid: userDid || `did:autheo:${userId}`,
+        requester,
+        dataTypes,
+        duration,
+        timestamp: new Date().toISOString(),
+        userId
+      };
+
+      // Hash the consent data
+      const hash = await hashConsent(consentPayload);
+      
+      // Anchor to blockchain via existing infrastructure
+      const anchorId = await anchorConsentToBlockchain(hash, consentPayload);
+      
+      toast({
+        title: "Consent Granted",
+        description: "Your consent has been recorded and anchored to the blockchain.",
+      });
+      
+      onConsent(anchorId);
+    } catch (error) {
+      console.error('Error processing consent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process consent. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,12 +98,12 @@ export default function ConsentRequestCard({
         </div>
 
         <Button
-          disabled={!checked}
+          disabled={!checked || isLoading}
           onClick={handleConsent}
           className="w-full"
           variant={checked ? "default" : "outline"}
         >
-          Consent & Share
+          {isLoading ? "Processing..." : "Consent & Share"}
         </Button>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import ConsentRequestCard from "../components/ConsentRequestCard";
 
 export default function ConsentPage() {
-  const handleConsent = () => {
-    // TODO: connect to backend
-    alert("Consent granted!");
+  const handleConsent = (anchorId?: string) => {
+    console.log("Consent processed with anchor ID:", anchorId);
+    // Additional logic after successful consent can go here
   };
 
   return (
@@ -12,6 +12,8 @@ export default function ConsentPage() {
         requester="Dr. Smith at General Hospital"
         dataTypes={["Allergies", "Lab Results", "Vitals"]}
         duration="30 days"
+        userId="test-user-123"
+        userDid="did:autheo:test-user-123"
         onConsent={handleConsent}
       />
     </div>
