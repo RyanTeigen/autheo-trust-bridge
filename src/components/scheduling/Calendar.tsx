@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { useAppointments } from '@/hooks/useAppointments';
 
 interface CalendarEvent {
   id: string;
@@ -16,17 +17,16 @@ interface CalendarEvent {
 }
 
 interface CalendarProps {
-  events: CalendarEvent[];
   onDateSelect?: (date: Date | undefined) => void;
   className?: string;
 }
 
 const Calendar: React.FC<CalendarProps> = ({
-  events,
   onDateSelect,
   className
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { appointments, loading } = useAppointments();
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
@@ -34,6 +34,17 @@ const Calendar: React.FC<CalendarProps> = ({
       onDateSelect(date);
     }
   };
+
+  // Convert appointments to calendar events format
+  const events: CalendarEvent[] = appointments.map(apt => ({
+    id: apt.id,
+    title: `${apt.type} - ${apt.provider}`,
+    date: new Date(apt.appointment_date || apt.date),
+    time: apt.time,
+    provider: apt.provider,
+    type: apt.type,
+    location: apt.location
+  }));
 
   // Filter events for the selected date
   const selectedDateEvents = events.filter(event => 
@@ -44,12 +55,30 @@ const Calendar: React.FC<CalendarProps> = ({
   // Get dates that have events for highlighting in calendar
   const eventDates = events.map(event => new Date(event.date));
 
+  if (loading) {
+    return (
+      <Card className={`bg-slate-800/50 border-slate-700 text-slate-100 ${className}`}>
+        <CardHeader>
+          <CardTitle className="text-autheo-primary">Appointment Calendar</CardTitle>
+          <CardDescription className="text-slate-300">
+            Loading your appointments...
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-autheo-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className={`bg-slate-800/50 border-slate-700 text-slate-100 ${className}`}>
       <CardHeader>
-        <CardTitle className="text-autheo-primary">Appointment Calendar</CardTitle>
+        <CardTitle className="text-autheo-primary">Your Appointment Calendar</CardTitle>
         <CardDescription className="text-slate-300">
-          View and manage upcoming appointments
+          View your scheduled appointments
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -68,8 +97,8 @@ const Calendar: React.FC<CalendarProps> = ({
                 eventDay: {
                   fontWeight: 'bold',
                   textDecoration: 'underline',
-                  backgroundColor: 'rgba(94, 235, 196, 0.15)', // Light autheo primary
-                  color: '#5EEBC4' // autheo primary
+                  backgroundColor: 'rgba(94, 235, 196, 0.15)',
+                  color: '#5EEBC4'
                 }
               }}
             />
@@ -84,13 +113,13 @@ const Calendar: React.FC<CalendarProps> = ({
                 <div className="space-y-3">
                   {selectedDateEvents.map(event => (
                     <div key={event.id} className="p-3 border border-slate-700 bg-slate-800/30 rounded-md">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{event.title}</h4>
                         <Badge variant="outline" className="bg-autheo-primary/10 text-autheo-primary border-autheo-primary/20">
                           {event.type}
                         </Badge>
                       </div>
-                      <div className="text-sm text-slate-300 mt-1">
+                      <div className="text-sm text-slate-300">
                         <p>{event.time} • {event.provider}</p>
                         {event.location && <p>{event.location}</p>}
                       </div>
