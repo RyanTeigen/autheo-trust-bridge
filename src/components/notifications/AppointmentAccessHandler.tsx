@@ -27,30 +27,29 @@ export const AppointmentAccessHandler: React.FC<AppointmentAccessHandlerProps> =
   const handleAccessDecision = async (decision: 'approve' | 'deny') => {
     setIsProcessing(true);
     try {
-      console.log('Calling edge function with:', {
+      console.log('Calling database function directly with:', {
         appointmentId: notification.data.appointment_id,
         decision,
         note: note.trim() || undefined
       });
 
-      const { data, error } = await supabase.functions.invoke('respond-to-appointment-access-request', {
-        body: {
-          appointmentId: notification.data.appointment_id,
-          decision,
-          note: note.trim() || undefined
-        }
+      // Call the database function directly instead of edge function
+      const { data, error } = await supabase.rpc('respond_to_appointment_access_request', {
+        appointment_id_param: notification.data.appointment_id,
+        decision_param: decision,
+        note_param: note.trim() || null
       });
 
-      console.log('Edge function response:', { data, error });
+      console.log('Database function response:', { data, error });
 
       if (error) {
-        console.error('Edge function error details:', error);
+        console.error('Database function error details:', error);
         throw error;
       }
 
       toast({
         title: decision === 'approve' ? "Access Approved" : "Access Denied",
-        description: data.message,
+        description: (data as any)?.message || `Access request ${decision}d successfully`,
         variant: decision === 'approve' ? "default" : "destructive",
       });
 
@@ -59,7 +58,7 @@ export const AppointmentAccessHandler: React.FC<AppointmentAccessHandlerProps> =
       console.error('Error processing access decision:', error);
       toast({
         title: "Error",
-        description: `Failed to ${decision} access request`,
+        description: `Failed to ${decision} access request: ${error.message}`,
         variant: "destructive",
       });
     } finally {
