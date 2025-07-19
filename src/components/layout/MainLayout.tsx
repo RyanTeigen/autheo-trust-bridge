@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
 import AppSidebar from './AppSidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import NotificationCenter from '../notifications/NotificationCenter';
+
 import GlobalSearch from '../search/GlobalSearch';
 import SessionStatusIndicator from '../security/SessionStatusIndicator';
 import { useAuth } from '@/contexts/AuthContext';
@@ -42,7 +42,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <AppHeader>
               <div className="flex items-center gap-4">
                 <GlobalSearch />
-                <NotificationCenter />
                 <UserProfileMenu />
               </div>
             </AppHeader>
