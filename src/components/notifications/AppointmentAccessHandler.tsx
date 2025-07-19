@@ -27,6 +27,12 @@ export const AppointmentAccessHandler: React.FC<AppointmentAccessHandlerProps> =
   const handleAccessDecision = async (decision: 'approve' | 'deny') => {
     setIsProcessing(true);
     try {
+      console.log('Calling edge function with:', {
+        appointmentId: notification.data.appointment_id,
+        decision,
+        note: note.trim() || undefined
+      });
+
       const { data, error } = await supabase.functions.invoke('respond-to-appointment-access-request', {
         body: {
           appointmentId: notification.data.appointment_id,
@@ -35,7 +41,12 @@ export const AppointmentAccessHandler: React.FC<AppointmentAccessHandlerProps> =
         }
       });
 
-      if (error) throw error;
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        console.error('Edge function error details:', error);
+        throw error;
+      }
 
       toast({
         title: decision === 'approve' ? "Access Approved" : "Access Denied",
