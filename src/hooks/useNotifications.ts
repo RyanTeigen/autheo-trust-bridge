@@ -58,7 +58,10 @@ export const useNotifications = () => {
         return;
       }
 
-      setNotifications(data || []);
+      setNotifications((data || []).map(notification => ({
+        ...notification,
+        priority: notification.priority as 'normal' | 'high' | 'urgent'
+      })));
     } catch (error) {
       console.error('Unexpected error fetching notifications:', error);
     } finally {
