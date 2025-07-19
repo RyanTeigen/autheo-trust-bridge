@@ -313,6 +313,36 @@ export type Database = {
           },
         ]
       }
+      appointment_data_type_mappings: {
+        Row: {
+          access_justification: string | null
+          appointment_type: string
+          created_at: string | null
+          id: string
+          priority_level: string | null
+          required_data_types: string[]
+          updated_at: string | null
+        }
+        Insert: {
+          access_justification?: string | null
+          appointment_type: string
+          created_at?: string | null
+          id?: string
+          priority_level?: string | null
+          required_data_types?: string[]
+          updated_at?: string | null
+        }
+        Update: {
+          access_justification?: string | null
+          appointment_type?: string
+          created_at?: string | null
+          id?: string
+          priority_level?: string | null
+          required_data_types?: string[]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       atomic_data_points: {
         Row: {
           created_at: string | null

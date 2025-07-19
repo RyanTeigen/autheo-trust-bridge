@@ -14,7 +14,12 @@ import {
   RefreshCw,
   Clock,
   Eye,
-  X
+  X,
+  Calendar,
+  FileText,
+  CheckCircle,
+  XCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -139,16 +144,24 @@ const EnhancedNotificationsPanel: React.FC = () => {
 
   const getNotificationIcon = (type: string, priority: string) => {
     if (priority === 'urgent') {
-      return <AlertCircle className="h-5 w-5 text-red-500" />;
+      return <AlertTriangle className="h-5 w-5 text-red-500" />;
     }
     
     switch (type) {
       case 'access_request':
         return <Shield className="h-5 w-5 text-blue-500" />;
+      case 'appointment_access_request':
+        return priority === 'urgent' ? 
+          <AlertTriangle className="h-5 w-5 text-red-500" /> : 
+          <Calendar className="h-5 w-5 text-blue-500" />;
       case 'access_granted':
-        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case 'access_auto_approved':
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'access_revoked':
-        return <X className="h-5 w-5 text-red-500" />;
+        return <XCircle className="h-5 w-5 text-red-500" />;
+      case 'access_expired':
+        return <Clock className="h-5 w-5 text-yellow-500" />;
       case 'reminder':
         return <Clock className="h-5 w-5 text-yellow-500" />;
       default:
@@ -295,9 +308,53 @@ const EnhancedNotificationsPanel: React.FC = () => {
                 {expandedNotification === notification.id && notification.data && (
                   <div className="mt-3 p-3 bg-slate-600 rounded border border-slate-500">
                     <h5 className="text-slate-200 font-medium mb-2">Additional Details:</h5>
-                    <pre className="text-xs text-slate-300 whitespace-pre-wrap">
-                      {JSON.stringify(notification.data, null, 2)}
-                    </pre>
+                    
+                    {/* Show appointment-specific data in a user-friendly format */}
+                    {(notification.notification_type === 'appointment_access_request' || 
+                      notification.notification_type === 'access_auto_approved') && 
+                      notification.data.required_data_types && (
+                      <div className="space-y-3">
+                        <div>
+                          <h6 className="text-sm font-medium text-slate-300 mb-2">Required Medical Data:</h6>
+                          <div className="flex flex-wrap gap-2">
+                            {notification.data.required_data_types.map((dataType: string, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {dataType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {notification.data.access_justification && (
+                          <div>
+                            <h6 className="text-sm font-medium text-slate-300 mb-1">Access Justification:</h6>
+                            <p className="text-xs text-slate-400">{notification.data.access_justification}</p>
+                          </div>
+                        )}
+                        
+                        {notification.data.appointment_date && (
+                          <div>
+                            <h6 className="text-sm font-medium text-slate-300 mb-1">Appointment Details:</h6>
+                            <div className="text-xs text-slate-400 space-y-1">
+                              <p>Type: {notification.data.appointment_type}</p>
+                              <p>Date: {new Date(notification.data.appointment_date).toLocaleDateString()} at {new Date(notification.data.appointment_date).toLocaleTimeString()}</p>
+                              <p>Provider: {notification.data.provider_name}</p>
+                              {notification.data.access_duration_hours && (
+                                <p>Access Duration: {notification.data.access_duration_hours} hours after appointment</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* Fallback to JSON for other notification types */}
+                    {!(notification.notification_type === 'appointment_access_request' || 
+                       notification.notification_type === 'access_auto_approved') && (
+                      <pre className="text-xs text-slate-300 whitespace-pre-wrap">
+                        {JSON.stringify(notification.data, null, 2)}
+                      </pre>
+                    )}
                   </div>
                 )}
               </div>
