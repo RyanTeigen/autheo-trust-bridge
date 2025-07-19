@@ -402,6 +402,48 @@ export type Database = {
         }
         Relationships: []
       }
+      consents: {
+        Row: {
+          created_at: string
+          data_types: string[]
+          duration: unknown | null
+          id: string
+          requester: string
+          revoked: boolean
+          revoked_at: string | null
+          timestamp: string
+          tx_id: string | null
+          updated_at: string
+          user_did: string
+        }
+        Insert: {
+          created_at?: string
+          data_types: string[]
+          duration?: unknown | null
+          id?: string
+          requester: string
+          revoked?: boolean
+          revoked_at?: string | null
+          timestamp?: string
+          tx_id?: string | null
+          updated_at?: string
+          user_did: string
+        }
+        Update: {
+          created_at?: string
+          data_types?: string[]
+          duration?: unknown | null
+          id?: string
+          requester?: string
+          revoked?: boolean
+          revoked_at?: string | null
+          timestamp?: string
+          tx_id?: string | null
+          updated_at?: string
+          user_did?: string
+        }
+        Relationships: []
+      }
       cross_hospital_requests: {
         Row: {
           audit_trail: Json | null
