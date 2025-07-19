@@ -18,6 +18,7 @@ const ProviderPortalContent: React.FC = () => {
     setActiveTab,
     notifications,
     dismissNotification,
+    markNotificationAsRead,
     metrics,
     appointments,
     recentPatients
@@ -39,6 +40,24 @@ const ProviderPortalContent: React.FC = () => {
     });
   };
 
+  const handleNotificationClick = (notification: any) => {
+    // Navigate to patient records tab for access-related notifications
+    if (notification.notification_type?.includes('access_') || 
+        notification.notification_type?.includes('cross_hospital_')) {
+      setActiveTab('patient-records');
+      
+      // Mark notification as read if not already
+      if (!notification.is_read) {
+        markNotificationAsRead(notification.id);
+      }
+      
+      toast({
+        title: "Viewing medical records",
+        description: `Opening records for ${notification.data?.patient_name || 'patient'}`,
+      });
+    }
+  };
+
   try {
     return (
       <div className="space-y-6 bg-slate-900 text-slate-100 min-h-screen p-6">
@@ -47,6 +66,7 @@ const ProviderPortalContent: React.FC = () => {
         <NotificationBanner
           notifications={notifications}
           onDismiss={handleDismissNotification}
+          onNotificationClick={handleNotificationClick}
         />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

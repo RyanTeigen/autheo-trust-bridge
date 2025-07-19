@@ -40,6 +40,7 @@ interface ProviderPortalContextType {
   setActiveTab: (tab: string) => void;
   notifications: ProviderNotificationData[];
   dismissNotification: (id: string) => void;
+  markNotificationAsRead: (id: string) => void;
   metrics: ProviderMetricsType;
   appointments: AppointmentType[];
   recentPatients: PatientType[];
@@ -100,7 +101,8 @@ export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ 
     notifications, 
     unreadCount, 
     removeNotification, 
-    markAllAsRead 
+    markAllAsRead,
+    markAsRead
   } = useProviderNotifications();
 
   const dismissNotification = (id: string) => {
@@ -112,6 +114,7 @@ export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ 
     setActiveTab,
     notifications,
     dismissNotification,
+    markNotificationAsRead: markAsRead,
     metrics: mockProviderMetrics,
     appointments: mockAppointments,
     recentPatients: mockRecentPatients,
