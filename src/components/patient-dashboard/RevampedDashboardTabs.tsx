@@ -45,7 +45,7 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
 
   return (
     <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-7 w-full">
+      <TabsList className="bg-slate-800 border-b border-slate-700 grid grid-cols-2 lg:grid-cols-6 w-full">
         <TabsTrigger 
           value="dashboard" 
           className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
@@ -66,13 +66,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
         >
           <Calendar className="h-4 w-4" />
           <span className="hidden sm:inline">Schedule</span>
-        </TabsTrigger>
-        <TabsTrigger 
-          value="notifications" 
-          className="data-[state=active]:bg-autheo-primary data-[state=active]:text-autheo-dark flex items-center gap-1.5"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="hidden sm:inline">Notifications</span>
         </TabsTrigger>
         <TabsTrigger 
           value="health-tracker" 
@@ -113,10 +106,6 @@ const RevampedDashboardTabs: React.FC<RevampedDashboardTabsProps> = ({
       
       <TabsContent value="scheduling">
         <SchedulingTabContent />
-      </TabsContent>
-      
-      <TabsContent value="notifications">
-        <NotificationsTabContent />
       </TabsContent>
       
       <TabsContent value="health-tracker">
