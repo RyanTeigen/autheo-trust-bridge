@@ -57,7 +57,7 @@ const HealthTrackerFilters: React.FC<HealthTrackerFiltersProps> = ({
     onFiltersChange({
       dateRange: { start: '', end: '' },
       dataTypes: [],
-      source: '',
+      source: 'all',
       sortBy: 'date',
       sortOrder: 'desc'
     });
@@ -67,7 +67,7 @@ const HealthTrackerFilters: React.FC<HealthTrackerFiltersProps> = ({
     let count = 0;
     if (filters.dateRange.start || filters.dateRange.end) count++;
     if (filters.dataTypes.length > 0) count++;
-    if (filters.source) count++;
+    if (filters.source && filters.source !== 'all') count++;
     return count;
   };
 
@@ -228,7 +228,7 @@ const HealthTrackerFilters: React.FC<HealthTrackerFiltersProps> = ({
               <SelectValue placeholder="All sources" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All sources</SelectItem>
+              <SelectItem value="all">All sources</SelectItem>
               {availableSources.map((source) => (
                 <SelectItem key={source} value={source}>
                   {source.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -288,7 +288,7 @@ const HealthTrackerFilters: React.FC<HealthTrackerFiltersProps> = ({
                   Types: {filters.dataTypes.join(', ')}
                 </div>
               )}
-              {filters.source && (
+              {filters.source && filters.source !== 'all' && (
                 <div>
                   Source: {filters.source}
                 </div>
