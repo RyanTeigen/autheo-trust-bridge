@@ -72,7 +72,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="">All Providers</SelectItem>
+                <SelectItem value="all">All Providers</SelectItem>
                 {insuranceProviders.map(provider => (
                   <SelectItem key={provider} value={provider}>{provider}</SelectItem>
                 ))}
@@ -92,7 +92,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="">All Providers</SelectItem>
+                <SelectItem value="all">All Providers</SelectItem>
                 {providers.map(provider => (
                   <SelectItem key={provider} value={provider}>{provider}</SelectItem>
                 ))}

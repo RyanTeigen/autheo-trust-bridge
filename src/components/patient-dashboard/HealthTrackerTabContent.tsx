@@ -50,7 +50,7 @@ const HealthTrackerTabContent: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>({
     dateRange: { start: '', end: '' },
     dataTypes: [],
-    source: '',
+    source: 'all',
     sortBy: 'date',
     sortOrder: 'desc'
   });
@@ -169,7 +169,7 @@ const HealthTrackerTabContent: React.FC = () => {
     }
 
     // Source filter
-    if (filters.source) {
+    if (filters.source && filters.source !== 'all') {
       filteredData = filteredData.filter(point => 
         point.source === filters.source
       );

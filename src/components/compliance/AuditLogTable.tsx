@@ -230,7 +230,7 @@ export function AuditLogTable() {
                   <SelectValue placeholder="All Actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Actions</SelectItem>
+                  <SelectItem value="all">All Actions</SelectItem>
                   {getUniqueActions().map(action => (
                     <SelectItem key={action} value={action}>{action}</SelectItem>
                   ))}
