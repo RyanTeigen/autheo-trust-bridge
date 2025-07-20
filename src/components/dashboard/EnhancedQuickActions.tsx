@@ -26,7 +26,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
   const quickActions = [
     {
       title: 'Schedule Appointment',
-      description: 'Book a new appointment with your healthcare provider',
+      description: 'Book with your healthcare provider',
       icon: <Calendar className="h-5 w-5" />,
       action: () => navigate('/patient-dashboard', { state: { activeTab: 'scheduling' } }),
       color: 'text-primary',
@@ -35,7 +35,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
     },
     {
       title: 'View Medical Records',
-      description: 'Access your complete medical history and documents',
+      description: 'Access your medical history',
       icon: <FileText className="h-5 w-5" />,
       action: () => navigate('/patient-dashboard', { state: { activeTab: 'records' } }),
       color: 'text-secondary',
@@ -44,7 +44,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
     },
     {
       title: 'Manage Notifications',
-      description: 'Review access requests and important alerts',
+      description: 'Review access requests and alerts',
       icon: <Bell className="h-5 w-5" />,
       action: () => navigate('/patient-dashboard', { state: { activeTab: 'notifications' } }),
       color: 'text-accent',
@@ -54,7 +54,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
     },
     {
       title: 'Health Tracker',
-      description: 'Monitor your vital signs and health metrics',
+      description: 'Monitor vital signs and metrics',
       icon: <Activity className="h-5 w-5" />,
       action: () => navigate('/patient-dashboard', { state: { activeTab: 'health-tracker' } }),
       color: 'text-primary',
@@ -63,7 +63,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
     },
     {
       title: 'Privacy & Security',
-      description: 'Manage your data sharing preferences and security settings',
+      description: 'Manage data sharing settings',
       icon: <Shield className="h-5 w-5" />,
       action: () => navigate('/patient-dashboard', { state: { activeTab: 'privacy-security' } }),
       color: 'text-secondary',
@@ -72,7 +72,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
     },
     {
       title: 'Share Records',
-      description: 'Grant access to your medical records to healthcare providers',
+      description: 'Grant provider access permissions',
       icon: <Share2 className="h-5 w-5" />,
       action: () => navigate('/sharing'),
       color: 'text-accent',
@@ -96,18 +96,18 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
               key={index}
               onClick={action.action}
               variant="ghost"
-              className={`h-auto p-4 justify-start text-left hover:bg-muted border ${action.borderColor} ${action.bgColor} transition-all group`}
+              className={`h-auto p-4 justify-start text-left hover:bg-muted border ${action.borderColor} ${action.bgColor} transition-all group min-h-[100px]`}
             >
               <div className="flex items-start gap-3 w-full">
-                <div className={`${action.color} group-hover:scale-110 transition-transform`}>
+                <div className={`${action.color} group-hover:scale-110 transition-transform flex-shrink-0`}>
                   {action.icon}
                 </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-foreground group-hover:text-primary">
+                <div className="flex-1 space-y-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-medium text-foreground group-hover:text-primary text-sm leading-tight">
                       {action.title}
                     </h3>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {action.badge && (
                         <Badge variant={action.badge.variant} className="text-xs">
                           {action.badge.text}
@@ -116,7 +116,7 @@ const EnhancedQuickActions: React.FC<EnhancedQuickActionsProps> = ({ className =
                       <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </div>
                   </div>
-                  <p className="text-sm text-muted-foreground group-hover:text-foreground">
+                  <p className="text-xs text-muted-foreground group-hover:text-foreground leading-tight line-clamp-2">
                     {action.description}
                   </p>
                 </div>
