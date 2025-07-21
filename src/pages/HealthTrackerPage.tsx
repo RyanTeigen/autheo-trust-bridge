@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import HealthMetricsCharts from '@/components/records/HealthMetricsCharts';
 import FitnessDeviceIntegration from '@/components/fitness/FitnessDeviceIntegration';
@@ -9,16 +9,22 @@ import { Activity, Scale, Heart, Clock, Utensils, Smartphone } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import ManualVitalEntryModal from '@/components/patient-dashboard/health-tracker/ManualVitalEntryModal';
+import HealthTrackerQuickActions from '@/components/patient-dashboard/health-tracker/HealthTrackerQuickActions';
 
 const HealthTrackerPage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [showManualEntryModal, setShowManualEntryModal] = useState(false);
+  const [selectedVitalType, setSelectedVitalType] = useState<string>('blood_pressure');
 
-  const handleAddData = (dataType: string) => {
-    toast({
-      title: "Coming soon",
-      description: `The ability to add ${dataType} data will be available soon.`,
-    });
+  const handleAddData = (dataType: string): void => {
+    setSelectedVitalType(dataType);
+    setShowManualEntryModal(true);
+  };
+
+  const handleManualEntry = (): void => {
+    setShowManualEntryModal(true);
   };
   
   const handleBackToDashboard = () => {
@@ -59,6 +65,15 @@ const HealthTrackerPage: React.FC = () => {
           </p>
         </CardContent>
       </Card>
+
+      {/* Quick Actions Component */}
+      <HealthTrackerQuickActions
+        onQuickEntry={handleAddData}
+        onViewGoals={() => toast({ title: "Coming Soon", description: "Health goals feature coming soon!" })}
+        onViewInsights={() => toast({ title: "Coming Soon", description: "AI insights feature coming soon!" })}
+        onExportData={() => toast({ title: "Coming Soon", description: "Data export feature coming soon!" })}
+        onManualEntry={handleManualEntry}
+      />
 
       <Tabs defaultValue="metrics" className="w-full">
         <TabsList className="w-full justify-start overflow-auto">
@@ -193,6 +208,13 @@ const HealthTrackerPage: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Manual Entry Modal */}
+      <ManualVitalEntryModal
+        isOpen={showManualEntryModal}
+        onClose={() => setShowManualEntryModal(false)}
+        selectedVitalType={selectedVitalType}
+      />
     </div>
   );
 };

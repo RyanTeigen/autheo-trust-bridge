@@ -17,13 +17,15 @@ interface HealthTrackerQuickActionsProps {
   onViewGoals: () => void;
   onViewInsights: () => void;
   onExportData: () => void;
+  onManualEntry?: () => void;
 }
 
 const HealthTrackerQuickActions: React.FC<HealthTrackerQuickActionsProps> = ({
   onQuickEntry,
   onViewGoals,
   onViewInsights,
-  onExportData
+  onExportData,
+  onManualEntry
 }) => {
   const quickActions: QuickAction[] = [
     {
@@ -116,13 +118,13 @@ const HealthTrackerQuickActions: React.FC<HealthTrackerQuickActionsProps> = ({
               Export Data
             </Button>
             <Button
-              onClick={() => {
-                // Scroll to entry form or open modal
+              onClick={onManualEntry || (() => {
+                // Fallback: Scroll to entry form
                 const entryForm = document.getElementById('vital-signs-entry');
                 if (entryForm) {
                   entryForm.scrollIntoView({ behavior: 'smooth' });
                 }
-              }}
+              })}
               variant="ghost"
               size="sm"
               className="text-xs"
