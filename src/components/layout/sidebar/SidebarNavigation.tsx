@@ -37,7 +37,8 @@ const SidebarNavigation: React.FC = () => {
 
   const complianceItems = [
     { to: '/compliance', icon: Shield, title: 'Overview' },
-    { to: '/audit-logs', icon: FileSearch, title: 'Audit Logs' }
+    { to: '/audit-logs', icon: FileSearch, title: 'Audit Logs' },
+    { to: '/security-dashboard', icon: Shield, title: 'Security Dashboard' }
   ];
 
   return (

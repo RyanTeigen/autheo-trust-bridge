@@ -28,6 +28,7 @@ import SharedRecordsPage from "./pages/SharedRecordsPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 import RoleBasedDashboardRedirect from "./components/auth/RoleBasedDashboardRedirect";
 import CrossHospitalConsent from "./components/patient/CrossHospitalConsent";
+import SecurityDashboard from "./pages/SecurityDashboard";
 
 // Create a stable query client instance
 const queryClient = new QueryClient({
@@ -163,6 +164,16 @@ const App = () => {
                         <MainLayout>
                           <AuditLogsPage />
                         </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/security-dashboard" element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['admin', 'compliance', 'provider']}>
+                          <MainLayout>
+                            <SecurityDashboard />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
                     

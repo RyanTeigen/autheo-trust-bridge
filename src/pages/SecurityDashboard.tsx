@@ -7,6 +7,7 @@ import { SecurityEventMonitor } from '@/components/security/SecurityEventMonitor
 import { SessionManager } from '@/components/security/SessionManager';
 import { PolicyAcknowledgment } from '@/components/security/PolicyAcknowledgment';
 import { PasswordComplexityValidator } from '@/components/security/PasswordComplexityValidator';
+import { EnhancedSecurityMonitor } from '@/components/security/EnhancedSecurityMonitor';
 
 export default function SecurityDashboard() {
   const [testPassword, setTestPassword] = useState('');
@@ -168,7 +169,7 @@ export default function SecurityDashboard() {
         </TabsContent>
 
         <TabsContent value="events" className="space-y-4">
-          <SecurityEventMonitor />
+          <EnhancedSecurityMonitor />
         </TabsContent>
 
         <TabsContent value="password" className="space-y-4">
