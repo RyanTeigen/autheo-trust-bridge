@@ -15,6 +15,11 @@ interface AuditLog {
   ip_address?: string;
   user_agent?: string;
   timestamp: string;
+  phi_accessed?: boolean;
+  minimum_necessary_justification?: string;
+  access_purpose?: string;
+  data_categories?: string[];
+  retention_period?: string;
 }
 
 type TimeframeType = '24h' | '7d' | '30d' | 'all';
@@ -87,7 +92,12 @@ export function useAuditLogs() {
           null,
         ip_address: log.ip_address,
         user_agent: log.user_agent,
-        timestamp: log.timestamp
+        timestamp: log.timestamp,
+        phi_accessed: log.phi_accessed,
+        minimum_necessary_justification: log.minimum_necessary_justification,
+        access_purpose: log.access_purpose,
+        data_categories: log.data_categories,
+        retention_period: log.retention_period as string
       }));
 
       setAuditLogs(transformedData);

@@ -131,6 +131,57 @@ export type Database = {
           },
         ]
       }
+      administrative_safeguards: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string
+          due_date: string | null
+          evidence_location: string | null
+          id: string
+          implementation_status: string
+          last_reviewed: string | null
+          next_review_due: string | null
+          review_frequency: unknown | null
+          safeguard_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description: string
+          due_date?: string | null
+          evidence_location?: string | null
+          id?: string
+          implementation_status?: string
+          last_reviewed?: string | null
+          next_review_due?: string | null
+          review_frequency?: unknown | null
+          safeguard_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string
+          due_date?: string | null
+          evidence_location?: string | null
+          id?: string
+          implementation_status?: string
+          last_reviewed?: string | null
+          next_review_due?: string | null
+          review_frequency?: unknown | null
+          safeguard_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       anchored_hashes: {
         Row: {
           anchor_tx_url: string | null
@@ -457,13 +508,18 @@ export type Database = {
       }
       audit_logs: {
         Row: {
+          access_purpose: string | null
           action: string
+          data_categories: string[] | null
           details: string | null
           id: string
           ip_address: string | null
           metadata: Json | null
+          minimum_necessary_justification: string | null
+          phi_accessed: boolean | null
           resource: string
           resource_id: string | null
+          retention_period: unknown | null
           status: string | null
           target_id: string | null
           target_type: string | null
@@ -472,13 +528,18 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          access_purpose?: string | null
           action: string
+          data_categories?: string[] | null
           details?: string | null
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          minimum_necessary_justification?: string | null
+          phi_accessed?: boolean | null
           resource: string
           resource_id?: string | null
+          retention_period?: unknown | null
           status?: string | null
           target_id?: string | null
           target_type?: string | null
@@ -487,13 +548,18 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          access_purpose?: string | null
           action?: string
+          data_categories?: string[] | null
           details?: string | null
           id?: string
           ip_address?: string | null
           metadata?: Json | null
+          minimum_necessary_justification?: string | null
+          phi_accessed?: boolean | null
           resource?: string
           resource_id?: string | null
+          retention_period?: unknown | null
           status?: string | null
           target_id?: string | null
           target_type?: string | null
@@ -524,6 +590,48 @@ export type Database = {
           id?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      breach_detection_events: {
+        Row: {
+          auto_detected: boolean | null
+          created_at: string | null
+          description: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          user_id: string | null
+        }
+        Insert: {
+          auto_detected?: boolean | null
+          created_at?: string | null
+          description: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          user_id?: string | null
+        }
+        Update: {
+          auto_detected?: boolean | null
+          created_at?: string | null
+          description?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1409,6 +1517,36 @@ export type Database = {
           },
         ]
       }
+      minimum_necessary_controls: {
+        Row: {
+          allowed_fields: string[]
+          business_justification: string
+          created_at: string | null
+          id: string
+          resource_type: string
+          updated_at: string | null
+          user_role: string
+        }
+        Insert: {
+          allowed_fields: string[]
+          business_justification: string
+          created_at?: string | null
+          id?: string
+          resource_type: string
+          updated_at?: string | null
+          user_role: string
+        }
+        Update: {
+          allowed_fields?: string[]
+          business_justification?: string
+          created_at?: string | null
+          id?: string
+          resource_type?: string
+          updated_at?: string | null
+          user_role?: string
+        }
+        Relationships: []
+      }
       note_access_controls: {
         Row: {
           access_level: string
@@ -1538,6 +1676,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      patient_rights_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          handled_by: string | null
+          id: string
+          justification: string | null
+          metadata: Json | null
+          patient_id: string
+          request_type: string
+          requested_data: string[] | null
+          response_due_date: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          handled_by?: string | null
+          id?: string
+          justification?: string | null
+          metadata?: Json | null
+          patient_id: string
+          request_type: string
+          requested_data?: string[] | null
+          response_due_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          handled_by?: string | null
+          id?: string
+          justification?: string | null
+          metadata?: Json | null
+          patient_id?: string
+          request_type?: string
+          requested_data?: string[] | null
+          response_due_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       patients: {
         Row: {
