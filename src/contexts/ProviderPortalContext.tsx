@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { PatientRecord } from '@/components/emr/AdvancedPatientSearch';
+import { useProviderMetrics } from '@/hooks/useProviderMetrics';
 
 // Define the types for our context
 interface ProviderMetricsType {
@@ -81,16 +82,19 @@ interface ProviderPortalProviderProps {
 export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ children }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [patientRecordsSubTab, setPatientRecordsSubTab] = useState('clinical-records');
+  
+  // Use real provider data instead of mock data
+  const { metrics, appointments, recentPatients } = useProviderMetrics();
 
   const value = {
     activeTab,
     setActiveTab,
     patientRecordsSubTab,
     setPatientRecordsSubTab,
-    metrics: mockProviderMetrics,
-    appointments: mockAppointments,
-    recentPatients: mockRecentPatients,
-    patientRecords: mockPatientRecords,
+    metrics,
+    appointments,
+    recentPatients,
+    patientRecords: mockPatientRecords, // Keep mock for patient records as it's used elsewhere
   };
   
   return (

@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MetricCard } from '@/components/ui/metric-card';
 import { Badge } from '@/components/ui/badge';
+import { useProviderActivity } from '@/hooks/useProviderActivity';
 import {
   Users,
   Calendar,
@@ -51,44 +52,14 @@ interface ProviderDashboardTabProps {
   recentPatients: PatientType[];
 }
 
-const mockData = {
-  totalPatients: 124,
-  appointmentsToday: 18,
-  pendingReviews: 5,
-  messages: 32,
-  recentActivity: [
-    {
-      action: 'Uploaded new lab results',
-      patient: 'John Doe',
-      time: '2 hours ago',
-      type: 'Labs'
-    },
-    {
-      action: 'Scheduled follow-up appointment',
-      patient: 'Jane Smith',
-      time: '3 hours ago',
-      type: 'Appointment'
-    },
-    {
-      action: 'Reviewed patient history',
-      patient: 'Alice Johnson',
-      time: '5 hours ago',
-      type: 'Review'
-    },
-    {
-      action: 'Sent prescription refill request',
-      patient: 'Bob Williams',
-      time: '1 day ago',
-      type: 'Prescription'
-    }
-  ]
-};
 
 const ProviderDashboardTab: React.FC<ProviderDashboardTabProps> = ({ 
   metrics, 
   appointments, 
   recentPatients 
 }) => {
+  const { recentActivity, loading: activityLoading } = useProviderActivity();
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -128,18 +99,24 @@ const ProviderDashboardTab: React.FC<ProviderDashboardTabProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockData.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start space-x-3 p-3 bg-slate-700/30 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-200">{activity.action}</p>
-                    <p className="text-xs text-slate-400">{activity.patient}</p>
-                    <p className="text-xs text-slate-500">{activity.time}</p>
+              {activityLoading ? (
+                <div className="text-center text-slate-400 py-4">Loading recent activity...</div>
+              ) : recentActivity.length > 0 ? (
+                recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start space-x-3 p-3 bg-slate-700/30 rounded-lg">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-slate-200">{activity.action}</p>
+                      <p className="text-xs text-slate-400">{activity.patient}</p>
+                      <p className="text-xs text-slate-500">{activity.time}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
+                      {activity.type}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="text-xs border-slate-600 text-slate-300">
-                    {activity.type}
-                  </Badge>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-center text-slate-400 py-4">No recent activity to display</div>
+              )}
             </div>
           </CardContent>
         </Card>
