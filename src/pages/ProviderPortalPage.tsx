@@ -40,11 +40,7 @@ const ProviderPortalContent: React.FC = () => {
           </TabsList>
           
           <TabsContent value="dashboard" className="mt-6">
-            <ProviderDashboardTab
-              metrics={metrics}
-              appointments={appointments}
-              recentPatients={recentPatients}
-            />
+            <ProviderDashboardTab />
           </TabsContent>
           
           <TabsContent value="patient-records" className="mt-6">
