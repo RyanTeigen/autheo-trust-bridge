@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { PatientRecord } from '@/components/emr/AdvancedPatientSearch';
-import { useProviderMetrics } from '@/hooks/useProviderMetrics';
+import { useEnhancedProviderMetrics } from '@/hooks/useEnhancedProviderMetrics';
 
 // Define the types for our context
 interface ProviderMetricsType {
@@ -43,15 +43,6 @@ interface ProviderPortalContextType {
 export const ProviderPortalContext = createContext<ProviderPortalContextType | undefined>(undefined);
 
 // Mock data for the Provider Portal
-const mockProviderMetrics: ProviderMetricsType = {
-  patientsToday: 8,
-  completedAppointments: 3,
-  upcomingAppointments: 5,
-  averageWaitTime: '12 min',
-  patientSatisfaction: 92,
-  pendingTasks: 4
-};
-
 const mockAppointments: AppointmentType[] = [
   { id: 'A1', patientName: 'John Doe', time: '09:00 AM', type: 'Follow-up', status: 'Checked In' },
   { id: 'A2', patientName: 'Jane Smith', time: '10:30 AM', type: 'New Patient', status: 'Scheduled' },
@@ -83,8 +74,18 @@ export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [patientRecordsSubTab, setPatientRecordsSubTab] = useState('clinical-records');
   
-  // Use real provider data instead of mock data
-  const { metrics, appointments, recentPatients } = useProviderMetrics();
+  // Use enhanced provider metrics
+  const { metrics: enhancedMetrics } = useEnhancedProviderMetrics();
+  
+  // Transform enhanced metrics to match the expected interface
+  const metrics: ProviderMetricsType = {
+    patientsToday: enhancedMetrics.patientsToday,
+    completedAppointments: enhancedMetrics.completedAppointments,
+    upcomingAppointments: enhancedMetrics.upcomingAppointments,
+    averageWaitTime: enhancedMetrics.averageWaitTime,
+    patientSatisfaction: enhancedMetrics.patientSatisfaction,
+    pendingTasks: enhancedMetrics.pendingTasks
+  };
 
   const value = {
     activeTab,
@@ -92,9 +93,9 @@ export const ProviderPortalProvider: React.FC<ProviderPortalProviderProps> = ({ 
     patientRecordsSubTab,
     setPatientRecordsSubTab,
     metrics,
-    appointments,
-    recentPatients,
-    patientRecords: mockPatientRecords, // Keep mock for patient records as it's used elsewhere
+    appointments: mockAppointments,
+    recentPatients: mockRecentPatients,
+    patientRecords: mockPatientRecords,
   };
   
   return (
