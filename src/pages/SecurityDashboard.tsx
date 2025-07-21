@@ -2,24 +2,19 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Key, FileText, Monitor, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Shield, Key, FileText, Monitor, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { SecurityEventMonitor } from '@/components/security/SecurityEventMonitor';
 import { SessionManager } from '@/components/security/SessionManager';
 import { PolicyAcknowledgment } from '@/components/security/PolicyAcknowledgment';
 import { PasswordComplexityValidator } from '@/components/security/PasswordComplexityValidator';
 import { EnhancedSecurityMonitor } from '@/components/security/EnhancedSecurityMonitor';
+import { useSecurityMetrics } from '@/hooks/useSecurityMetrics';
 
 export default function SecurityDashboard() {
   const [testPassword, setTestPassword] = useState('');
   const [policyAcknowledged, setPolicyAcknowledged] = useState(false);
-
-  const securityMetrics = {
-    complianceScore: 85,
-    activeSessions: 0,
-    securityEvents: 0,
-    criticalEvents: 0,
-    lastAudit: '2025-01-01',
-  };
+  const { metrics, loading, error, refetch } = useSecurityMetrics();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -31,25 +26,46 @@ export default function SecurityDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refetch}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Badge variant="outline" className="text-green-600">
             <CheckCircle className="w-4 h-4 mr-1" />
             HIPAA Compliant
           </Badge>
           <Badge variant="secondary">
-            Score: {securityMetrics.complianceScore}%
+            Score: {loading ? '...' : metrics.complianceScore}%
           </Badge>
         </div>
       </div>
 
+      {error && (
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="w-4 h-4" />
+            <span className="text-sm">Error loading security data: {error}</span>
+          </div>
+        </div>
+      )}
+
       {/* Security Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Sessions</CardTitle>
             <Monitor className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{securityMetrics.activeSessions}</div>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : metrics.activeSessions}
+            </div>
             <p className="text-xs text-muted-foreground">
               Current user sessions
             </p>
@@ -62,9 +78,11 @@ export default function SecurityDashboard() {
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{securityMetrics.securityEvents}</div>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : metrics.securityEvents}
+            </div>
             <p className="text-xs text-muted-foreground">
-              {securityMetrics.criticalEvents} critical events
+              {loading ? '...' : metrics.criticalEvents} critical events
             </p>
           </CardContent>
         </Card>
@@ -75,7 +93,9 @@ export default function SecurityDashboard() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{securityMetrics.complianceScore}%</div>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : metrics.complianceScore}%
+            </div>
             <p className="text-xs text-muted-foreground">
               HIPAA compliance rating
             </p>
@@ -88,9 +108,26 @@ export default function SecurityDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{securityMetrics.lastAudit}</div>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : metrics.lastAudit}
+            </div>
             <p className="text-xs text-muted-foreground">
               Security assessment date
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Failed Logins</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {loading ? '...' : metrics.failedLogins}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Last 24 hours
             </p>
           </CardContent>
         </Card>

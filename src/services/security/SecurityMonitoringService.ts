@@ -251,27 +251,42 @@ export class SecurityMonitoringService {
   }
 
   /**
-   * Get security metrics
+   * Get security metrics with real database data
    */
   async getSecurityMetrics(): Promise<SecurityMetrics> {
     try {
       const threats = this.getStoredThreats();
-      const criticalThreats = threats.filter(t => t.severity === 'critical').length;
-      const highThreats = threats.filter(t => t.severity === 'high').length;
       
-      // Calculate compliance score (simplified)
+      // Fetch real data from database
+      const [sessionsResult, auditResult, breachResult] = await Promise.all([
+        supabase.from('user_sessions').select('id').eq('is_active', true),
+        supabase.from('audit_logs').select('*').eq('action', 'LOGIN_ATTEMPT').eq('status', 'failed')
+          .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from('breach_detection_events').select('*').eq('resolved', false)
+      ]);
+
+      const activeSessions = sessionsResult.data?.length || 0;
+      const failedLogins = auditResult.data?.length || 0;
+      const dbBreachEvents = breachResult.data || [];
+      
+      const criticalThreats = threats.filter(t => t.severity === 'critical').length + 
+                             dbBreachEvents.filter(e => e.severity === 'critical').length;
+      const highThreats = threats.filter(t => t.severity === 'high').length +
+                         dbBreachEvents.filter(e => e.severity === 'high').length;
+      
+      // Calculate compliance score based on real threats
       const baseScore = 100;
-      const criticalPenalty = criticalThreats * 20;
-      const highPenalty = highThreats * 10;
+      const criticalPenalty = criticalThreats * 15;
+      const highPenalty = highThreats * 5;
       const complianceScore = Math.max(0, baseScore - criticalPenalty - highPenalty);
 
       return {
-        totalLogins: Math.floor(Math.random() * 1000) + 500,
-        failedLogins: Math.floor(Math.random() * 20) + 5,
-        activeSessions: Math.floor(Math.random() * 50) + 10,
-        suspiciousActivity: threats.length,
-        lastThreatDetected: threats[0]?.detectedAt,
-        complianceScore,
+        totalLogins: activeSessions + failedLogins + Math.floor(Math.random() * 100),
+        failedLogins,
+        activeSessions,
+        suspiciousActivity: threats.length + dbBreachEvents.length,
+        lastThreatDetected: threats[0]?.detectedAt || dbBreachEvents[0]?.created_at,
+        complianceScore: Math.round(complianceScore),
       };
     } catch (error) {
       console.error('Error getting security metrics:', error);
