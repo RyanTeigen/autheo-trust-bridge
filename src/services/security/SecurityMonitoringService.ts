@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { auditLogger } from '@/services/audit/AuditLogger';
+import { emailNotificationService } from '@/services/notifications/EmailNotificationService';
 
 interface SecurityThreat {
   id: string;
@@ -182,6 +183,25 @@ export class SecurityMonitoringService {
 
       // Store in local storage for demo purposes (in production, use proper alerting)
       this.storeSecurityThreat(threatEvent);
+
+      // Send email notification for high-severity threats
+      if (threat.severity === 'critical' || threat.severity === 'high') {
+        try {
+          await emailNotificationService.sendSecurityAlert({
+            type: threat.type,
+            severity: threat.severity,
+            title: `Security Threat Detected: ${threat.type}`,
+            description: threat.description,
+            timestamp: threatEvent.detectedAt,
+            userId: threat.userId,
+            ipAddress: threat.ipAddress,
+            userAgent: threat.userAgent,
+            context: threat.metadata,
+          });
+        } catch (error) {
+          console.error('Failed to send security threat email:', error);
+        }
+      }
 
       console.warn('Security threat detected:', threatEvent);
     } catch (error) {

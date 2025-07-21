@@ -1,5 +1,6 @@
 import { AlertSeverity, SystemAlert } from '@/types/monitoring';
 import { shouldReportError, performanceConfig } from '@/utils/production';
+import { emailNotificationService } from '@/services/notifications/EmailNotificationService';
 
 interface AlertChannel {
   id: string;
@@ -135,6 +136,25 @@ class AlertManager {
         }
 
         rule.lastTriggered = Date.now();
+      }
+    }
+
+    // Send email notification for critical alerts
+    if (alert.severity === 'critical' || alert.severity === 'high') {
+      try {
+        await emailNotificationService.sendSecurityAlert({
+          type: alert.type,
+          severity: alert.severity,
+          title: `Security Alert: ${alert.type}`,
+          description: alert.message,
+          timestamp: alert.timestamp.toISOString(),
+          userId: alert.context?.userId,
+          ipAddress: alert.context?.ipAddress,
+          userAgent: alert.context?.userAgent,
+          context: alert.context,
+        });
+      } catch (error) {
+        console.error('Failed to send email notification:', error);
       }
     }
   }
