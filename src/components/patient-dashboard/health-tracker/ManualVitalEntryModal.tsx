@@ -140,7 +140,7 @@ const ManualVitalEntryModal: React.FC<ManualVitalEntryModalProps> = ({
       // Generate a record ID for this vital entry
       const recordId = crypto.randomUUID();
       
-      // Store the atomic data point
+      // Store the atomic data point with the recordId as a parameter
       const result = await atomicDataService.storeAtomicValue(recordId, {
         data_type: selectedVital,
         value: value.trim(),
