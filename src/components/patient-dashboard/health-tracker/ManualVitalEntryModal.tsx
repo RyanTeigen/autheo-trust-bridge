@@ -133,17 +133,43 @@ const ManualVitalEntryModal: React.FC<ManualVitalEntryModalProps> = ({
     e.preventDefault();
     if (!value.trim()) return;
 
+    // Validate vital sign value based on type
+    const vitalType = vitalTypes[selectedVital];
+    const trimmedValue = value.trim();
+    
+    // For blood pressure, allow format like "120/80"
+    if (selectedVital === 'blood_pressure') {
+      const bpPattern = /^\d+\/\d+$/;
+      if (!bpPattern.test(trimmedValue)) {
+        toast({
+          title: 'Invalid Blood Pressure Format',
+          description: 'Please enter blood pressure in format: 120/80',
+          variant: 'destructive'
+        });
+        return;
+      }
+    } else {
+      // For other vitals, ensure it's a valid number
+      const numValue = parseFloat(trimmedValue);
+      if (isNaN(numValue) || numValue <= 0) {
+        toast({
+          title: 'Invalid Value',
+          description: `Please enter a valid numeric value for ${vitalType.name}`,
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
-      const vitalType = vitalTypes[selectedVital];
-      
       // Generate a record ID for this vital entry
       const recordId = crypto.randomUUID();
       
       // Store the atomic data point with the recordId as a parameter
       const result = await atomicDataService.storeAtomicValue(recordId, {
         data_type: selectedVital,
-        value: value.trim(),
+        value: trimmedValue,
         unit: vitalType.unit,
         metadata: {
           notes: notes.trim(),
