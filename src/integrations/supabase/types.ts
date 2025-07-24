@@ -1951,6 +1951,33 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action: string
+          attempts: number | null
+          created_at: string | null
+          id: string
+          reset_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          attempts?: number | null
+          created_at?: string | null
+          id?: string
+          reset_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          attempts?: number | null
+          created_at?: string | null
+          id?: string
+          reset_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       record_anchors: {
         Row: {
           anchor_hash: string
@@ -2484,6 +2511,7 @@ export type Database = {
           ip_address: unknown | null
           is_active: boolean
           last_activity: string
+          security_flags: Json | null
           session_token: string
           terminated_at: string | null
           termination_reason: string | null
@@ -2497,6 +2525,7 @@ export type Database = {
           ip_address?: unknown | null
           is_active?: boolean
           last_activity?: string
+          security_flags?: Json | null
           session_token: string
           terminated_at?: string | null
           termination_reason?: string | null
@@ -2510,6 +2539,7 @@ export type Database = {
           ip_address?: unknown | null
           is_active?: boolean
           last_activity?: string
+          security_flags?: Json | null
           session_token?: string
           terminated_at?: string | null
           termination_reason?: string | null
@@ -2822,6 +2852,15 @@ export type Database = {
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
+      }
+      log_sensitive_operation: {
+        Args: {
+          operation_type: string
+          resource_type: string
+          resource_id?: string
+          additional_details?: Json
+        }
+        Returns: undefined
       }
       provider_submit_record: {
         Args: {
