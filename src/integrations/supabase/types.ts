@@ -2819,6 +2819,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      has_role: {
+        Args: { _user_id: string; _role: string }
+        Returns: boolean
+      }
       provider_submit_record: {
         Args: {
           provider_id_param: string
