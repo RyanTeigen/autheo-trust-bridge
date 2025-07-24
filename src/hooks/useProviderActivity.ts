@@ -33,7 +33,7 @@ export const useProviderActivity = () => {
             *,
             patients!inner(
               full_name,
-              profiles!inner(first_name, last_name)
+              profiles(first_name, last_name)
             ),
             medical_records!inner(record_type)
           `)
@@ -49,7 +49,7 @@ export const useProviderActivity = () => {
             *,
             patients!inner(
               full_name,
-              profiles!inner(first_name, last_name)
+              profiles(first_name, last_name)
             )
           `)
           .eq('provider_id', user.id)
@@ -92,7 +92,7 @@ export const useProviderActivity = () => {
         // Process sharing permissions
         sharingPermissions?.forEach(permission => {
           const patientName = permission.patients?.full_name || 
-                             `${permission.patients?.profiles?.first_name || ''} ${permission.patients?.profiles?.last_name || ''}`.trim() ||
+                             `${permission.patients?.profiles?.[0]?.first_name || ''} ${permission.patients?.profiles?.[0]?.last_name || ''}`.trim() ||
                              'Unknown Patient';
           
           activities.push({
@@ -106,7 +106,7 @@ export const useProviderActivity = () => {
         // Process appointments
         appointments?.forEach(apt => {
           const patientName = apt.patients?.full_name || 
-                             `${apt.patients?.profiles?.first_name || ''} ${apt.patients?.profiles?.last_name || ''}`.trim() ||
+                             `${apt.patients?.profiles?.[0]?.first_name || ''} ${apt.patients?.profiles?.[0]?.last_name || ''}`.trim() ||
                              'Unknown Patient';
           
           let action = 'Scheduled appointment';

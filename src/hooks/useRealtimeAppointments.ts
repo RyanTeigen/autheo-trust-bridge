@@ -39,7 +39,7 @@ export const useRealtimeAppointments = () => {
           patients!inner(
             full_name,
             user_id,
-            profiles!inner(first_name, last_name)
+            profiles(first_name, last_name)
           )
         `)
         .eq('provider_id', user.id)
@@ -50,7 +50,7 @@ export const useRealtimeAppointments = () => {
       return data?.map(apt => ({
         ...apt,
         patient_name: apt.patients?.full_name || 
-                    `${apt.patients?.profiles?.first_name || ''} ${apt.patients?.profiles?.last_name || ''}`.trim() ||
+                    `${apt.patients?.profiles?.[0]?.first_name || ''} ${apt.patients?.profiles?.[0]?.last_name || ''}`.trim() ||
                     'Unknown Patient'
       })) || [];
     },

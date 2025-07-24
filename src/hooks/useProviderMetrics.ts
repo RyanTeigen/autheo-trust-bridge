@@ -57,7 +57,7 @@ export const useProviderMetrics = () => {
             patients!inner(
               full_name,
               user_id,
-              profiles!inner(first_name, last_name)
+              profiles(first_name, last_name)
             )
           `)
           .eq('provider_id', user.id)
@@ -84,7 +84,7 @@ export const useProviderMetrics = () => {
           .map(apt => ({
             id: apt.id,
             patientName: apt.patients?.full_name || 
-                       `${apt.patients?.profiles?.first_name || ''} ${apt.patients?.profiles?.last_name || ''}`.trim() ||
+                       `${apt.patients?.profiles?.[0]?.first_name || ''} ${apt.patients?.profiles?.[0]?.last_name || ''}`.trim() ||
                        'Unknown Patient',
             time: new Date(apt.appointment_date).toLocaleTimeString([], { 
               hour: '2-digit', 
@@ -103,7 +103,7 @@ export const useProviderMetrics = () => {
             patients!inner(
               full_name,
               user_id,
-              profiles!inner(first_name, last_name)
+              profiles(first_name, last_name)
             ),
             medical_records!inner(record_type)
           `)
@@ -120,7 +120,7 @@ export const useProviderMetrics = () => {
           const patientId = record.patient_id;
           if (!patientMap.has(patientId)) {
             const patientName = record.patients?.full_name || 
-                              `${record.patients?.profiles?.first_name || ''} ${record.patients?.profiles?.last_name || ''}`.trim() ||
+                              `${record.patients?.profiles?.[0]?.first_name || ''} ${record.patients?.profiles?.[0]?.last_name || ''}`.trim() ||
                               'Unknown Patient';
             
             patientMap.set(patientId, {
