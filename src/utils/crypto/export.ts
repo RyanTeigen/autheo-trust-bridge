@@ -1,11 +1,28 @@
 
 /**
  * AES-256-GCM encryption utilities for record export
+ * DEPRECATED: This file contains insecure encryption practices
+ * Use SecureExport.ts instead for secure encryption
  */
 
+import { 
+  encryptWithSecureKey, 
+  decryptWithSecureKey
+} from './SecureExport';
+
+// Warning flag
+let warningShown = false;
+function showSecurityWarning(functionName: string) {
+  if (!warningShown) {
+    console.warn(`🚨 SECURITY WARNING: ${functionName} uses insecure encryption. Please migrate to SecureExport.ts`);
+    warningShown = true;
+  }
+}
+
 export function encryptWithKey(plaintext: string, key: string): string {
-  // For browser environment, we'll use Web Crypto API
-  // This is a synchronous wrapper - in practice you'd want async
+  showSecurityWarning('encryptWithKey');
+  
+  // INSECURE IMPLEMENTATION - DO NOT USE IN PRODUCTION
   const encoder = new TextEncoder();
   const data = encoder.encode(plaintext);
   
@@ -25,6 +42,8 @@ export function encryptWithKey(plaintext: string, key: string): string {
 }
 
 export function decryptWithKey(payload: string, key: string): string {
+  showSecurityWarning('decryptWithKey');
+  
   try {
     const data = JSON.parse(payload);
     // Simplified decryption - in production use proper AES-GCM
@@ -36,8 +55,11 @@ export function decryptWithKey(payload: string, key: string): string {
 
 /**
  * Generate or retrieve user encryption key from localStorage
+ * INSECURE: Uses localStorage which is vulnerable to XSS attacks
  */
 export function getUserEncryptionKey(): string {
+  showSecurityWarning('getUserEncryptionKey');
+  
   let key = localStorage.getItem('userEncryptionKey');
   if (!key) {
     // Generate a new 256-bit key
@@ -47,3 +69,7 @@ export function getUserEncryptionKey(): string {
   }
   return key;
 }
+
+// Secure alternatives (recommended)
+export { encryptWithSecureKey as encryptWithKeySecure };
+export { decryptWithSecureKey as decryptWithKeySecure };

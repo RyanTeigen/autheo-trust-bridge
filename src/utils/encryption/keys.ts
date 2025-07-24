@@ -1,10 +1,34 @@
 
 // src/utils/encryption/keys.ts
+// DEPRECATED: This file contains insecure localStorage-based key management
+// Use SecureKeys.ts instead for secure key management
+
+import { 
+  getOrCreateAESKey as secureGetOrCreateAESKey,
+  clearAESKey as secureClearAESKey,
+  hasAESKey as secureHasAESKey,
+  ensureUserKeys as secureEnsureUserKeys,
+  loadPrivateKeyFromSecureStorage,
+  getUserPublicKey as secureGetUserPublicKey,
+  clearAllKeys as secureClearAllKeys
+} from './SecureKeys';
 
 const LOCAL_AES_KEY_NAME = 'user_aes_key';
 const LOCAL_PRIVATE_KEY_NAME = 'user_private_key';
 
+// Warning flag to alert developers
+let warningShown = false;
+function showDeprecationWarning(functionName: string) {
+  if (!warningShown) {
+    console.warn(`⚠️ SECURITY WARNING: ${functionName} uses insecure localStorage for key storage. Please migrate to SecureKeys.ts`);
+    warningShown = true;
+  }
+}
+
 export function getOrCreateAESKey(): string {
+  showDeprecationWarning('getOrCreateAESKey');
+  
+  // Legacy localStorage implementation (INSECURE)
   let key = localStorage.getItem(LOCAL_AES_KEY_NAME);
   
   // Validate existing key or generate new one
@@ -32,17 +56,21 @@ export function getOrCreateAESKey(): string {
 }
 
 export function clearAESKey(): void {
+  showDeprecationWarning('clearAESKey');
   localStorage.removeItem(LOCAL_AES_KEY_NAME);
 }
 
 export function hasAESKey(): boolean {
+  showDeprecationWarning('hasAESKey');
   return localStorage.getItem(LOCAL_AES_KEY_NAME) !== null;
 }
 
 // User-specific encryption functions
 export async function ensureUserKeys(userId: string): Promise<{ publicKey: string; privateKey: string }> {
+  showDeprecationWarning('ensureUserKeys');
+  
   try {
-    // Check if we already have keys stored locally
+    // Check if we already have keys stored locally (INSECURE)
     const existingPrivateKey = localStorage.getItem(LOCAL_PRIVATE_KEY_NAME);
     
     if (existingPrivateKey) {
@@ -55,7 +83,7 @@ export async function ensureUserKeys(userId: string): Promise<{ publicKey: strin
     const aesKey = getOrCreateAESKey();
     const publicKey = `pk_${userId.substring(0, 8)}_${Date.now().toString(36)}`;
     
-    // Store the AES key as our "private key" for now
+    // Store the AES key as our "private key" for now (INSECURE)
     localStorage.setItem(LOCAL_PRIVATE_KEY_NAME, aesKey);
     
     return { publicKey, privateKey: aesKey };
@@ -66,6 +94,8 @@ export async function ensureUserKeys(userId: string): Promise<{ publicKey: strin
 }
 
 export async function loadPrivateKeyFromLocal(): Promise<string | null> {
+  showDeprecationWarning('loadPrivateKeyFromLocal');
+  
   try {
     return localStorage.getItem(LOCAL_PRIVATE_KEY_NAME) || getOrCreateAESKey();
   } catch (error) {
@@ -75,6 +105,8 @@ export async function loadPrivateKeyFromLocal(): Promise<string | null> {
 }
 
 export async function getUserPublicKey(userId: string): Promise<string | null> {
+  showDeprecationWarning('getUserPublicKey');
+  
   try {
     // In a real implementation, this would fetch from a server or database
     // For now, generate a consistent public key based on user ID
@@ -87,7 +119,18 @@ export async function getUserPublicKey(userId: string): Promise<string | null> {
 
 // Clear all encryption keys and force regeneration
 export function clearAllKeys(): void {
+  showDeprecationWarning('clearAllKeys');
+  
   localStorage.removeItem(LOCAL_AES_KEY_NAME);
   localStorage.removeItem(LOCAL_PRIVATE_KEY_NAME);
   console.log('All encryption keys cleared - new keys will be generated on next use');
 }
+
+// Secure alternatives (recommended)
+export { secureGetOrCreateAESKey as getOrCreateAESKeySecure };
+export { secureClearAESKey as clearAESKeySecure };
+export { secureHasAESKey as hasAESKeySecure };
+export { secureEnsureUserKeys as ensureUserKeysSecure };
+export { loadPrivateKeyFromSecureStorage as loadPrivateKeySecure };
+export { secureGetUserPublicKey as getUserPublicKeySecure };
+export { secureClearAllKeys as clearAllKeysSecure };
