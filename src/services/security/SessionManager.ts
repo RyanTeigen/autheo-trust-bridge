@@ -58,7 +58,7 @@ export class SessionManager {
       return {
         userId: session.user.id,
         expiresAt,
-        lastActivity: new Date(localStorage.getItem('lastActivity') || now.toISOString()),
+        lastActivity: await this.getLastActivity() || now,
         isValid: timeRemaining > 0,
         timeRemaining
       };
@@ -80,7 +80,7 @@ export class SessionManager {
       }
       
       if (data.session) {
-        this.updateLastActivity();
+        await this.updateLastActivity();
         return true;
       }
       
@@ -92,20 +92,29 @@ export class SessionManager {
     }
   }
 
-  public updateLastActivity(): void {
+  public async updateLastActivity(): Promise<void> {
     const now = new Date().toISOString();
-    localStorage.setItem('lastActivity', now);
+    // Use secure storage instead of localStorage
+    try {
+      const { secureKeyStorage } = await import('@/utils/encryption/SecureKeyStorage');
+      await secureKeyStorage.storeKey('lastActivity', now, 'session');
+    } catch (error) {
+      // Fallback to sessionStorage for critical session data
+      sessionStorage.setItem('lastActivity', now);
+    }
   }
 
   public async signOut(reason: 'expired' | 'inactive' | 'manual' = 'manual'): Promise<void> {
     try {
-      localStorage.removeItem('lastActivity');
+      // Remove last activity from secure storage instead of localStorage
+      await this.clearLastActivity();
       await supabase.auth.signOut();
       
-      // Don't log in production, but provide user feedback through UI
-      if (import.meta.env.DEV) {
-        console.log(`Session ended: ${reason}`);
-      }
+      // Log security event for audit trail
+      await this.logSecurityEvent('SESSION_TERMINATED', {
+        reason,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
       const appError = error instanceof AppError ? error : new AuthenticationError('Sign out error', { originalError: error });
       logError(appError);
@@ -149,6 +158,42 @@ export class SessionManager {
 
   public updateConfig(newConfig: Partial<SessionConfig>): void {
     this.config = { ...this.config, ...newConfig };
+  }
+
+  private async getLastActivity(): Promise<Date | null> {
+    try {
+      const { secureKeyStorage } = await import('@/utils/encryption/SecureKeyStorage');
+      const activity = await secureKeyStorage.getKey('lastActivity');
+      return activity ? new Date(activity) : null;
+    } catch (error) {
+      // Fallback to sessionStorage
+      const activity = sessionStorage.getItem('lastActivity');
+      return activity ? new Date(activity) : null;
+    }
+  }
+
+  private async clearLastActivity(): Promise<void> {
+    try {
+      const { secureKeyStorage } = await import('@/utils/encryption/SecureKeyStorage');
+      await secureKeyStorage.removeKey('lastActivity');
+    } catch (error) {
+      // Fallback cleanup
+      sessionStorage.removeItem('lastActivity');
+    }
+  }
+
+  private async logSecurityEvent(event: string, details: Record<string, any>): Promise<void> {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      await supabase.rpc('log_sensitive_operation', {
+        operation_type: event,
+        resource_type: 'session',
+        additional_details: details
+      });
+    } catch (error) {
+      // Silent fail for logging - don't break user experience
+      console.warn('Failed to log security event:', error);
+    }
   }
 }
 

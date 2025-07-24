@@ -72,11 +72,10 @@ class SecurityHardeningService {
 
   private setupConsoleProtection(): void {
     if (this.isProduction && !this.config.enableConsoleLogging) {
-      // Disable console in production
-      const noop = (): void => {};
-      console.log = noop;
-      console.warn = noop;
-      console.info = noop;
+      // Use production logger instead of disabling console entirely
+      import('./ProductionLogger').then(({ ProductionLogger }) => {
+        ProductionLogger.initializeProductionMode();
+      });
       // Keep console.error for critical error reporting
     }
   }

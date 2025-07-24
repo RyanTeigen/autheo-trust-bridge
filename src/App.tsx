@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { securityInitializer } from "@/services/security/SecurityInitializer";
+import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import MainLayout from "./components/layout/MainLayout";
@@ -42,6 +44,18 @@ const queryClient = new QueryClient({
 
 const App = () => {
   console.log('App rendering...');
+  
+  // Initialize security services
+  useEffect(() => {
+    securityInitializer.initialize().catch((error) => {
+      console.error('Failed to initialize security services:', error);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      securityInitializer.cleanup();
+    };
+  }, []);
   
   return (
     <div className="dark min-h-screen bg-slate-900 text-slate-100">
