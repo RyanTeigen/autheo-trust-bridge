@@ -987,6 +987,105 @@ export type Database = {
         }
         Relationships: []
       }
+      enhanced_breach_detection: {
+        Row: {
+          affected_resources: string[] | null
+          automated_response: Json | null
+          detected_at: string
+          detection_type: string
+          false_positive: boolean | null
+          id: string
+          mitigation_status: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          risk_score: number | null
+          severity_level: string
+          threat_indicators: Json
+          user_id: string | null
+        }
+        Insert: {
+          affected_resources?: string[] | null
+          automated_response?: Json | null
+          detected_at?: string
+          detection_type: string
+          false_positive?: boolean | null
+          id?: string
+          mitigation_status?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          risk_score?: number | null
+          severity_level: string
+          threat_indicators?: Json
+          user_id?: string | null
+        }
+        Update: {
+          affected_resources?: string[] | null
+          automated_response?: Json | null
+          detected_at?: string
+          detection_type?: string
+          false_positive?: boolean | null
+          id?: string
+          mitigation_status?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          risk_score?: number | null
+          severity_level?: string
+          threat_indicators?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      enhanced_user_sessions: {
+        Row: {
+          created_at: string
+          device_fingerprint: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          last_activity: string
+          location_data: Json | null
+          security_flags: Json | null
+          session_token: string
+          terminated_at: string | null
+          termination_reason: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          location_data?: Json | null
+          security_flags?: Json | null
+          session_token: string
+          terminated_at?: string | null
+          termination_reason?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          location_data?: Json | null
+          security_flags?: Json | null
+          session_token?: string
+          terminated_at?: string | null
+          termination_reason?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       fitness_access_permissions: {
         Row: {
           conditions: Json | null
@@ -2188,6 +2287,39 @@ export type Database = {
           },
         ]
       }
+      security_configurations: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       sharing_permissions: {
         Row: {
           auto_approved: boolean | null
@@ -2793,7 +2925,15 @@ export type Database = {
       }
     }
     Functions: {
+      check_user_permission_secure: {
+        Args: { required_permission: string }
+        Returns: boolean
+      }
       cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_sessions_enhanced: {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
@@ -2816,6 +2956,10 @@ export type Database = {
         Returns: Json
       }
       get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_role_secure: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
@@ -2852,6 +2996,15 @@ export type Database = {
       has_role: {
         Args: { _user_id: string; _role: string }
         Returns: boolean
+      }
+      log_security_event_secure: {
+        Args: {
+          event_type: string
+          severity: string
+          description: string
+          metadata?: Json
+        }
+        Returns: undefined
       }
       log_sensitive_operation: {
         Args: {
