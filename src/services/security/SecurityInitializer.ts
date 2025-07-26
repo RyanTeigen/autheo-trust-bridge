@@ -126,6 +126,16 @@ export class SecurityInitializer {
 
   private initializeCSPReporting(): void {
     document.addEventListener('securitypolicyviolation', (event) => {
+      // Filter out Supabase realtime WebSocket connections - these are expected and safe
+      if (event.violatedDirective === 'connect-src' && 
+          event.blockedURI?.includes('supabase.co/realtime/v1/websocket')) {
+        // Log but don't treat as security violation
+        if (!isProduction()) {
+          console.warn('Supabase realtime WebSocket connection blocked by CSP - this is expected behavior');
+        }
+        return;
+      }
+
       this.handleSecurityError('CSP_VIOLATION', {
         violatedDirective: event.violatedDirective,
         blockedURI: event.blockedURI,

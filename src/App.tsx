@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
 import { SecurityProvider } from "@/components/security/SecurityProvider";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import RoleBasedRoute from "./components/auth/RoleBasedRoute";
@@ -46,16 +47,17 @@ const App = () => {
   console.log('App rendering...');
   
   return (
-    <div className="dark min-h-screen bg-slate-900 text-slate-100">
-      <QueryClientProvider client={queryClient}>
-        <SecurityProvider>
-          <AuthProvider>
-            <UserSettingsProvider>
-              <HealthRecordsProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
+    <ErrorBoundary>
+      <div className="dark min-h-screen bg-slate-900 text-slate-100">
+        <QueryClientProvider client={queryClient}>
+          <SecurityProvider>
+            <AuthProvider>
+              <UserSettingsProvider>
+                <HealthRecordsProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    <BrowserRouter>
                   <Routes>
                     {/* Auth routes - available to unauthenticated users */}
                     <Route path="/auth" element={<AuthPage />} />
@@ -195,14 +197,15 @@ const App = () => {
                     {/* 404 route */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </BrowserRouter>
-              </TooltipProvider>
-            </HealthRecordsProvider>
-          </UserSettingsProvider>
-        </AuthProvider>
-      </SecurityProvider>
-    </QueryClientProvider>
-    </div>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </HealthRecordsProvider>
+            </UserSettingsProvider>
+          </AuthProvider>
+        </SecurityProvider>
+      </QueryClientProvider>
+      </div>
+    </ErrorBoundary>
   );
 };
 
