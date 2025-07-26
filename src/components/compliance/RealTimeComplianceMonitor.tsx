@@ -1,187 +1,246 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, Info, Activity, Lock } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import ComplianceProgressIndicator from '@/components/ui/ComplianceProgressIndicator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RefreshCw, Shield, Lock, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import AccessPatternChart from './monitoring/AccessPatternChart';
 import SecurityAlertsList from './monitoring/SecurityAlertsList';
 import ComplianceMetricCard from './monitoring/ComplianceMetricCard';
-import { SecurityAlert, AccessPattern } from './monitoring/types';
-
-// Sample data - In a real implementation, this would come from an API
-const sampleAlerts: SecurityAlert[] = [
-  { 
-    id: '1', 
-    severity: 'critical', 
-    message: 'Multiple failed login attempts detected', 
-    timestamp: new Date().toISOString(),
-    source: 'Authentication System',
-    resolved: false
-  },
-  { 
-    id: '2', 
-    severity: 'warning', 
-    message: 'Unusual data access pattern detected', 
-    timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-    source: 'Data Access Monitor',
-    resolved: false
-  },
-  { 
-    id: '3', 
-    severity: 'info', 
-    message: 'Security scan completed successfully', 
-    timestamp: new Date(Date.now() - 60 * 60000).toISOString(),
-    source: 'Security Scanner',
-    resolved: true
-  },
-];
-
-// Sample access patterns data
-const sampleAccessPatterns: AccessPattern[] = [
-  { hour: '00:00', count: 12, anomalyScore: 0 },
-  { hour: '01:00', count: 8, anomalyScore: 0 },
-  { hour: '02:00', count: 5, anomalyScore: 0 },
-  { hour: '03:00', count: 3, anomalyScore: 0 },
-  { hour: '04:00', count: 2, anomalyScore: 0 },
-  { hour: '05:00', count: 7, anomalyScore: 0 },
-  { hour: '06:00', count: 15, anomalyScore: 0 },
-  { hour: '07:00', count: 25, anomalyScore: 0 },
-  { hour: '08:00', count: 38, anomalyScore: 0 },
-  { hour: '09:00', count: 56, anomalyScore: 0 },
-  { hour: '10:00', count: 72, anomalyScore: 0 },
-  { hour: '11:00', count: 85, anomalyScore: 0 },
-  { hour: '12:00', count: 76, anomalyScore: 0 },
-  { hour: '13:00', count: 68, anomalyScore: 0 },
-  { hour: '14:00', count: 75, anomalyScore: 0 },
-  { hour: '15:00', count: 69, anomalyScore: 0 },
-  { hour: '16:00', count: 46, anomalyScore: 0 },
-  { hour: '17:00', count: 30, anomalyScore: 0 },
-  { hour: '18:00', count: 22, anomalyScore: 0 },
-  { hour: '19:00', count: 41, anomalyScore: 1 }, // Anomaly
-  { hour: '20:00', count: 19, anomalyScore: 0 },
-  { hour: '21:00', count: 14, anomalyScore: 0 },
-  { hour: '22:00', count: 9, anomalyScore: 0 },
-  { hour: '23:00', count: 7, anomalyScore: 0 },
-];
+import { complianceMonitoring, SecurityEvent, AccessPattern } from '@/services/ComplianceMonitoringService';
+import { SecurityAlert, AccessPattern as ComponentAccessPattern } from './monitoring/types';
 
 interface RealTimeComplianceMonitorProps {
   className?: string;
 }
 
-const RealTimeComplianceMonitor: React.FC<RealTimeComplianceMonitorProps> = ({ className }) => {
-  const [overallScore, setOverallScore] = useState(94);
-  const [activeAlerts, setActiveAlerts] = useState<SecurityAlert[]>(sampleAlerts);
-  const [accessData, setAccessData] = useState<AccessPattern[]>(sampleAccessPatterns);
+const RealTimeComplianceMonitor: React.FC<RealTimeComplianceMonitorProps> = ({
+  className = ''
+}) => {
+  const [overallScore, setOverallScore] = useState(94.5);
+  const [privacyControls, setPrivacyControls] = useState(96.2);
+  const [securityRules, setSecurityRules] = useState(92.1);
+  const [activeAlerts, setActiveAlerts] = useState<SecurityAlert[]>([]);
+  const [accessData, setAccessData] = useState<ComponentAccessPattern[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Update last updated time
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Convert service types to component types
+  const convertSecurityEventToAlert = (event: SecurityEvent): SecurityAlert => ({
+    id: event.id,
+    severity: event.severity === 'high' ? 'critical' : event.severity === 'medium' ? 'warning' : 'info',
+    message: event.title,
+    timestamp: event.created_at,
+    source: event.source,
+    resolved: event.resolved
+  });
+
+  const convertAccessPatternToComponent = (pattern: AccessPattern): ComponentAccessPattern => {
+    const hour = new Date(pattern.timestamp).getHours().toString().padStart(2, '0') + ':00';
+    return {
+      hour,
+      count: 1, // We'll aggregate these in real implementation
+      anomalyScore: pattern.risk_level === 'high' ? 1 : 0
+    };
+  };
+
+  const loadData = async () => {
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      // Load compliance metrics
+      const metrics = await complianceMonitoring.getCurrentMetrics();
+      setOverallScore(metrics.overallScore);
+      setPrivacyControls(metrics.privacyControls);
+      setSecurityRules(metrics.securityRules);
+
+      // Load security alerts
+      const alerts = await complianceMonitoring.getSecurityAlerts();
+      setActiveAlerts(alerts.map(convertSecurityEventToAlert));
+
+      // Load access patterns
+      const patterns = await complianceMonitoring.getAccessPatterns();
+      // Group patterns by hour and aggregate
+      const hourlyPatterns = patterns.reduce((acc, pattern) => {
+        const hour = new Date(pattern.timestamp).getHours().toString().padStart(2, '0') + ':00';
+        if (!acc[hour]) {
+          acc[hour] = { hour, count: 0, anomalyScore: 0 };
+        }
+        acc[hour].count += 1;
+        if (pattern.risk_level === 'high') {
+          acc[hour].anomalyScore = Math.max(acc[hour].anomalyScore, 1);
+        }
+        return acc;
+      }, {} as Record<string, ComponentAccessPattern>);
+      
+      setAccessData(Object.values(hourlyPatterns));
+
       setLastUpdated(new Date());
-      
-      // Randomly fluctuate the compliance score slightly
-      setOverallScore(prev => {
-        const change = Math.random() > 0.7 ? Math.floor(Math.random() * 3) - 1 : 0;
-        return Math.min(Math.max(prev + change, 80), 100); // Keep between 80-100
-      });
-      
-    }, 60000); // Update every minute
-    
+    } catch (err) {
+      console.error('Error loading compliance data:', err);
+      setError('Failed to load compliance data. Using cached values.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+
+    // Set up real-time updates every 30 seconds
+    const interval = setInterval(loadData, 30000);
+
     return () => clearInterval(interval);
   }, []);
-  
-  const criticalAlerts = activeAlerts.filter(alert => alert.severity === 'critical' && !alert.resolved);
-  const warningAlerts = activeAlerts.filter(alert => alert.severity === 'warning' && !alert.resolved);
-  
+
+  // Filter alerts by severity
+  const criticalAlerts = activeAlerts.filter(alert => alert.severity === 'critical');
+  const warningAlerts = activeAlerts.filter(alert => alert.severity === 'warning');
+  const infoAlerts = activeAlerts.filter(alert => alert.severity === 'info');
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'destructive';
+      case 'high': return 'destructive';
+      case 'medium': return 'secondary';
+      default: return 'outline';
+    }
+  };
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'critical': return '🚨';
+      case 'high': return '⚠️';
+      case 'medium': return '⚡';
+      default: return 'ℹ️';
+    }
+  };
+
   return (
     <Card className={className}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-xl font-bold flex items-center">
-              <Shield className="mr-2 h-5 w-5 text-autheo-primary" /> 
-              Real-Time Compliance Monitor
-            </CardTitle>
-            <CardDescription>
-              Live monitoring of HIPAA compliance metrics and security events
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-slate-100 text-slate-800">
-              Updated: {lastUpdated.toLocaleTimeString()}
-            </Badge>
-            {criticalAlerts.length > 0 && (
-              <Badge variant="destructive">
-                {criticalAlerts.length} Critical
-              </Badge>
-            )}
-            {warningAlerts.length > 0 && (
-              <Badge variant="outline" className="bg-amber-100 text-amber-800 hover:bg-amber-200">
-                {warningAlerts.length} Warnings
-              </Badge>
-            )}
-          </div>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-xl font-bold flex items-center">
+            <Shield className="mr-2 h-5 w-5 text-autheo-primary" />
+            Real-Time Compliance Monitor
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Live monitoring of HIPAA compliance metrics and security events
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadData}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Badge variant="outline">
+            Updated: {lastUpdated.toLocaleTimeString()}
+          </Badge>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <ComplianceMetricCard 
-              title="Overall Compliance" 
-              score={overallScore} 
-              icon={<Shield className="h-5 w-5" />} 
-              trend="stable"
-            />
-            <ComplianceMetricCard 
-              title="Privacy Controls" 
-              score={98} 
-              icon={<Lock className="h-5 w-5" />} 
-              trend="up"
-            />
-            <ComplianceMetricCard 
-              title="Security Rules" 
-              score={92} 
-              icon={<AlertTriangle className="h-5 w-5" />} 
-              trend="down"
-              description="2 items require attention"
-            />
+      <CardContent className="space-y-6">
+        {error && (
+          <Alert>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Compliance Metrics Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <ComplianceMetricCard
+            title="Overall Compliance"
+            score={overallScore}
+            icon={<Shield className="h-5 w-5" />}
+            trend={overallScore >= 95 ? 'up' : overallScore >= 90 ? 'stable' : 'down'}
+            description={`${overallScore >= 95 ? 'Excellent' : overallScore >= 90 ? 'Good' : 'Needs attention'}`}
+          />
+          <ComplianceMetricCard
+            title="Privacy Controls"
+            score={privacyControls}
+            icon={<Lock className="h-5 w-5" />}
+            trend={privacyControls >= 98 ? 'up' : privacyControls >= 95 ? 'stable' : 'down'}
+            description={`${privacyControls >= 98 ? 'Excellent' : privacyControls >= 95 ? 'Good' : 'Needs attention'}`}
+          />
+          <ComplianceMetricCard
+            title="Security Rules"
+            score={securityRules}
+            icon={<AlertTriangle className="h-5 w-5" />}
+            trend={securityRules >= 95 ? 'up' : securityRules >= 90 ? 'stable' : 'down'}
+            description={`${securityRules < 95 ? 'Items require attention' : 'Good compliance'}`}
+          />
+        </div>
+
+        {/* Active Security Alerts */}
+        {activeAlerts.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Active Security Alerts</h3>
+            <div className="grid grid-cols-1 gap-2">
+              {criticalAlerts.map(alert => (
+                <Alert key={alert.id} className="border-red-200 bg-red-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span>{getSeverityIcon(alert.severity)}</span>
+                      <div>
+                        <p className="font-medium">{alert.message}</p>
+                        <p className="text-sm text-muted-foreground">{alert.source}</p>
+                      </div>
+                    </div>
+                    <Badge variant={getSeverityColor(alert.severity)}>
+                      {alert.severity.toUpperCase()}
+                    </Badge>
+                  </div>
+                </Alert>
+              ))}
+              {warningAlerts.map(alert => (
+                <Alert key={alert.id} className="border-orange-200 bg-orange-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span>{getSeverityIcon(alert.severity)}</span>
+                      <div>
+                        <p className="font-medium">{alert.message}</p>
+                        <p className="text-sm text-muted-foreground">{alert.source}</p>
+                      </div>
+                    </div>
+                    <Badge variant={getSeverityColor(alert.severity)}>
+                      {alert.severity.toUpperCase()}
+                    </Badge>
+                  </div>
+                </Alert>
+              ))}
+            </div>
           </div>
+        )}
+
+        {/* Monitoring Tabs */}
+        <Tabs defaultValue="access-patterns" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="access-patterns">Access Patterns</TabsTrigger>
+            <TabsTrigger value="security-alerts">Security Alerts</TabsTrigger>
+          </TabsList>
           
-          {(criticalAlerts.length > 0 || warningAlerts.length > 0) && (
-            <Alert variant={criticalAlerts.length > 0 ? "destructive" : "default"} className={criticalAlerts.length > 0 ? "" : "bg-amber-50 text-amber-800 border-amber-200"}>
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>
-                {criticalAlerts.length > 0 
-                  ? "Critical Security Alerts" 
-                  : "Warning Alerts"}
-              </AlertTitle>
-              <AlertDescription>
-                {criticalAlerts.length > 0 
-                  ? `${criticalAlerts.length} critical security issues require immediate attention.` 
-                  : `${warningAlerts.length} security warnings need review.`}
-              </AlertDescription>
-            </Alert>
-          )}
-          
-          <Tabs defaultValue="access" className="w-full">
-            <TabsList>
-              <TabsTrigger value="access">Access Patterns</TabsTrigger>
-              <TabsTrigger value="alerts">Security Alerts</TabsTrigger>
-            </TabsList>
-            <TabsContent value="access" className="p-4 border rounded-md mt-4">
+          <TabsContent value="access-patterns" className="mt-4">
+            <div className="p-4 border rounded-md">
               <h4 className="text-lg font-medium mb-4">Data Access Patterns (24hr)</h4>
               <AccessPatternChart data={accessData} />
-            </TabsContent>
-            <TabsContent value="alerts" className="p-4 border rounded-md mt-4">
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="security-alerts" className="mt-4">
+            <div className="p-4 border rounded-md">
               <h4 className="text-lg font-medium mb-4">Recent Security Events</h4>
               <SecurityAlertsList alerts={activeAlerts} />
-            </TabsContent>
-          </Tabs>
-        </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
