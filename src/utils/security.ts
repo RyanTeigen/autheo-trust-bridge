@@ -149,25 +149,44 @@ export class SecurityMiddleware {
 
   sanitizeInput(input: any): any {
     if (typeof input === 'string') {
+      // Enhanced XSS protection with stronger patterns
       return input
         .trim()
-        .replace(/[<>'"&]/g, '') // Enhanced XSS protection
-        .replace(/javascript:/gi, '')
-        .replace(/vbscript:/gi, '')
-        .replace(/data:/gi, '')
-        .replace(/on\w+=/gi, '')
-        .replace(/style\s*=/gi, '')
-        .replace(/expression\s*\(/gi, '');
+        .replace(/[<>'"&]/g, '') // Basic dangerous characters
+        .replace(/javascript:/gi, '') // JavaScript protocol
+        .replace(/vbscript:/gi, '') // VBScript protocol
+        .replace(/data:/gi, '') // Data URLs
+        .replace(/on\w+\s*=/gi, '') // Event handlers
+        .replace(/style\s*=/gi, '') // Inline styles
+        .replace(/expression\s*\(/gi, '') // CSS expressions
+        .replace(/\\x[0-9a-f]{2}/gi, '') // Hex encoded chars
+        .replace(/\\u[0-9a-f]{4}/gi, '') // Unicode encoded chars
+        .replace(/\x00/g, '') // Null bytes
+        .replace(/[\r\n\t]/g, ' ') // Control characters
+        .slice(0, 10000); // Limit length to prevent DoS
     }
     
     if (Array.isArray(input)) {
+      // Limit array size to prevent DoS
+      if (input.length > 1000) {
+        throw new Error('Array too large for security processing');
+      }
       return input.map(item => this.sanitizeInput(item));
     }
     
     if (typeof input === 'object' && input !== null) {
+      // Limit object size to prevent DoS
+      const entries = Object.entries(input);
+      if (entries.length > 100) {
+        throw new Error('Object too large for security processing');
+      }
+      
       const sanitized: any = {};
-      for (const [key, value] of Object.entries(input)) {
-        sanitized[this.sanitizeInput(key)] = this.sanitizeInput(value);
+      for (const [key, value] of entries) {
+        const sanitizedKey = this.sanitizeInput(key);
+        if (typeof sanitizedKey === 'string' && sanitizedKey.length > 0) {
+          sanitized[sanitizedKey] = this.sanitizeInput(value);
+        }
       }
       return sanitized;
     }

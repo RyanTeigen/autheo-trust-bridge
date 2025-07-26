@@ -4154,6 +4154,10 @@ export type Database = {
         Args: { permission_id: string }
         Returns: undefined
       }
+      sanitize_text_input: {
+        Args: { input_text: string }
+        Returns: string
+      }
       update_wallet_address: {
         Args: { user_id: string; wallet: string }
         Returns: undefined
