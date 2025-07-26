@@ -32,7 +32,7 @@ interface SecurityProviderProps {
 
 export const SecurityProvider: React.FC<SecurityProviderProps> = ({
   children,
-  showIndicator = true
+  showIndicator = false // Disabled by default
 }) => {
   const securityHook = useSecurityInitialization();
 
