@@ -62,9 +62,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setupUserEncryption = async (userId: string) => {
     try {
       await ensureUserKeys(userId);
-      console.log('Encryption keys setup completed');
+      console.log('Encryption keys setup completed for user:', userId);
+      return true;
     } catch (error) {
       console.error('Failed to setup encryption keys:', error);
+      // Set a fallback indicator for encryption setup failure
+      setProfile(prev => ({ ...prev, _encryptionSetupFailed: true }));
+      return false;
     }
   };
 
@@ -76,12 +80,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Setup encryption keys and fetch profile
+          // Setup encryption keys and fetch profile with better error handling
           setTimeout(async () => {
-            await Promise.all([
-              setupUserEncryption(session.user.id),
-              fetchProfile(session.user.id)
-            ]);
+            try {
+              const [encryptionSuccess] = await Promise.allSettled([
+                setupUserEncryption(session.user.id),
+                fetchProfile(session.user.id)
+              ]);
+              
+              if (encryptionSuccess.status === 'rejected') {
+                console.warn('Encryption setup failed, but user can still access the app with limited functionality');
+              }
+            } catch (error) {
+              console.error('Critical error during user setup:', error);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -98,10 +110,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (session?.user) {
         setTimeout(async () => {
-          await Promise.all([
-            setupUserEncryption(session.user.id),
-            fetchProfile(session.user.id)
-          ]);
+          try {
+            const [encryptionSuccess] = await Promise.allSettled([
+              setupUserEncryption(session.user.id),
+              fetchProfile(session.user.id)
+            ]);
+            
+            if (encryptionSuccess.status === 'rejected') {
+              console.warn('Encryption setup failed during session init, but user can still access the app');
+            }
+          } catch (error) {
+            console.error('Critical error during session init:', error);
+          }
         }, 0);
       }
       

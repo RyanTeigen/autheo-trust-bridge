@@ -42,7 +42,20 @@ export const useMedicalRecordsManager = () => {
   };
 
   const handleCreateRecord = async (data: any) => {
+    setLoading(true);
     try {
+      // Input validation
+      if (!data || typeof data !== 'object') {
+        toast({
+          title: "Validation Error",
+          description: "Invalid record data provided",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log('Creating medical record with data:', { ...data, sensitiveData: '[REDACTED]' });
+      
       const response = await MedicalRecordsEncryption.createEncryptedRecord(
         data,
         data.category || 'general'
@@ -53,24 +66,47 @@ export const useMedicalRecordsManager = () => {
           title: "Success",
           description: "Medical record created and encrypted successfully",
         });
-        fetchRecords();
+        
+        // Refresh records with better error handling
+        try {
+          await fetchRecords();
+        } catch (fetchError) {
+          console.warn('Failed to refresh records after creation:', fetchError);
+          // Don't fail the whole operation if we can't refresh
+        }
+        
         return true;
       } else {
+        const errorMessage = response.error || "Failed to create record";
+        console.error('Record creation failed:', errorMessage);
+        
         toast({
           title: "Error",
-          description: response.error || "Failed to create record",
+          description: errorMessage,
           variant: "destructive",
         });
         return false;
       }
     } catch (error) {
-      console.error('Error creating record:', error);
+      console.error('Unexpected error creating record:', error);
+      
+      let userMessage = "Failed to create medical record";
+      if (error instanceof Error) {
+        if (error.message.includes('network')) {
+          userMessage = "Network error. Please check your connection and try again.";
+        } else if (error.message.includes('authentication')) {
+          userMessage = "Authentication error. Please log in again.";
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create medical record",
+        description: userMessage,
         variant: "destructive",
       });
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 

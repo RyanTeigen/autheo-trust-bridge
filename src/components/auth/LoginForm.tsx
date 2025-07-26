@@ -65,7 +65,16 @@ const LoginForm: React.FC = () => {
       
       let errorMessage = "Please check your credentials and try again";
       
-      if (error.message) {
+      // Provide user-friendly error messages
+      if (error.message.includes('Email not confirmed')) {
+        errorMessage = "Please check your email and click the confirmation link before logging in.";
+      } else if (error.message.includes('Invalid login credentials')) {
+        errorMessage = "Invalid email or password. Please check your credentials and try again.";
+      } else if (error.message.includes('Too many requests')) {
+        errorMessage = "Too many login attempts. Please wait a few minutes and try again.";
+      } else if (error.message.includes('User not found')) {
+        errorMessage = "No account found with this email address. Please sign up first.";
+      } else if (error.message) {
         errorMessage = error.message;
       }
       

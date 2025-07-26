@@ -7,6 +7,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import NotificationCenter from '../notifications/NotificationCenter';
 import GlobalSearch from '../search/GlobalSearch';
 import SessionStatusIndicator from '../security/SessionStatusIndicator';
+import SessionTimeoutHandler from '../auth/SessionTimeoutHandler';
 import { useAuth } from '@/contexts/AuthContext';
 import UserProfileMenu from '../auth/UserProfileMenu';
 import ErrorBoundary from '../ux/ErrorBoundary';
@@ -56,6 +57,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <ErrorBoundary fallback={<div className="text-slate-400 text-sm p-2">Session status unavailable</div>}>
               <SessionStatusIndicator />
             </ErrorBoundary>
+            <SessionTimeoutHandler />
           </div>
         </SidebarProvider>
       </div>

@@ -12,7 +12,8 @@ import MedicalRecordForm from './MedicalRecordForm';
 import MedicalRecordsGrid from './MedicalRecordsGrid';
 import { MedicalRecordsControls } from './MedicalRecordsControls';
 import EmptyRecordsState from './EmptyRecordsState';
-import MedicalRecordsLoadingSkeleton from './MedicalRecordsLoadingSkeleton';
+import { MedicalRecordsLoadingSkeleton } from '@/components/common/LoadingStates';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import SystemHealthDashboard from '@/components/system/SystemHealthDashboard';
 
 const MedicalRecordsManager = () => {
@@ -151,77 +152,79 @@ const MedicalRecordsManager = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
-            <div>
-              <CardTitle className="text-foreground flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                Medical Records Manager
-              </CardTitle>
-              <p className="text-muted-foreground mt-1">
-                Secure, encrypted storage for your medical information
-              </p>
-              {profile?.role && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Authenticated as: <span className="font-medium">{profile.role}</span>
+    <ErrorBoundary context="Medical Records Manager">
+      <div className="space-y-6">
+        {/* Header */}
+        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
+              <div>
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Medical Records Manager
+                </CardTitle>
+                <p className="text-muted-foreground mt-1">
+                  Secure, encrypted storage for your medical information
                 </p>
-              )}
+                {profile?.role && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Authenticated as: <span className="font-medium">{profile.role}</span>
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setShowSystemHealth(true)}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  System Status
+                </Button>
+                <Button
+                  onClick={() => setShowForm(true)}
+                  variant="default"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Record
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setShowSystemHealth(true)}
-                variant="outline"
-                size="sm"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                System Status
-              </Button>
-              <Button
-                onClick={() => setShowForm(true)}
-                variant="default"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Record
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+          </CardHeader>
+        </Card>
 
-      {/* Form Modal */}
-      {showForm && (
-        <MedicalRecordForm
-          onSubmit={handleFormSubmit}
-          onCancel={() => setShowForm(false)}
+        {/* Form Modal */}
+        {showForm && (
+          <MedicalRecordForm
+            onSubmit={handleFormSubmit}
+            onCancel={() => setShowForm(false)}
+          />
+        )}
+
+        {/* Controls */}
+        <MedicalRecordsControls
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          recordType={filterType}
+          onRecordTypeChange={setFilterType}
+          onCreateNew={() => setShowForm(true)}
+          showCreateButton={false}
         />
-      )}
 
-      {/* Controls */}
-      <MedicalRecordsControls
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        recordType={filterType}
-        onRecordTypeChange={setFilterType}
-        onCreateNew={() => setShowForm(true)}
-        showCreateButton={false}
-      />
-
-      {/* Content */}
-      {loading ? (
-        <MedicalRecordsLoadingSkeleton />
-      ) : records.length === 0 ? (
-        <EmptyRecordsState onCreateRecord={() => setShowForm(true)} />
-      ) : (
-        <MedicalRecordsGrid
-          records={records}
-          onUpdate={handleUpdateRecord}
-          onDelete={handleDeleteRecord}
-        />
-      )}
-    </div>
+        {/* Content */}
+        {loading ? (
+          <MedicalRecordsLoadingSkeleton />
+        ) : records.length === 0 ? (
+          <EmptyRecordsState onCreateRecord={() => setShowForm(true)} />
+        ) : (
+          <MedicalRecordsGrid
+            records={records}
+            onUpdate={handleUpdateRecord}
+            onDelete={handleDeleteRecord}
+          />
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };
 

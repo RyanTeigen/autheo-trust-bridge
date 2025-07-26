@@ -207,6 +207,11 @@ export class MedicalRecordsEncryption {
         return { success: false, error: 'User not authenticated' };
       }
 
+      // Validate input data
+      if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+        return { success: false, error: 'Invalid or empty record data' };
+      }
+
       // Get or create patient record
       let { data: patientData, error: patientError } = await supabase
         .from('patients')
@@ -263,6 +268,21 @@ export class MedicalRecordsEncryption {
       return { success: true, id: record.id };
     } catch (error) {
       console.error('Error creating encrypted record:', error);
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('authentication')) {
+          return { success: false, error: 'Authentication failed. Please log in again.' };
+        }
+        if (error.message.includes('encryption')) {
+          return { success: false, error: 'Encryption failed. Please check your keys or try again.' };
+        }
+        if (error.message.includes('database')) {
+          return { success: false, error: 'Database error. Please try again later.' };
+        }
+        return { success: false, error: error.message };
+      }
+      
       return { success: false, error: 'Failed to create encrypted record' };
     }
   }
@@ -274,6 +294,8 @@ export class MedicalRecordsEncryption {
       if (!user) {
         return { success: false, error: 'User not authenticated' };
       }
+
+      console.log('Starting medical records retrieval for user:', user.id);
 
       // Try zero-knowledge approach first
       try {
@@ -328,6 +350,21 @@ export class MedicalRecordsEncryption {
       return { success: true, records: decryptedRecords };
     } catch (error) {
       console.error('Error getting decrypted records:', error);
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('authentication')) {
+          return { success: false, error: 'Authentication expired. Please log in again.' };
+        }
+        if (error.message.includes('encryption') || error.message.includes('decrypt')) {
+          return { success: false, error: 'Failed to decrypt records. Your encryption keys may be corrupted.' };
+        }
+        if (error.message.includes('database')) {
+          return { success: false, error: 'Database connection failed. Please try again.' };
+        }
+        return { success: false, error: error.message };
+      }
+      
       return { success: false, error: 'Failed to get decrypted records' };
     }
   }
