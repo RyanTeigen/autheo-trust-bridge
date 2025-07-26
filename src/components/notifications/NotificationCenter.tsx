@@ -46,24 +46,21 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
     refetch: refetchPatient
   } = useNotifications();
 
-  // Provider notifications (only if user is a provider)
+  // Provider notifications - always call hook to maintain hook order
   const {
-    notifications: providerNotifications = [],
-    loading: providerLoading = false,
-    unreadCount: providerUnreadCount = 0,
+    notifications: allProviderNotifications,
+    loading: providerLoading,
+    unreadCount: allProviderUnreadCount,
     markAsRead: markProviderAsRead,
     markAllAsRead: markAllProviderAsRead,
     removeNotification: removeProviderNotification,
     refetch: refetchProvider
-  } = profile?.role === 'provider' ? useProviderNotifications() : {
-    notifications: [],
-    loading: false,
-    unreadCount: 0,
-    markAsRead: () => {},
-    markAllAsRead: () => {},
-    removeNotification: () => {},
-    refetch: () => {}
-  };
+  } = useProviderNotifications();
+
+  // Only use provider notifications if user is a provider
+  const isProvider = profile?.role === 'provider';
+  const providerNotifications = isProvider ? allProviderNotifications : [];
+  const providerUnreadCount = isProvider ? allProviderUnreadCount : 0;
 
   // Combine notifications and sort by created_at
   const allNotifications = [
