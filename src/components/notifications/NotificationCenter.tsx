@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, X, Clock, Calendar, FileText, Heart, Shield, AlertTriangle, CheckCircle, Hospital } from 'lucide-react';
+import { Bell, X, Clock, Calendar, FileText, Heart, Shield, AlertTriangle, CheckCircle, Hospital, TestTube, Stethoscope, MessageCircle, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -14,6 +14,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useProviderPortalSafe } from '@/hooks/useProviderPortalSafe';
 import { AppointmentAccessHandler } from './AppointmentAccessHandler';
 import { CrossHospitalNotificationHandler } from './CrossHospitalNotificationHandler';
+import { MedicalTestResultNotification } from './MedicalTestResultNotification';
+import { CriticalMedicalUpdateNotification } from './CriticalMedicalUpdateNotification';
+import { ProviderCommunicationNotification } from './ProviderCommunicationNotification';
+import { SystemNotification } from './SystemNotification';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -81,10 +85,14 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
       case 'access_denied': return <X className="h-4 w-4 text-red-400" />;
       case 'access_auto_approved': return <Shield className="h-4 w-4 text-green-400" />;
       case 'access_request': return <Shield className="h-4 w-4 text-yellow-400" />;
+      case 'medical_test_result': return <TestTube className="h-4 w-4 text-blue-400" />;
+      case 'critical_medical_update': return <Stethoscope className="h-4 w-4 text-red-400" />;
+      case 'provider_communication': return <MessageCircle className="h-4 w-4 text-green-400" />;
+      case 'system': return <Settings className="h-4 w-4 text-slate-400" />;
       case 'medication': return <Clock className="h-4 w-4 text-green-400" />;
       case 'record': return <Heart className="h-4 w-4 text-autheo-primary" />;
       case 'message': return <FileText className="h-4 w-4 text-yellow-400" />;
-      default: return <Bell className="h-4 w-4 text-gray-400" />;
+      default: return <Bell className="h-4 w-4 text-slate-400" />;
     }
   };
 
@@ -93,6 +101,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
       case 'urgent': return 'text-red-400';
       case 'high': return 'text-orange-400';
       case 'normal': return 'text-slate-300';
+      case 'low': return 'text-slate-400';
       default: return 'text-slate-300';
     }
   };
@@ -182,20 +191,103 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className }) =>
           ) : allNotifications.length > 0 ? (
             <div className="divide-y divide-slate-700">
               {allNotifications.map(notification => {
+                const markAsRead = notification.source === 'provider' ? markProviderAsRead : markPatientAsRead;
+                const removeNotification = notification.source === 'provider' ? removeProviderNotification : removePatientNotification;
+                
                 // Special handling for cross-hospital requests
                 if (notification.notification_type === 'cross_hospital_request') {
                   return (
                     <div key={notification.id} className="p-2">
                       <CrossHospitalNotificationHandler
                         notification={notification}
-                        onMarkAsRead={notification.source === 'provider' ? markProviderAsRead : markPatientAsRead}
-                        onDismiss={notification.source === 'provider' ? removeProviderNotification : removePatientNotification}
+                        onMarkAsRead={markAsRead}
+                        onDismiss={removeNotification}
                       />
                     </div>
                   );
                 }
 
-                // Regular notification handling
+                // Special handling for medical test results
+                if (notification.notification_type === 'medical_test_result') {
+                  return (
+                    <div key={notification.id} className="p-2">
+                      <MedicalTestResultNotification
+                        notification={notification}
+                        onMarkAsRead={markAsRead}
+                        onViewResults={() => {
+                          markAsRead(notification.id);
+                          setOpen(false);
+                          // Could navigate to test results page
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                // Special handling for critical medical updates
+                if (notification.notification_type === 'critical_medical_update') {
+                  return (
+                    <div key={notification.id} className="p-2">
+                      <CriticalMedicalUpdateNotification
+                        notification={notification}
+                        onMarkAsRead={markAsRead}
+                        onAcknowledge={() => {
+                          markAsRead(notification.id);
+                          // Could trigger acknowledgment API call
+                        }}
+                        onViewDetails={() => {
+                          markAsRead(notification.id);
+                          setOpen(false);
+                          // Could navigate to detailed view
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                // Special handling for provider communications
+                if (notification.notification_type === 'provider_communication') {
+                  return (
+                    <div key={notification.id} className="p-2">
+                      <ProviderCommunicationNotification
+                        notification={notification}
+                        onMarkAsRead={markAsRead}
+                        onViewMessage={() => {
+                          markAsRead(notification.id);
+                          setOpen(false);
+                          // Could navigate to messages
+                        }}
+                        onReply={() => {
+                          markAsRead(notification.id);
+                          setOpen(false);
+                          // Could open reply interface
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                // Special handling for system notifications
+                if (notification.notification_type === 'system') {
+                  return (
+                    <div key={notification.id} className="p-2">
+                      <SystemNotification
+                        notification={notification}
+                        onMarkAsRead={markAsRead}
+                        onDismiss={removeNotification}
+                        onTakeAction={(url) => {
+                          markAsRead(notification.id);
+                          setOpen(false);
+                          if (url) {
+                            window.open(url, '_blank');
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                }
+
+                // Regular notification handling for other types
                 return (
                   <div 
                     key={notification.id} 
