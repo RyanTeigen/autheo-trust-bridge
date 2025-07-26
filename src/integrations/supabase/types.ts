@@ -994,6 +994,57 @@ export type Database = {
           },
         ]
       }
+      critical_medical_updates: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledgment_required: boolean | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          patient_id: string
+          provider_id: string
+          related_record_id: string | null
+          requires_immediate_attention: boolean | null
+          severity_level: string
+          title: string
+          update_type: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledgment_required?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          patient_id: string
+          provider_id: string
+          related_record_id?: string | null
+          requires_immediate_attention?: boolean | null
+          severity_level?: string
+          title: string
+          update_type: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledgment_required?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          patient_id?: string
+          provider_id?: string
+          related_record_id?: string | null
+          requires_immediate_attention?: boolean | null
+          severity_level?: string
+          title?: string
+          update_type?: string
+        }
+        Relationships: []
+      }
       cross_hospital_requests: {
         Row: {
           audit_trail: Json | null
@@ -2000,6 +2051,82 @@ export type Database = {
           },
         ]
       }
+      medical_test_notifications: {
+        Row: {
+          acknowledged_at: string | null
+          action_required: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          medical_record_id: string | null
+          patient_id: string
+          priority_level: string
+          provider_id: string
+          requires_action: boolean | null
+          result_status: string
+          result_summary: string | null
+          test_name: string
+          test_type: string
+          viewed_at: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          action_required?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          medical_record_id?: string | null
+          patient_id: string
+          priority_level?: string
+          provider_id: string
+          requires_action?: boolean | null
+          result_status?: string
+          result_summary?: string | null
+          test_name: string
+          test_type: string
+          viewed_at?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          action_required?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          medical_record_id?: string | null
+          patient_id?: string
+          priority_level?: string
+          provider_id?: string
+          requires_action?: boolean | null
+          result_status?: string
+          result_summary?: string | null
+          test_name?: string
+          test_type?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_test_notifications_medical_record_id_fkey"
+            columns: ["medical_record_id"]
+            isOneToOne: false
+            referencedRelation: "clinical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_test_notifications_medical_record_id_fkey"
+            columns: ["medical_record_id"]
+            isOneToOne: false
+            referencedRelation: "medical_records"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_test_notifications_medical_record_id_fkey"
+            columns: ["medical_record_id"]
+            isOneToOne: false
+            referencedRelation: "patient_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_attachments: {
         Row: {
           created_at: string
@@ -2462,6 +2589,57 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
           wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      provider_communications: {
+        Row: {
+          communication_type: string
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          patient_id: string
+          priority: string
+          provider_id: string
+          read_at: string | null
+          requires_response: boolean | null
+          responded_at: string | null
+          response_deadline: string | null
+          response_message: string | null
+          subject: string
+        }
+        Insert: {
+          communication_type: string
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          patient_id: string
+          priority?: string
+          provider_id: string
+          read_at?: string | null
+          requires_response?: boolean | null
+          responded_at?: string | null
+          response_deadline?: string | null
+          response_message?: string | null
+          subject: string
+        }
+        Update: {
+          communication_type?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          patient_id?: string
+          priority?: string
+          provider_id?: string
+          read_at?: string | null
+          requires_response?: boolean | null
+          responded_at?: string | null
+          response_deadline?: string | null
+          response_message?: string | null
+          subject?: string
         }
         Relationships: []
       }
@@ -3246,6 +3424,63 @@ export type Database = {
           },
         ]
       }
+      system_notifications: {
+        Row: {
+          action_required: boolean | null
+          action_text: string | null
+          action_url: string | null
+          affects_all_users: boolean | null
+          created_at: string | null
+          dismissed_at: string | null
+          expires_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          notification_type: string
+          read_at: string | null
+          severity: string
+          target_user_roles: string[] | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          action_required?: boolean | null
+          action_text?: string | null
+          action_url?: string | null
+          affects_all_users?: boolean | null
+          created_at?: string | null
+          dismissed_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          read_at?: string | null
+          severity?: string
+          target_user_roles?: string[] | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          action_required?: boolean | null
+          action_text?: string | null
+          action_url?: string | null
+          affects_all_users?: boolean | null
+          created_at?: string | null
+          dismissed_at?: string | null
+          expires_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          read_at?: string | null
+          severity?: string
+          target_user_roles?: string[] | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       training_completions: {
         Row: {
           certificate_id: string | null
@@ -3941,6 +4176,26 @@ export type Database = {
         | "configuration_change"
         | "backup_restore"
       audit_severity: "info" | "warning" | "error" | "critical"
+      notification_type_enum:
+        | "access_request"
+        | "access_granted"
+        | "access_revoked"
+        | "access_expired"
+        | "access_auto_approved"
+        | "appointment_access_request"
+        | "cross_hospital_request"
+        | "cross_hospital_approved"
+        | "cross_hospital_denied"
+        | "medical_test_result"
+        | "critical_medical_update"
+        | "provider_communication"
+        | "system_update"
+        | "security_alert"
+        | "lab_result_available"
+        | "imaging_result_available"
+        | "prescription_ready"
+        | "appointment_reminder"
+        | "medication_refill_due"
       user_role: "patient" | "provider" | "auditor" | "admin" | "compliance"
     }
     CompositeTypes: {
@@ -4086,6 +4341,27 @@ export const Constants = {
         "backup_restore",
       ],
       audit_severity: ["info", "warning", "error", "critical"],
+      notification_type_enum: [
+        "access_request",
+        "access_granted",
+        "access_revoked",
+        "access_expired",
+        "access_auto_approved",
+        "appointment_access_request",
+        "cross_hospital_request",
+        "cross_hospital_approved",
+        "cross_hospital_denied",
+        "medical_test_result",
+        "critical_medical_update",
+        "provider_communication",
+        "system_update",
+        "security_alert",
+        "lab_result_available",
+        "imaging_result_available",
+        "prescription_ready",
+        "appointment_reminder",
+        "medication_refill_due",
+      ],
       user_role: ["patient", "provider", "auditor", "admin", "compliance"],
     },
   },
