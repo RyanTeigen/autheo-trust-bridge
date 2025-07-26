@@ -635,6 +635,75 @@ export type Database = {
         }
         Relationships: []
       }
+      business_associate_agreements: {
+        Row: {
+          agreement_expiry_date: string | null
+          agreement_signed_date: string | null
+          agreement_type: string
+          breach_notification_requirements: Json | null
+          compliance_status: string
+          created_at: string | null
+          created_by: string | null
+          document_location: string | null
+          id: string
+          last_audit_date: string | null
+          next_audit_date: string | null
+          notes: string | null
+          phi_access_level: string
+          renewal_required: boolean | null
+          security_requirements: Json | null
+          services_provided: string
+          termination_procedures: Json | null
+          updated_at: string | null
+          vendor_contact_email: string | null
+          vendor_name: string
+        }
+        Insert: {
+          agreement_expiry_date?: string | null
+          agreement_signed_date?: string | null
+          agreement_type: string
+          breach_notification_requirements?: Json | null
+          compliance_status?: string
+          created_at?: string | null
+          created_by?: string | null
+          document_location?: string | null
+          id?: string
+          last_audit_date?: string | null
+          next_audit_date?: string | null
+          notes?: string | null
+          phi_access_level: string
+          renewal_required?: boolean | null
+          security_requirements?: Json | null
+          services_provided: string
+          termination_procedures?: Json | null
+          updated_at?: string | null
+          vendor_contact_email?: string | null
+          vendor_name: string
+        }
+        Update: {
+          agreement_expiry_date?: string | null
+          agreement_signed_date?: string | null
+          agreement_type?: string
+          breach_notification_requirements?: Json | null
+          compliance_status?: string
+          created_at?: string | null
+          created_by?: string | null
+          document_location?: string | null
+          id?: string
+          last_audit_date?: string | null
+          next_audit_date?: string | null
+          notes?: string | null
+          phi_access_level?: string
+          renewal_required?: boolean | null
+          security_requirements?: Json | null
+          services_provided?: string
+          termination_procedures?: Json | null
+          updated_at?: string | null
+          vendor_contact_email?: string | null
+          vendor_name?: string
+        }
+        Relationships: []
+      }
       consent_revocations: {
         Row: {
           anchored: boolean | null
@@ -1439,6 +1508,123 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hipaa_compliance_controls: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          compliance_notes: string | null
+          control_id: string
+          created_at: string | null
+          current_evidence: string[] | null
+          description: string
+          evidence_required: string[] | null
+          id: string
+          implementation_status: string
+          last_assessment_date: string | null
+          next_review_date: string | null
+          risk_level: string
+          subcategory: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category: string
+          compliance_notes?: string | null
+          control_id: string
+          created_at?: string | null
+          current_evidence?: string[] | null
+          description: string
+          evidence_required?: string[] | null
+          id?: string
+          implementation_status?: string
+          last_assessment_date?: string | null
+          next_review_date?: string | null
+          risk_level?: string
+          subcategory?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          compliance_notes?: string | null
+          control_id?: string
+          created_at?: string | null
+          current_evidence?: string[] | null
+          description?: string
+          evidence_required?: string[] | null
+          id?: string
+          implementation_status?: string
+          last_assessment_date?: string | null
+          next_review_date?: string | null
+          risk_level?: string
+          subcategory?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      hipaa_risk_assessments: {
+        Row: {
+          approved_by: string | null
+          assessment_date: string | null
+          assessment_name: string
+          assessment_type: string
+          completion_date: string | null
+          conducted_by: string | null
+          created_at: string | null
+          findings_summary: string | null
+          id: string
+          identified_vulnerabilities: Json | null
+          mitigation_plan: Json | null
+          next_assessment_date: string | null
+          recommendations: string[] | null
+          risk_level: string
+          scope: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string | null
+          assessment_date?: string | null
+          assessment_name: string
+          assessment_type: string
+          completion_date?: string | null
+          conducted_by?: string | null
+          created_at?: string | null
+          findings_summary?: string | null
+          id?: string
+          identified_vulnerabilities?: Json | null
+          mitigation_plan?: Json | null
+          next_assessment_date?: string | null
+          recommendations?: string[] | null
+          risk_level: string
+          scope: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string | null
+          assessment_date?: string | null
+          assessment_name?: string
+          assessment_type?: string
+          completion_date?: string | null
+          conducted_by?: string | null
+          created_at?: string | null
+          findings_summary?: string | null
+          id?: string
+          identified_vulnerabilities?: Json | null
+          mitigation_plan?: Json | null
+          next_assessment_date?: string | null
+          recommendations?: string[] | null
+          risk_level?: string
+          scope?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       hospital_registry: {
         Row: {
