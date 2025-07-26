@@ -704,6 +704,123 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_policies: {
+        Row: {
+          acknowledgment_required: boolean | null
+          approval_date: string | null
+          approved_by: string | null
+          auto_assignment_rules: Json | null
+          content: Json
+          created_at: string | null
+          created_by: string | null
+          description: string
+          effective_date: string | null
+          id: string
+          policy_id: string
+          policy_type: string
+          review_date: string | null
+          status: string
+          title: string
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          acknowledgment_required?: boolean | null
+          approval_date?: string | null
+          approved_by?: string | null
+          auto_assignment_rules?: Json | null
+          content?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          effective_date?: string | null
+          id?: string
+          policy_id: string
+          policy_type: string
+          review_date?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          version?: string
+        }
+        Update: {
+          acknowledgment_required?: boolean | null
+          approval_date?: string | null
+          approved_by?: string | null
+          auto_assignment_rules?: Json | null
+          content?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          effective_date?: string | null
+          id?: string
+          policy_id?: string
+          policy_type?: string
+          review_date?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
+      compliance_violations: {
+        Row: {
+          assigned_to: string | null
+          created_at: string | null
+          description: string
+          detected_at: string | null
+          id: string
+          remediation_steps: Json | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resource_id: string | null
+          resource_type: string | null
+          severity: string
+          source: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+          violation_type: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string | null
+          description: string
+          detected_at?: string | null
+          id?: string
+          remediation_steps?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity: string
+          source: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          violation_type: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string | null
+          description?: string
+          detected_at?: string | null
+          id?: string
+          remediation_steps?: Json | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          source?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          violation_type?: string
+        }
+        Relationships: []
+      }
       consent_revocations: {
         Row: {
           anchored: boolean | null
@@ -2829,6 +2946,107 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      training_completions: {
+        Row: {
+          certificate_id: string | null
+          certificate_issued: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          expiry_date: string | null
+          id: string
+          module_id: string | null
+          passed: boolean | null
+          score: number | null
+          user_id: string | null
+        }
+        Insert: {
+          certificate_id?: string | null
+          certificate_issued?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          module_id?: string | null
+          passed?: boolean | null
+          score?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          certificate_id?: string | null
+          certificate_issued?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          expiry_date?: string | null
+          id?: string
+          module_id?: string | null
+          passed?: boolean | null
+          score?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_completions_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "training_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_modules: {
+        Row: {
+          certification_required: boolean | null
+          content: Json
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty_level: string | null
+          estimated_duration: number | null
+          id: string
+          module_id: string
+          module_type: string
+          prerequisites: string[] | null
+          required_for_roles: string[] | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          certification_required?: boolean | null
+          content?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          estimated_duration?: number | null
+          id?: string
+          module_id: string
+          module_type: string
+          prerequisites?: string[] | null
+          required_for_roles?: string[] | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          certification_required?: boolean | null
+          content?: Json
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          estimated_duration?: number | null
+          id?: string
+          module_id?: string
+          module_type?: string
+          prerequisites?: string[] | null
+          required_for_roles?: string[] | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       transactions: {
         Row: {
