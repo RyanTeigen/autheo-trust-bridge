@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { ensureUserKeys } from '@/utils/encryption/keys';
+import { ensureUserKeys } from '@/utils/encryption/SecureKeys';
 
 interface AuthContextType {
   user: User | null;
@@ -134,8 +134,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    // Clear encryption keys on logout
-    localStorage.removeItem('user_private_key');
+    // Clear encryption keys on logout using secure method
+    try {
+      const { clearAllKeys } = await import('@/utils/encryption/SecureKeys');
+      await clearAllKeys();
+    } catch (error) {
+      console.warn('Failed to clear secure keys:', error);
+    }
     const { error } = await supabase.auth.signOut();
     return { error };
   };

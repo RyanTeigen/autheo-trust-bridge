@@ -112,9 +112,9 @@ export class SecurityHeaders {
     // Referrer Policy
     this.setMetaTag('name', 'referrer', this.config.referrerPolicy);
     
-    // Permissions Policy (Feature Policy)
+    // Permissions Policy (Feature Policy) - Enable WebAuthn
     this.setMetaTag('http-equiv', 'Permissions-Policy', 
-      'camera=(), microphone=(), geolocation=(), publickey-credentials-create=(self), publickey-credentials-get=(self)');
+      'camera=(), microphone=(), geolocation=(), publickey-credentials-create=*, publickey-credentials-get=*');
     
     // X-XSS-Protection (legacy but still useful)
     this.setMetaTag('http-equiv', 'X-XSS-Protection', '1; mode=block');

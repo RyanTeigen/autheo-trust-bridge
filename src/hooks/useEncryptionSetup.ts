@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { ensureUserKeys } from '@/utils/encryption/keys';
+import { ensureUserKeys } from '@/utils/encryption/SecureKeys';
 import { useToast } from '@/hooks/use-toast';
 
 export const useEncryptionSetup = () => {
