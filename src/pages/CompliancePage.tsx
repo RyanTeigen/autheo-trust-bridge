@@ -12,7 +12,6 @@ import ComplianceToolsTab from '@/components/compliance/tabs/ComplianceToolsTab'
 import ComplianceReportsTab from '@/components/compliance/tabs/ComplianceReportsTab';
 import PolicyAcknowledgmentAdmin from '@/components/compliance/PolicyAcknowledgmentAdmin';
 import HIPAAComplianceOverview from '@/components/compliance/HIPAAComplianceOverview';
-import HIPAAControlsTable from '@/components/compliance/HIPAAControlsTable';
 
 const CompliancePage = () => {
   const { toast } = useToast();
@@ -96,7 +95,6 @@ const CompliancePage = () => {
           <TabsContent value="overview" className="mt-6">
             <div className="space-y-6">
               <HIPAAComplianceOverview />
-              <HIPAAControlsTable />
               <ComplianceOverviewTab onRunAudit={runAudit} />
             </div>
           </TabsContent>
