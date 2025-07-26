@@ -35,50 +35,61 @@ export class SecureKeyManager {
    */
   static async generateSecureKeyPair(userId: string): Promise<SecureKeyPair> {
     try {
+      // Check if we're in a secure context first
+      if (!window.isSecureContext) {
+        console.warn('WebAuthn requires a secure context (HTTPS). Falling back to crypto.subtle.');
+        return await this.generateFallbackKeyPair(userId);
+      }
+
       if (this.isWebAuthnSupported()) {
-        // Use WebAuthn for hardware-backed key generation
-        const credential = await navigator.credentials.create({
-          publicKey: {
-            challenge: crypto.getRandomValues(new Uint8Array(32)),
-            rp: {
-              name: "Autheo Trust Bridge",
-              id: window.location.hostname,
+        try {
+          // Use WebAuthn for hardware-backed key generation with proper error handling
+          const credential = await navigator.credentials.create({
+            publicKey: {
+              challenge: crypto.getRandomValues(new Uint8Array(32)),
+              rp: {
+                name: "Autheo Trust Bridge",
+                id: window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname,
+              },
+              user: {
+                id: new TextEncoder().encode(userId),
+                name: `user-${userId.slice(0, 8)}`,
+                displayName: "Autheo User",
+              },
+              pubKeyCredParams: [
+                { alg: -7, type: "public-key" }, // ES256
+                { alg: -257, type: "public-key" }, // RS256
+              ],
+              authenticatorSelection: {
+                authenticatorAttachment: "platform",
+                userVerification: "preferred", // Changed from required to preferred
+                requireResidentKey: false, // Changed to false for better compatibility
+              },
+              timeout: 60000,
             },
-            user: {
-              id: new TextEncoder().encode(userId),
-              name: `user-${userId.slice(0, 8)}`,
-              displayName: "Autheo User",
-            },
-            pubKeyCredParams: [
-              { alg: -7, type: "public-key" }, // ES256
-              { alg: -257, type: "public-key" }, // RS256
-            ],
-            authenticatorSelection: {
-              authenticatorAttachment: "platform",
-              userVerification: "required",
-              requireResidentKey: true,
-            },
-            timeout: 60000,
-          },
-        }) as PublicKeyCredential;
+          }) as PublicKeyCredential;
 
-        if (credential && credential.rawId) {
-          const keyId = Array.from(new Uint8Array(credential.rawId))
-            .map(b => b.toString(16).padStart(2, '0'))
-            .join('');
+          if (credential && credential.rawId) {
+            const keyId = Array.from(new Uint8Array(credential.rawId))
+              .map(b => b.toString(16).padStart(2, '0'))
+              .join('');
 
-          // Extract public key from attestation
-          const response = credential.response as AuthenticatorAttestationResponse;
-          const publicKey = this.extractPublicKeyFromAttestation(response);
+            // Extract public key from attestation
+            const response = credential.response as AuthenticatorAttestationResponse;
+            const publicKey = this.extractPublicKeyFromAttestation(response);
 
-          // Store key reference securely
-          await this.storeKeyReference(userId, keyId, publicKey);
+            // Store key reference securely
+            await this.storeKeyReference(userId, keyId, publicKey);
 
-          return {
-            publicKey,
-            keyId,
-            hasSecureStorage: true
-          };
+            return {
+              publicKey,
+              keyId,
+              hasSecureStorage: true
+            };
+          }
+        } catch (webauthnError) {
+          console.warn('WebAuthn key generation failed, falling back to crypto.subtle:', webauthnError);
+          // Fall through to crypto.subtle fallback
         }
       }
 

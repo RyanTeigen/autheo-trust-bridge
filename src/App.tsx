@@ -4,10 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { securityInitializer } from "@/services/security/SecurityInitializer";
 import { useEffect } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UserSettingsProvider } from "@/contexts/UserSettingsContext";
+import { SecurityProvider } from "@/components/security/SecurityProvider";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import RoleBasedRoute from "./components/auth/RoleBasedRoute";
@@ -45,28 +45,17 @@ const queryClient = new QueryClient({
 const App = () => {
   console.log('App rendering...');
   
-  // Initialize security services
-  useEffect(() => {
-    securityInitializer.initialize().catch((error) => {
-      console.error('Failed to initialize security services:', error);
-    });
-
-    // Cleanup on unmount
-    return () => {
-      securityInitializer.cleanup();
-    };
-  }, []);
-  
   return (
     <div className="dark min-h-screen bg-slate-900 text-slate-100">
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <UserSettingsProvider>
-            <HealthRecordsProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
+        <SecurityProvider>
+          <AuthProvider>
+            <UserSettingsProvider>
+              <HealthRecordsProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
                   <Routes>
                     {/* Auth routes - available to unauthenticated users */}
                     <Route path="/auth" element={<AuthPage />} />
@@ -211,7 +200,8 @@ const App = () => {
             </HealthRecordsProvider>
           </UserSettingsProvider>
         </AuthProvider>
-      </QueryClientProvider>
+      </SecurityProvider>
+    </QueryClientProvider>
     </div>
   );
 };

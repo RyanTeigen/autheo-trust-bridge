@@ -1679,6 +1679,45 @@ export type Database = {
         }
         Relationships: []
       }
+      otp_codes: {
+        Row: {
+          attempts: number
+          code: string
+          code_type: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_used: boolean
+          max_attempts: number
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code: string
+          code_type: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          max_attempts?: number
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code?: string
+          code_type?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_used?: boolean
+          max_attempts?: number
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       patient_consent_preferences: {
         Row: {
           appointment_types_auto_approve: string[] | null
@@ -2286,6 +2325,81 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      secure_sessions: {
+        Row: {
+          created_at: string
+          csrf_token: string
+          device_fingerprint: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          is_active: boolean
+          last_activity: string
+          security_flags: Json | null
+          session_token: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          csrf_token: string
+          device_fingerprint?: string | null
+          expires_at: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          security_flags?: Json | null
+          session_token: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          csrf_token?: string
+          device_fingerprint?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          is_active?: boolean
+          last_activity?: string
+          security_flags?: Json | null
+          session_token?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      security_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          created_at: string
+          description: string | null
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       security_configurations: {
         Row: {
@@ -2929,6 +3043,10 @@ export type Database = {
         Args: { required_permission: string }
         Returns: boolean
       }
+      cleanup_expired_otps: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       cleanup_expired_sessions: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -2940,6 +3058,10 @@ export type Database = {
       extend_session: {
         Args: { session_token_param: string }
         Returns: boolean
+      }
+      generate_secure_otp: {
+        Args: { user_id_param: string; code_type_param?: string }
+        Returns: string
       }
       get_access_logs_by_patient: {
         Args: { current_patient_id: string }
@@ -3040,6 +3162,14 @@ export type Database = {
       update_wallet_address: {
         Args: { user_id: string; wallet: string }
         Returns: undefined
+      }
+      verify_otp: {
+        Args: {
+          user_id_param: string
+          code_param: string
+          code_type_param?: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

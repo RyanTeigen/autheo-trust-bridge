@@ -151,9 +151,13 @@ export class SecurityMiddleware {
     if (typeof input === 'string') {
       return input
         .trim()
-        .replace(/[<>]/g, '')
+        .replace(/[<>'"&]/g, '') // Enhanced XSS protection
         .replace(/javascript:/gi, '')
-        .replace(/on\w+=/gi, '');
+        .replace(/vbscript:/gi, '')
+        .replace(/data:/gi, '')
+        .replace(/on\w+=/gi, '')
+        .replace(/style\s*=/gi, '')
+        .replace(/expression\s*\(/gi, '');
     }
     
     if (Array.isArray(input)) {
