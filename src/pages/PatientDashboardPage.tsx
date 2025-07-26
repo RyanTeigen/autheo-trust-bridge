@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import IncidentReportModal from '@/components/compliance/IncidentReportModal';
 import PolicyAcknowledgmentModal from '@/components/patient/PolicyAcknowledgmentModal';
 import NotificationDrivenApprovalAlert from '@/components/patient/NotificationDrivenApprovalAlert';
-import CoreFunctionalityTest from '@/components/testing/CoreFunctionalityTest';
+
 
 
 const PatientDashboardPage = () => {
@@ -147,11 +147,6 @@ const PatientDashboardPage = () => {
       
       {/* Prominent Approval Alerts */}
       <NotificationDrivenApprovalAlert />
-      
-      {/* Phase 1B: Core Functionality Testing */}
-      {process.env.NODE_ENV === 'development' && (
-        <CoreFunctionalityTest />
-      )}
       
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex-1">
