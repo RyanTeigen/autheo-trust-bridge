@@ -704,6 +704,39 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_metrics_history: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          measured_at: string
+          metric_type: string
+          metric_unit: string | null
+          metric_value: number
+          subcategory: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          measured_at?: string
+          metric_type: string
+          metric_unit?: string | null
+          metric_value: number
+          subcategory?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          measured_at?: string
+          metric_type?: string
+          metric_unit?: string | null
+          metric_value?: number
+          subcategory?: string | null
+        }
+        Relationships: []
+      }
       compliance_policies: {
         Row: {
           acknowledgment_required: boolean | null
@@ -2629,6 +2662,63 @@ export type Database = {
           },
         ]
       }
+      risk_assessments: {
+        Row: {
+          assessment_type: string
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string | null
+          id: string
+          impact_description: string | null
+          likelihood_description: string | null
+          mitigation_steps: Json | null
+          resolved_at: string | null
+          risk_level: string
+          risk_score: number
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assessment_type: string
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          due_date?: string | null
+          id?: string
+          impact_description?: string | null
+          likelihood_description?: string | null
+          mitigation_steps?: Json | null
+          resolved_at?: string | null
+          risk_level: string
+          risk_score: number
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assessment_type?: string
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string | null
+          id?: string
+          impact_description?: string | null
+          likelihood_description?: string | null
+          mitigation_steps?: Json | null
+          resolved_at?: string | null
+          risk_level?: string
+          risk_score?: number
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       secure_sessions: {
         Row: {
           created_at: string
@@ -2734,6 +2824,66 @@ export type Database = {
           is_active?: boolean
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string
+          description: string
+          event_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          resolved: boolean
+          resolved_at: string | null
+          resolved_by: string | null
+          resource_id: string | null
+          resource_type: string | null
+          severity: string
+          source: string
+          title: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity: string
+          source: string
+          title: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          resolved?: boolean
+          resolved_at?: string | null
+          resolved_by?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          source?: string
+          title?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3083,6 +3233,51 @@ export type Database = {
           status?: string
           transaction_date?: string | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_behavior_analytics: {
+        Row: {
+          access_pattern: string | null
+          action_type: string
+          anomaly_score: number | null
+          id: string
+          ip_address: unknown | null
+          is_anomalous: boolean | null
+          metadata: Json | null
+          resource_accessed: string | null
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          access_pattern?: string | null
+          action_type: string
+          anomaly_score?: number | null
+          id?: string
+          ip_address?: unknown | null
+          is_anomalous?: boolean | null
+          metadata?: Json | null
+          resource_accessed?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          access_pattern?: string | null
+          action_type?: string
+          anomaly_score?: number | null
+          id?: string
+          ip_address?: unknown | null
+          is_anomalous?: boolean | null
+          metadata?: Json | null
+          resource_accessed?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
