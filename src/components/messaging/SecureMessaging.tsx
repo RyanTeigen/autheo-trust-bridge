@@ -4,7 +4,7 @@ import { MessageCircle, Shield, Clock, BarChart2, Users } from 'lucide-react';
 import ConversationList from './ConversationList';
 import MessageThread from './MessageThread';
 import MessageComposer from './MessageComposer';
-import { useMessaging } from './useMessaging';
+import { useRealTimeMessaging } from '@/hooks/useRealTimeMessaging';
 import { SecureMessagingProps } from './types';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -15,17 +15,68 @@ const SecureMessaging: React.FC<SecureMessagingProps> = ({ isProviderView = fals
     activeConversationId,
     activeConversation,
     newMessage,
-    searchQuery,
-    attachments,
-    messageMetrics,
-    setSearchQuery,
     setNewMessage,
-    handleSendMessage,
+    attachments,
+    loading,
+    setActiveConversationId,
+    sendMessage,
     handleAttachmentUpload,
     removeAttachment,
-    handleOpenConversation,
-    handleStartNewConversation
-  } = useMessaging(isProviderView);
+    markMessagesAsRead
+  } = useRealTimeMessaging(isProviderView);
+
+  // Add missing state for search functionality
+  const [searchQuery, setSearchQuery] = React.useState('');
+
+  // Filter conversations by search query
+  const filteredConversations = conversations.filter(conversation =>
+    (conversation.participant_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (conversation.messages?.[conversation.messages.length - 1]?.content || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Convert to legacy Conversation type for existing components
+  const legacyConversations = filteredConversations.map(conv => ({
+    id: conv.id,
+    participantName: conv.participant_name || 'Unknown',
+    participantRole: conv.participant_role || 'patient',
+    participantTitle: conv.participant_role === 'provider' ? 'Dr.' : undefined,
+    lastMessage: conv.messages?.[conv.messages.length - 1]?.content || 'No messages',
+    lastMessageTime: conv.last_message_at ? new Date(conv.last_message_at).toLocaleString() : '',
+    unread: conv.unread_count || 0,
+    messages: conv.messages?.map(msg => ({
+      id: msg.id,
+      sender: msg.sender_type,
+      senderName: msg.sender_name || (msg.sender_type === 'provider' ? 'Dr. Provider' : 'Patient'),
+      content: msg.content,
+      timestamp: msg.created_at,
+      read: msg.is_read,
+      attachments: msg.attachments?.map(att => ({
+        name: att.file_name,
+        type: att.file_type,
+        url: att.file_url
+      }))
+    })) || []
+  }));
+
+  // Find active conversation in legacy format
+  const legacyActiveConversation = legacyConversations.find(c => c.id === activeConversationId);
+
+  // Mock analytics for now - in a real app, this would come from analytics service
+  const messageMetrics = {
+    responseTime: 15,
+    engagementRate: 87,
+    totalSent: conversations.reduce((acc, conv) => acc + (conv.messages?.length || 0), 0)
+  };
+
+  const handleOpenConversation = (id: string) => {
+    setActiveConversationId(id);
+    markMessagesAsRead(id);
+  };
+
+  const handleStartNewConversation = () => {
+    // This would open a modal to select a patient/provider in a real app
+    console.log('Start new conversation');
+  };
   
   console.log("SecureMessaging - activeConversationId:", activeConversationId);
   console.log("SecureMessaging - activeConversation:", activeConversation);
@@ -97,7 +148,7 @@ const SecureMessaging: React.FC<SecureMessagingProps> = ({ isProviderView = fals
       <div className="grid grid-cols-1 md:grid-cols-3 h-[600px]">
         {/* Conversation List */}
         <ConversationList 
-          conversations={conversations}
+          conversations={legacyConversations}
           searchQuery={searchQuery}
           activeConversationId={activeConversationId}
           onSearchChange={setSearchQuery}
@@ -107,10 +158,10 @@ const SecureMessaging: React.FC<SecureMessagingProps> = ({ isProviderView = fals
         
         {/* Active Conversation */}
         <div className="md:col-span-2 flex flex-col h-full">
-          {activeConversation ? (
+          {legacyActiveConversation ? (
             <>
               <MessageThread 
-                conversation={activeConversation}
+                conversation={legacyActiveConversation}
                 isProviderView={isProviderView}
               />
               
@@ -118,7 +169,7 @@ const SecureMessaging: React.FC<SecureMessagingProps> = ({ isProviderView = fals
                 newMessage={newMessage}
                 attachments={attachments}
                 onMessageChange={setNewMessage}
-                onSendMessage={handleSendMessage}
+                onSendMessage={sendMessage}
                 onAttachmentUpload={handleAttachmentUpload}
                 onRemoveAttachment={removeAttachment}
               />
