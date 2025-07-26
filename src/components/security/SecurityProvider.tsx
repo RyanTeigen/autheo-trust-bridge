@@ -5,11 +5,12 @@
 
 import React, { createContext, useContext, useEffect } from 'react';
 import { useSecurityInitialization } from '@/hooks/useSecurityInitialization';
-import { SecurityStatusIndicator } from './SecurityStatusIndicator';
+import { SecurityStatusIndicatorEnhanced } from './SecurityStatusIndicatorEnhanced';
 
 interface SecurityContextType {
   isSecure: boolean;
   isInitializing: boolean;
+  securityStatus: any;
   refreshSecurity: () => Promise<void>;
   reportSecurityIssue: (issue: string, details?: any) => Promise<void>;
 }
@@ -68,6 +69,7 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({
   const contextValue: SecurityContextType = {
     isSecure: securityHook.isSecure,
     isInitializing: securityHook.isInitializing,
+    securityStatus: securityHook.securityStatus,
     refreshSecurity: securityHook.refreshSecurity,
     reportSecurityIssue: securityHook.reportSecurityIssue
   };
@@ -76,7 +78,7 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({
     <SecurityContext.Provider value={contextValue}>
       {showIndicator && (
         <div className="fixed top-4 right-4 z-50">
-          <SecurityStatusIndicator compact />
+          <SecurityStatusIndicatorEnhanced compact />
         </div>
       )}
       {children}
