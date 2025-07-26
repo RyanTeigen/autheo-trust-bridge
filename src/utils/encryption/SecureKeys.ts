@@ -1,8 +1,9 @@
 // src/utils/encryption/SecureKeys.ts
-// Secure replacement for the localStorage-based key management
+// Enhanced secure key management with security improvements
 
 import { secureKeyStorage, migrateFromLocalStorage } from './SecureKeyStorage';
 import { supabase } from '@/integrations/supabase/client';
+import { productionLogger } from '@/services/security/ProductionLogger';
 
 const AES_KEY_ID = 'user_aes_key';
 const PRIVATE_KEY_ID = 'user_private_key';
@@ -39,6 +40,7 @@ export async function getOrCreateAESKey(): Promise<string> {
   
   const userId = await getCurrentUserId();
   if (!userId) {
+    productionLogger.error('AES key request without authentication', { action: 'getOrCreateAESKey' });
     throw new Error('User not authenticated');
   }
 
@@ -47,28 +49,50 @@ export async function getOrCreateAESKey(): Promise<string> {
     let key = await secureKeyStorage.getKey(AES_KEY_ID);
     
     if (key) {
-      // Validate existing key
+      // Enhanced key validation with security logging
       if (key.length === 64 && /^[0-9a-fA-F]+$/.test(key)) {
+        productionLogger.debug('AES key retrieved successfully', { userId, keyLength: key.length });
         return key;
       } else {
-        console.warn(`Invalid AES key found (${key.length * 4} bits), generating new one`);
+        productionLogger.warn('Invalid AES key detected, regenerating', { 
+          userId, 
+          keyLength: key.length,
+          expectedLength: 64 
+        });
         await secureKeyStorage.removeKey(AES_KEY_ID);
       }
     }
     
-    // Generate new secure key
+    // Generate new secure key with enhanced validation
     key = await secureKeyStorage.generateSecureKey();
     
-    // Validate the generated key
+    // Strict key validation
     if (key.length !== 64) {
+      productionLogger.error('Generated key validation failed', { 
+        userId, 
+        actualLength: key.length, 
+        expectedLength: 64 
+      });
       throw new Error(`Generated key has invalid length: ${key.length} characters (expected 64)`);
+    }
+    
+    // Additional entropy validation
+    const uniqueChars = new Set(key.split('')).size;
+    if (uniqueChars < 10) {
+      productionLogger.error('Generated key has insufficient entropy', { 
+        userId, 
+        uniqueChars,
+        minExpected: 10 
+      });
+      throw new Error('Generated key has insufficient entropy');
     }
     
     // Store securely
     await secureKeyStorage.storeKey(AES_KEY_ID, key, userId);
+    productionLogger.info('New AES key generated and stored securely', { userId });
     return key;
   } catch (error) {
-    console.error('Failed to get or create AES key:', error);
+    productionLogger.error('Failed to get or create AES key', { userId, error: error.message });
     throw new Error('Failed to initialize encryption key');
   }
 }
@@ -145,11 +169,18 @@ export async function getUserPublicKey(userId: string): Promise<string | null> {
 }
 
 export async function clearAllKeys(): Promise<void> {
+  const userId = await getCurrentUserId();
   try {
     await secureKeyStorage.removeKey(AES_KEY_ID);
     await secureKeyStorage.removeKey(PRIVATE_KEY_ID);
+    productionLogger.warn('All encryption keys cleared by user request', { 
+      userId,
+      action: 'clearAllKeys',
+      timestamp: new Date().toISOString()
+    });
     console.log('All encryption keys cleared - new keys will be generated on next use');
   } catch (error) {
+    productionLogger.error('Failed to clear encryption keys', { userId, error: error.message });
     console.error('Failed to clear all keys:', error);
   }
 }
