@@ -29,10 +29,19 @@ export class CSRFProtection {
    */
   async generateToken(): Promise<string> {
     const token = this.generateSecureToken();
-    const sessionId = await this.getCurrentSessionId();
+    
+    // Get session ID with fallback
+    let sessionId: string | null = null;
+    try {
+      sessionId = await this.getCurrentSessionId();
+    } catch (error) {
+      console.warn('Failed to get session ID, using fallback', error);
+      sessionId = `fallback_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    }
     
     if (!sessionId) {
-      throw new Error('No active session found');
+      // Create emergency fallback session ID
+      sessionId = `emergency_${Date.now()}_${crypto.getRandomValues(new Uint8Array(4)).join('')}`;
     }
 
     const csrfToken: CSRFToken = {
@@ -41,12 +50,21 @@ export class CSRFProtection {
       sessionId
     };
 
-    // Store token both in memory and secure storage
+    // Store token both in memory and secure storage with error handling
     this.tokens.set(token, csrfToken);
-    await this.storeTokenSecurely(token, csrfToken);
+    
+    try {
+      await this.storeTokenSecurely(token, csrfToken);
+    } catch (error) {
+      console.warn('Failed to store CSRF token securely, continuing with memory storage', error);
+    }
 
     // Set as HTTP-only cookie if possible (fallback to secure storage)
-    this.setCSRFCookie(token);
+    try {
+      this.setCSRFCookie(token);
+    } catch (error) {
+      console.debug('Could not set CSRF cookie, using memory storage', error);
+    }
 
     return token;
   }

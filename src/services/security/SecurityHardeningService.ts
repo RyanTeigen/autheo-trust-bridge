@@ -37,7 +37,40 @@ class SecurityHardeningService {
   private constructor() {
     this.isProduction = import.meta.env.PROD;
     this.config = this.getDefaultConfig();
+    // Initialize synchronously first
     this.initializeSecurityMeasures();
+  }
+
+  /**
+   * Initialize security hardening measures with error handling
+   */
+  public async initialize(): Promise<void> {
+    try {
+      // Apply console protection in production
+      if (import.meta.env.PROD) {
+        this.protectConsole();
+      }
+      
+      // Apply XSS protection meta tags
+      this.applyXSSProtection();
+      
+      // Initialize enhanced CSP policy
+      this.initializeEnhancedCSP();
+      
+      // Setup secure localStorage alternatives
+      this.setupSecureStorage();
+      
+      // Initialize enhanced threat detection
+      await this.initializeThreatDetection();
+      
+      // Setup enhanced session security
+      this.setupEnhancedSessionSecurity();
+      
+      console.log('Security hardening measures activated');
+    } catch (error) {
+      console.warn('Some security hardening measures failed:', error);
+      throw error; // Re-throw to be handled by caller
+    }
   }
 
   public static getInstance(): SecurityHardeningService {
@@ -156,41 +189,6 @@ class SecurityHardeningService {
     };
   }
 
-  async initialize(): Promise<void> {
-    try {
-      console.log('🔒 Initializing Enhanced Security Hardening Service...');
-      
-      // Apply console protection in production
-      if (import.meta.env.PROD) {
-        this.protectConsole();
-      }
-      
-      // Apply XSS protection meta tags
-      this.applyXSSProtection();
-      
-      // Initialize enhanced CSP policy
-      this.initializeEnhancedCSP();
-      
-      // Setup secure localStorage alternatives
-      this.setupSecureStorage();
-      
-      // Initialize enhanced threat detection
-      await this.initializeThreatDetection();
-      
-      // Setup enhanced session security
-      this.setupEnhancedSessionSecurity();
-      
-      console.log('✅ Enhanced Security Hardening Service initialized successfully');
-    } catch (error) {
-      console.error('❌ Failed to initialize Enhanced Security Hardening Service:', error);
-      await enhancedSecurityService.detectSecurityThreat(
-        'suspicious_activity',
-        'high',
-        'Security hardening initialization failed',
-        { error: error.message }
-      );
-    }
-  }
 
   private protectConsole(): void {
     // Enhanced console protection for production

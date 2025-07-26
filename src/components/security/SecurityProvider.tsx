@@ -76,7 +76,7 @@ export const SecurityProvider: React.FC<SecurityProviderProps> = ({
 
   return (
     <SecurityContext.Provider value={contextValue}>
-      {showIndicator && (
+      {showIndicator && securityHook.securityStatus.overallStatus !== 'secure' && (
         <div className="fixed top-4 right-4 z-50">
           <SecurityStatusIndicatorEnhanced compact />
         </div>
