@@ -4022,6 +4022,14 @@ export type Database = {
       }
     }
     Functions: {
+      check_patient_ownership: {
+        Args: { _user_id: string; _patient_id: string }
+        Returns: boolean
+      }
+      check_provider_access: {
+        Args: { _provider_id: string; _patient_id: string }
+        Returns: boolean
+      }
       check_user_permission_secure: {
         Args: { required_permission: string }
         Returns: boolean
