@@ -946,6 +946,54 @@ export type Database = {
         }
         Relationships: []
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          patient_id: string
+          provider_id: string
+          status: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          patient_id: string
+          provider_id: string
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          patient_id?: string
+          provider_id?: string
+          status?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_conversations_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_conversations_provider"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cross_hospital_requests: {
         Row: {
           audit_trail: Json | null
@@ -1948,6 +1996,107 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_attachments: {
+        Row: {
+          created_at: string
+          encrypted_url: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string | null
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          encrypted_url?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url?: string | null
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          encrypted_url?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string | null
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_attachments_message"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          encrypted_content: string | null
+          id: string
+          is_read: boolean
+          iv: string | null
+          message_type: string
+          read_at: string | null
+          sender_id: string
+          sender_type: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          encrypted_content?: string | null
+          id?: string
+          is_read?: boolean
+          iv?: string | null
+          message_type?: string
+          read_at?: string | null
+          sender_id: string
+          sender_type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          encrypted_content?: string | null
+          id?: string
+          is_read?: boolean
+          iv?: string | null
+          message_type?: string
+          read_at?: string | null
+          sender_id?: string
+          sender_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_messages_conversation"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_messages_sender"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3734,6 +3883,10 @@ export type Database = {
           resource_id?: string
           additional_details?: Json
         }
+        Returns: undefined
+      }
+      mark_messages_as_read: {
+        Args: { conversation_id_param: string; user_id_param: string }
         Returns: undefined
       }
       provider_submit_record: {
