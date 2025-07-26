@@ -14,6 +14,8 @@ import { supabase } from '@/integrations/supabase/client';
 import IncidentReportModal from '@/components/compliance/IncidentReportModal';
 import PolicyAcknowledgmentModal from '@/components/patient/PolicyAcknowledgmentModal';
 import NotificationDrivenApprovalAlert from '@/components/patient/NotificationDrivenApprovalAlert';
+import { EnhancedNotificationCenter } from '@/components/notifications/EnhancedNotificationCenter';
+import { NotificationDemoCreator } from '@/components/demo/NotificationDemoCreator';
 
 
 const PatientDashboardPage = () => {
@@ -194,6 +196,16 @@ const PatientDashboardPage = () => {
               </>
             )}
           </Button>
+        </div>
+      </div>
+      
+      {/* Enhanced Notification System */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <EnhancedNotificationCenter />
+        </div>
+        <div className="space-y-6">
+          <NotificationDemoCreator />
         </div>
       </div>
       
