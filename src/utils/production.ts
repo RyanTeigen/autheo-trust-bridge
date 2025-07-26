@@ -62,10 +62,10 @@ export const performanceConfig = {
   flushInterval: 30000 // 30 seconds
 };
 
-// Feature flags
+// Feature flags - production-safe settings
 export const featureFlags = {
   enableAdvancedMonitoring: isProduction(),
-  enableDebugMode: isDevelopment(),
+  enableDebugMode: false, // Always false for production security
   enablePerformanceTracking: true,
   enableErrorReporting: isProduction(),
   enableAnalytics: isProduction()
