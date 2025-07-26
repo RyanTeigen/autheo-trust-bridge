@@ -105,14 +105,19 @@ export class MedicalRecordsService {
         return { success: result.success, error: result.error };
       }
 
-      // Decrypt the records
+      // Records are already decrypted from the enhanced service
       const decryptedRecords: DecryptedMedicalRecord[] = result.records.map(record => {
         try {
-          const decryptedData = decrypt(record.encrypted_data);
+          // Check if data is already decrypted (from enhanced service) or needs decryption
+          const recordData = record.data || (record as any).encrypted_data;
+          const parsedData = typeof recordData === 'string' 
+            ? (recordData.startsWith('{') ? JSON.parse(recordData) : JSON.parse(decrypt(recordData)))
+            : recordData;
+            
           return {
             id: record.id,
             patient_id: record.patient_id,
-            data: JSON.parse(decryptedData),
+            data: parsedData,
             record_type: record.record_type || 'general',
             created_at: record.created_at,
             updated_at: record.updated_at

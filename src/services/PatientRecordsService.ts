@@ -10,7 +10,7 @@ export class PatientRecordsService {
   static getSharingPermissions = EnhancedPatientRecordsService.getSharingPermissions;
   static revokeSharingPermission = EnhancedPatientRecordsService.revokeSharingPermission;
 
-  // Add the missing method that MedicalRecordsService is trying to call
+  // Properly implemented method to fetch patient medical records
   static async getPatientMedicalRecords() {
     try {
       const patientResult = await this.getCurrentPatient();
@@ -18,14 +18,33 @@ export class PatientRecordsService {
         return { success: false, error: 'Patient record not found' };
       }
 
-      // This would need to be implemented to fetch medical records for the patient
-      // For now, return empty records to prevent the error
-      return {
-        success: true,
-        records: []
-      };
+      // Import the enhanced medical records service for proper record retrieval
+      const { enhancedMedicalRecordsService } = await import('./EnhancedMedicalRecordsService');
+      
+      // Get medical records for the current patient
+      const recordsResult = await enhancedMedicalRecordsService.getRecords(
+        { limit: 50, offset: 0 }, 
+        {}
+      );
+
+      if (recordsResult.success) {
+        return {
+          success: true,
+          records: recordsResult.data?.records || [],
+          totalCount: recordsResult.data?.totalCount || 0
+        };
+      } else {
+        return { 
+          success: false, 
+          error: recordsResult.error || 'Failed to fetch medical records' 
+        };
+      }
     } catch (error) {
-      return { success: false, error: 'Failed to fetch patient medical records' };
+      console.error('Error fetching patient medical records:', error);
+      return { 
+        success: false, 
+        error: 'Failed to fetch patient medical records' 
+      };
     }
   }
 }
