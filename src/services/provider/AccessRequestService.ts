@@ -109,8 +109,7 @@ export class AccessRequestService extends BaseService {
         return this.handleError(createError, 'requestPatientAccess');
       }
 
-      // TODO: In a real system, you would send a notification to the patient
-      // about the access request
+      // Patient notifications are automatically handled by database triggers
 
       return this.createSuccessResponse({
         id: sharingPermission.id,

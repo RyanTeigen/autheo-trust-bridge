@@ -35,10 +35,7 @@ const RoleBasedRoute: React.FC<RoleBasedRouteProps> = ({
     return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
-  // Creator Access mode - bypass role restrictions in development
-  if (import.meta.env.DEV) {
-    return <>{children}</>;
-  }
+  // Removed development bypass for production security
 
   // If no specific roles are required, allow access
   if (allowedRoles.length === 0) {

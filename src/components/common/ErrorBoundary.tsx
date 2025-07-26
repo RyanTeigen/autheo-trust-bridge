@@ -41,7 +41,16 @@ class ErrorBoundary extends Component<Props, State> {
     });
 
     // Log error to console with context
-    console.error(`ErrorBoundary caught an error in ${this.props.context || 'unknown component'}:`, error, errorInfo);
+    import('@/utils/logging').then(({ errorLog }) => {
+      errorLog(`ErrorBoundary caught an error in ${this.props.context || 'unknown component'}`, error, {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true
+      });
+    }).catch(() => {
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`ErrorBoundary caught an error in ${this.props.context || 'unknown component'}:`, error, errorInfo);
+      }
+    });
 
     // In a real app, you might want to log this to an error reporting service
     this.logErrorToService(error, errorInfo);
@@ -61,9 +70,15 @@ class ErrorBoundary extends Component<Props, State> {
       };
       
       // In production, send to your error monitoring service
-      console.log('Error logged:', errorData);
+      // Error logged via production logger
     } catch (loggingError) {
-      console.error('Failed to log error:', loggingError);
+      import('@/utils/logging').then(({ errorLog }) => {
+        errorLog('Failed to log error in ErrorBoundary', loggingError);
+      }).catch(() => {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Failed to log error:', loggingError);
+        }
+      });
     }
   };
 

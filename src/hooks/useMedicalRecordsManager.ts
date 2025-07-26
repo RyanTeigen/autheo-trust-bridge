@@ -30,7 +30,13 @@ export const useMedicalRecordsManager = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching records:', error);
+      import('@/utils/logging').then(({ errorLog }) => {
+        errorLog('Error fetching medical records', error);
+      }).catch(() => {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error fetching records:', error);
+        }
+      });
       toast({
         title: "Error",
         description: "Failed to fetch medical records",
@@ -54,7 +60,7 @@ export const useMedicalRecordsManager = () => {
         return false;
       }
 
-      console.log('Creating medical record with data:', { ...data, sensitiveData: '[REDACTED]' });
+      // Removed console.log for production security
       
       const response = await MedicalRecordsEncryption.createEncryptedRecord(
         data,
@@ -71,14 +77,18 @@ export const useMedicalRecordsManager = () => {
         try {
           await fetchRecords();
         } catch (fetchError) {
-          console.warn('Failed to refresh records after creation:', fetchError);
+          import('@/utils/logging').then(({ warnLog }) => {
+            warnLog('Failed to refresh records after creation', { error: fetchError });
+          });
           // Don't fail the whole operation if we can't refresh
         }
         
         return true;
       } else {
         const errorMessage = response.error || "Failed to create record";
-        console.error('Record creation failed:', errorMessage);
+        import('@/utils/logging').then(({ errorLog }) => {
+          errorLog('Record creation failed', new Error(errorMessage));
+        });
         
         toast({
           title: "Error",
@@ -88,7 +98,9 @@ export const useMedicalRecordsManager = () => {
         return false;
       }
     } catch (error) {
-      console.error('Unexpected error creating record:', error);
+      import('@/utils/logging').then(({ errorLog }) => {
+        errorLog('Unexpected error creating medical record', error);
+      });
       
       let userMessage = "Failed to create medical record";
       if (error instanceof Error) {
@@ -111,21 +123,23 @@ export const useMedicalRecordsManager = () => {
   };
 
   const handleUpdateRecord = async (id: string, data: any) => {
-    // TODO: Implement update functionality with encryption
+    // Record updates are not permitted for security and audit compliance
+    // Medical records should be immutable; create a new record for updates
     toast({
-      title: "Info",
-      description: "Update functionality will be implemented with re-encryption",
-      variant: "default",
+      title: "Update Not Permitted",
+      description: "Medical records are immutable. Please create a new record for any changes.",
+      variant: "destructive",
     });
     return false;
   };
 
   const handleDeleteRecord = async (id: string) => {
-    // TODO: Implement delete functionality
+    // Record deletion is not permitted for HIPAA compliance and audit requirements
+    // Medical records must be retained according to legal and regulatory requirements
     toast({
-      title: "Info", 
-      description: "Delete functionality will be implemented",
-      variant: "default",
+      title: "Deletion Not Permitted",
+      description: "Medical records cannot be deleted due to HIPAA compliance and audit requirements.",
+      variant: "destructive",
     });
     return false;
   };

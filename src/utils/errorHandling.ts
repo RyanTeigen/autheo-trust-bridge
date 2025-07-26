@@ -85,7 +85,14 @@ export class DatabaseError extends AppError {
 
 // Error handling utilities
 export function handleSupabaseError(error: any): AppError {
-  console.error('Supabase error:', error);
+  // Use production-safe logging for Supabase errors
+  import('./logging').then(({ errorLog }) => {
+    errorLog('Supabase error occurred', error, { errorType: 'supabase' });
+  }).catch(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Supabase error:', error);
+    }
+  });
   
   if (error?.code === 'PGRST116') {
     return new NotFoundError('Record');
@@ -113,7 +120,14 @@ export function handleSupabaseError(error: any): AppError {
 }
 
 export function handleNetworkError(error: any): NetworkError {
-  console.error('Network error:', error);
+  // Use production-safe logging for network errors
+  import('./logging').then(({ errorLog }) => {
+    errorLog('Network error occurred', error, { errorType: 'network' });
+  }).catch(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Network error:', error);
+    }
+  });
   
   if (error?.code === 'NETWORK_ERROR' || error?.name === 'NetworkError') {
     return new NetworkError('Network connection failed');
@@ -159,13 +173,21 @@ export function logError(error: AppError, context?: Record<string, any>): void {
     isOperational: error.isOperational
   };
   
-  // In development, log to console
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Application Error:', logData);
-  }
-  
-  // TODO: In production, send to logging service
-  // This could be integrated with services like Sentry, LogRocket, etc.
+  // Use production-safe logging
+  import('./logging').then(({ errorLog }) => {
+    errorLog('Application error occurred', error, {
+      code: logData.code,
+      statusCode: logData.statusCode,
+      context: logData.context,
+      timestamp: logData.timestamp,
+      isOperational: logData.isOperational
+    });
+  }).catch(() => {
+    // Fallback for development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Application Error:', logData);
+    }
+  });
 }
 
 // Async error wrapper

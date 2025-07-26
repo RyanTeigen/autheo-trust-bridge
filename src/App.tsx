@@ -44,7 +44,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log('App rendering...');
+  // Removed console.log for production
   
   return (
     <ErrorBoundary>
