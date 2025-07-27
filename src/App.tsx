@@ -34,7 +34,7 @@ import RoleBasedDashboardRedirect from "./components/auth/RoleBasedDashboardRedi
 import CrossHospitalConsent from "./components/patient/CrossHospitalConsent";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import QuantumSecurityPage from "./pages/QuantumSecurityPage";
-import RealTimeHealthPage from "./pages/RealTimeHealthPage";
+
 
 // Create a stable query client instance
 const queryClient = new QueryClient({
@@ -203,14 +203,6 @@ const App = () => {
                       </ProtectedRoute>
                     } />
 
-                    <Route path="/real-time-health" element={
-                      <ProtectedRoute>
-                        <MainLayout>
-                          <RealTimeHealthPage />
-                        </MainLayout>
-                      </ProtectedRoute>
-                    } />
-                    
                     {/* Common routes */}
                     <Route path="/settings" element={
                       <ProtectedRoute>

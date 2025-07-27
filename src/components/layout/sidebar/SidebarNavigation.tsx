@@ -14,7 +14,6 @@ import {
   Search,
   UserCheck,
   Stethoscope,
-  Activity
 } from 'lucide-react';
 
 const SidebarNavigation: React.FC = () => {
@@ -80,13 +79,6 @@ const SidebarNavigation: React.FC = () => {
         description="Regulatory compliance"
         icon={Shield}
         subItems={complianceItems}
-      />
-
-      <SidebarNavItem
-        to="/real-time-health"
-        icon={Activity}
-        title="Real-Time Health"
-        description="Live health monitoring"
       />
 
       <SidebarNavItem
