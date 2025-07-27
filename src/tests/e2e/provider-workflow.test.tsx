@@ -114,10 +114,11 @@ describe('Provider Workflow End-to-End', () => {
 
   it('handles patient search and record access workflow', async () => {
     const user = userEvent.setup();
+    const mockOnPatientSelect = vi.fn();
 
     render(
       <TestWrapper>
-        <PatientSearch />
+        <PatientSearch onPatientSelect={mockOnPatientSelect} />
       </TestWrapper>
     );
 
@@ -150,11 +151,12 @@ describe('Provider Workflow End-to-End', () => {
 
   it('integrates SOAP notes with patient search functionality', async () => {
     const user = userEvent.setup();
+    const mockOnPatientSelect = vi.fn();
 
     // First test patient search
     const { rerender } = render(
       <TestWrapper>
-        <PatientSearch />
+        <PatientSearch onPatientSelect={mockOnPatientSelect} />
       </TestWrapper>
     );
 
