@@ -17,6 +17,7 @@ interface HealthTrackerQuickActionsProps {
   onViewGoals: () => void;
   onViewInsights: () => void;
   onExportData: () => void;
+  onViewRealTime?: () => void;
   onManualEntry?: () => void;
 }
 
@@ -25,6 +26,7 @@ const HealthTrackerQuickActions: React.FC<HealthTrackerQuickActionsProps> = ({
   onViewGoals,
   onViewInsights,
   onExportData,
+  onViewRealTime,
   onManualEntry
 }) => {
   const quickActions: QuickAction[] = [
@@ -67,6 +69,14 @@ const HealthTrackerQuickActions: React.FC<HealthTrackerQuickActionsProps> = ({
       icon: <Target className="h-5 w-5" />,
       color: 'text-purple-500',
       action: onViewGoals
+    },
+    {
+      id: 'realtime',
+      title: 'Real-Time',
+      description: 'Live monitoring',
+      icon: <Activity className="h-5 w-5" />,
+      color: 'text-green-500',
+      action: onViewRealTime || (() => {})
     },
     {
       id: 'insights',

@@ -20,6 +20,7 @@ import HealthTrackerQuickActions from './health-tracker/HealthTrackerQuickAction
 // Import existing components
 import AtomicVitalsCard from '@/components/patient/AtomicVitalsCard';
 import FitnessDataDisplay from '@/components/fitness/FitnessDataDisplay';
+import RealTimeHealthMonitor from './health-tracker/RealTimeHealthMonitor';
 
 interface HealthDataPoint {
   id: string;
@@ -240,6 +241,10 @@ const HealthTrackerTabContent: React.FC = () => {
     setActiveTab('export');
   };
 
+  const handleViewRealTime = () => {
+    setActiveTab('realtime');
+  };
+
   if (!user) {
     return (
       <Card className="bg-card border-border">
@@ -273,14 +278,16 @@ const HealthTrackerTabContent: React.FC = () => {
             onViewGoals={handleViewGoals}
             onViewInsights={handleViewInsights}
             onExportData={handleExportData}
+            onViewRealTime={handleViewRealTime}
           />
         </CardContent>
       </Card>
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="realtime">Real-Time</TabsTrigger>
           <TabsTrigger value="charts">Charts</TabsTrigger>
           <TabsTrigger value="entry">Entry</TabsTrigger>
           <TabsTrigger value="goals">Goals</TabsTrigger>
@@ -360,6 +367,11 @@ const HealthTrackerTabContent: React.FC = () => {
               />
             ))}
           </div>
+        </TabsContent>
+
+        {/* Real-Time Tab */}
+        <TabsContent value="realtime">
+          <RealTimeHealthMonitor />
         </TabsContent>
 
         {/* Entry Tab */}
