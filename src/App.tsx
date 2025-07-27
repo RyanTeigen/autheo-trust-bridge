@@ -28,6 +28,7 @@ import PatientDashboardPage from "./pages/PatientDashboardPage";
 import AdminPortalPage from "./pages/AdminPortalPage";
 import SmartFormsPage from "./pages/SmartFormsPage";
 import SharedRecordsPage from "./pages/SharedRecordsPage";
+import MedicalRecordsDetailPage from "./pages/MedicalRecordsDetailPage";
 import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 import RoleBasedDashboardRedirect from "./components/auth/RoleBasedDashboardRedirect";
 import CrossHospitalConsent from "./components/patient/CrossHospitalConsent";
@@ -91,6 +92,14 @@ const App = () => {
                       <ProtectedRoute>
                         <MainLayout>
                           <SharedRecordsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/medical-records" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <MedicalRecordsDetailPage />
                         </MainLayout>
                       </ProtectedRoute>
                     } />
