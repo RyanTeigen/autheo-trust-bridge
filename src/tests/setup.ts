@@ -2,6 +2,10 @@ import React from 'react';
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
 
+// Add testing-library exports to global scope for easier imports
+export * from '@testing-library/react';
+export { default as userEvent } from '@testing-library/user-event';
+
 // Mock Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {

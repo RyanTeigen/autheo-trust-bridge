@@ -1,0 +1,8 @@
+{
+  "name": "autheo-tests",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "test": "npm run test --workspace=autheo-trust-bridge"
+  }
+}

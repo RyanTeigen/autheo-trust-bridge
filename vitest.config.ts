@@ -9,9 +9,12 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/tests/setup.ts'],
     css: true,
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    exclude: ['node_modules/', 'dist/', '.lovable/'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{js,ts,jsx,tsx}'],
       exclude: [
         'node_modules/',
         'src/tests/',
@@ -20,6 +23,8 @@ export default defineConfig({
         'dist/',
         'coverage/',
         '**/*.config.*',
+        'src/main.tsx',
+        'src/vite-env.d.ts',
       ],
       thresholds: {
         global: {
@@ -30,6 +35,8 @@ export default defineConfig({
         },
       },
     },
+    testTimeout: 10000,
+    hookTimeout: 10000,
   },
   resolve: {
     alias: {
