@@ -13,7 +13,9 @@ import {
   FileText,
   Search,
   UserCheck,
-  Stethoscope
+  Stethoscope,
+  Brain,
+  Activity
 } from 'lucide-react';
 
 const SidebarNavigation: React.FC = () => {
@@ -32,13 +34,15 @@ const SidebarNavigation: React.FC = () => {
   const providerPortalItems = [
     { to: '/provider-portal', icon: UserCheck, title: 'Dashboard' },
     { to: '/patient-records', icon: Search, title: 'Patient Records' },
-    { to: '/medical-notes', icon: FileText, title: 'Medical Notes' }
+    { to: '/medical-notes', icon: FileText, title: 'Medical Notes' },
+    { to: '/clinical-decision-support', icon: Brain, title: 'Clinical Decision Support' }
   ];
 
   const complianceItems = [
     { to: '/compliance', icon: Shield, title: 'Overview' },
     { to: '/audit-logs', icon: FileSearch, title: 'Audit Logs' },
-    { to: '/security-dashboard', icon: Shield, title: 'Security Dashboard' }
+    { to: '/security-dashboard', icon: Shield, title: 'Security Dashboard' },
+    { to: '/quantum-security', icon: Shield, title: 'Quantum Security' }
   ];
 
   return (
@@ -78,6 +82,13 @@ const SidebarNavigation: React.FC = () => {
         description="Regulatory compliance"
         icon={Shield}
         subItems={complianceItems}
+      />
+
+      <SidebarNavItem
+        to="/real-time-health"
+        icon={Activity}
+        title="Real-Time Health"
+        description="Live health monitoring"
       />
 
       <SidebarNavItem

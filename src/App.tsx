@@ -33,6 +33,9 @@ import { HealthRecordsProvider } from "./contexts/HealthRecordsContext";
 import RoleBasedDashboardRedirect from "./components/auth/RoleBasedDashboardRedirect";
 import CrossHospitalConsent from "./components/patient/CrossHospitalConsent";
 import SecurityDashboard from "./pages/SecurityDashboard";
+import QuantumSecurityPage from "./pages/QuantumSecurityPage";
+import ClinicalDecisionSupportPage from "./pages/ClinicalDecisionSupportPage";
+import RealTimeHealthPage from "./pages/RealTimeHealthPage";
 
 // Create a stable query client instance
 const queryClient = new QueryClient({
@@ -188,6 +191,34 @@ const App = () => {
                             <SecurityDashboard />
                           </MainLayout>
                         </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/quantum-security" element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['admin', 'compliance', 'provider']}>
+                          <MainLayout>
+                            <QuantumSecurityPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } />
+
+                    <Route path="/clinical-decision-support" element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['provider']}>
+                          <MainLayout>
+                            <ClinicalDecisionSupportPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } />
+
+                    <Route path="/real-time-health" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <RealTimeHealthPage />
+                        </MainLayout>
                       </ProtectedRoute>
                     } />
                     
