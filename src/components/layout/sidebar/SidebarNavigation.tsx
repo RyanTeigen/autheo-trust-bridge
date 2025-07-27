@@ -14,7 +14,6 @@ import {
   Search,
   UserCheck,
   Stethoscope,
-  Brain,
   Activity
 } from 'lucide-react';
 
@@ -34,8 +33,7 @@ const SidebarNavigation: React.FC = () => {
   const providerPortalItems = [
     { to: '/provider-portal', icon: UserCheck, title: 'Dashboard' },
     { to: '/patient-records', icon: Search, title: 'Patient Records' },
-    { to: '/medical-notes', icon: FileText, title: 'Medical Notes' },
-    { to: '/clinical-decision-support', icon: Brain, title: 'Clinical Decision Support' }
+    { to: '/medical-notes', icon: FileText, title: 'Medical Notes' }
   ];
 
   const complianceItems = [
