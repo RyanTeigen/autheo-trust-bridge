@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Shield, Users, FileText, Clock, AlertTriangle, Anchor } from 'lucide-react';
+import { Shield, Users, FileText, Clock, AlertTriangle, Anchor, Pill } from 'lucide-react';
 import ProviderConsentAudit from '@/components/provider/ProviderConsentAudit';
+import PrescriptionManagement from '@/components/provider/PrescriptionManagement';
 import { processAnchorQueue, retryFailedAnchors } from '@/utils/testnetAnchoring';
 import { useToast } from '@/hooks/use-toast';
 
@@ -102,8 +103,12 @@ const ProviderDashboardPage: React.FC = () => {
       </Card>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="consent-audit" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="prescriptions" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="prescriptions" className="flex items-center gap-2">
+            <Pill className="h-4 w-4" />
+            Prescriptions
+          </TabsTrigger>
           <TabsTrigger value="consent-audit" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             Consent Audit
@@ -121,6 +126,10 @@ const ProviderDashboardPage: React.FC = () => {
             Analytics
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="prescriptions" className="space-y-4">
+          <PrescriptionManagement />
+        </TabsContent>
 
         <TabsContent value="consent-audit" className="space-y-4">
           <ProviderConsentAudit />
