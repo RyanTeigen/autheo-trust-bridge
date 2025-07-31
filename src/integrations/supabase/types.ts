@@ -2127,6 +2127,54 @@ export type Database = {
           },
         ]
       }
+      medication_adherence: {
+        Row: {
+          created_at: string
+          id: string
+          medication_id: string
+          notes: string | null
+          patient_id: string
+          scheduled_time: string
+          status: string
+          taken_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medication_id: string
+          notes?: string | null
+          patient_id: string
+          scheduled_time: string
+          status: string
+          taken_at: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medication_id?: string
+          notes?: string | null
+          patient_id?: string
+          scheduled_time?: string
+          status?: string
+          taken_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_medication_adherence_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_medication_adherence_prescription"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_attachments: {
         Row: {
           created_at: string
@@ -2555,6 +2603,191 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      prescription_communications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          message_type: string
+          patient_id: string
+          prescription_id: string
+          provider_id: string
+          read_at: string | null
+          response_required: boolean | null
+          sender_role: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          message_type: string
+          patient_id: string
+          prescription_id: string
+          provider_id: string
+          read_at?: string | null
+          response_required?: boolean | null
+          sender_role: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          message_type?: string
+          patient_id?: string
+          prescription_id?: string
+          provider_id?: string
+          read_at?: string | null
+          response_required?: boolean | null
+          sender_role?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_prescription_communications_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_prescription_communications_prescription"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescription_refill_requests: {
+        Row: {
+          created_at: string
+          fulfilled_at: string | null
+          id: string
+          patient_id: string
+          prescription_id: string
+          provider_id: string
+          provider_response: string | null
+          request_reason: string | null
+          requested_at: string
+          responded_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          patient_id: string
+          prescription_id: string
+          provider_id: string
+          provider_response?: string | null
+          request_reason?: string | null
+          requested_at?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fulfilled_at?: string | null
+          id?: string
+          patient_id?: string
+          prescription_id?: string
+          provider_id?: string
+          provider_response?: string | null
+          request_reason?: string | null
+          requested_at?: string
+          responded_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_refill_requests_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_refill_requests_prescription"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          diagnosis_code: string | null
+          dosage: string
+          end_date: string | null
+          frequency: string
+          id: string
+          instructions: string | null
+          medication_name: string
+          notes: string | null
+          patient_id: string
+          prescribed_by: string
+          provider_id: string
+          refills_remaining: number
+          start_date: string
+          status: string
+          total_refills: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis_code?: string | null
+          dosage: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          instructions?: string | null
+          medication_name: string
+          notes?: string | null
+          patient_id: string
+          prescribed_by: string
+          provider_id: string
+          refills_remaining?: number
+          start_date: string
+          status?: string
+          total_refills?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis_code?: string | null
+          dosage?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          instructions?: string | null
+          medication_name?: string
+          notes?: string | null
+          patient_id?: string
+          prescribed_by?: string
+          provider_id?: string
+          refills_remaining?: number
+          start_date?: string
+          status?: string
+          total_refills?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_prescriptions_patient"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

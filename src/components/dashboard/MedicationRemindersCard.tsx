@@ -23,7 +23,8 @@ const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medic
     await requestRefill(id);
   };
   
-  const getTimeColor = (nextDose: string): string => {
+  const getTimeColor = (medication: Medication): string => {
+    const nextDose = getNextDoseTime(medication);
     if (nextDose.toLowerCase().includes('today')) {
       return 'text-amber-300';
     } else {
@@ -31,12 +32,24 @@ const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medic
     }
   };
 
-  const isDueToday = (nextDose: string): boolean => {
+  const isDueToday = (medication: Medication): boolean => {
+    const nextDose = getNextDoseTime(medication);
     return nextDose.toLowerCase().includes('today');
   };
 
   const needsRefill = (medication: Medication): boolean => {
-    return medication.refillsRemaining <= 1;
+    return medication.refills_remaining <= 1;
+  };
+
+  const getNextDoseTime = (medication: Medication): string => {
+    // Simple calculation - in real app this would be more sophisticated
+    const now = new Date();
+    if (medication.frequency.toLowerCase().includes('once')) {
+      return 'Tomorrow, 8:00 AM';
+    } else if (medication.frequency.toLowerCase().includes('twice')) {
+      return 'Today, 8:00 PM';
+    }
+    return 'Next dose calculated';
   };
 
   if (loading) {
@@ -83,13 +96,13 @@ const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medic
               <div 
                 key={medication.id}
                 className={`p-3 border border-slate-700 bg-slate-800/50 rounded-lg ${
-                  isDueToday(medication.nextDose) ? 'ring-2 ring-amber-400/30' : ''
+                  isDueToday(medication) ? 'ring-2 ring-amber-400/30' : ''
                 }`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
                     <Pill className="h-4 w-4 text-autheo-primary" />
-                    <span className="font-medium text-slate-100">{medication.name} {medication.dosage}</span>
+                    <span className="font-medium text-slate-100">{medication.medication_name} {medication.dosage}</span>
                     {needsRefill(medication) && (
                       <Badge variant="outline" className="bg-red-100/10 text-red-300 border-red-300/20">
                         <AlertTriangle className="h-3 w-3 mr-1" />
@@ -113,7 +126,7 @@ const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medic
                       size="sm" 
                       variant="outline"
                       className="h-7 px-2 border-green-600/30 bg-green-600/10 hover:bg-green-600/20 text-green-400"
-                      onClick={() => handleMarkTaken(medication.id, medication.name)}
+                      onClick={() => handleMarkTaken(medication.id, medication.medication_name)}
                     >
                       <Check className="h-3 w-3 mr-1" />
                       Taken
@@ -124,20 +137,14 @@ const MedicationRemindersCard: React.FC<MedicationRemindersCardProps> = ({ medic
                 <div className="text-sm text-slate-400 mb-1">{medication.frequency}</div>
                 
                 <div className="flex items-center gap-2 mb-1">
-                  <Clock className={`h-3.5 w-3.5 ${getTimeColor(medication.nextDose)}`} />
-                  <span className={`text-sm ${getTimeColor(medication.nextDose)}`}>
-                    Next dose: {medication.nextDose}
+                  <Clock className={`h-3.5 w-3.5 ${getTimeColor(medication)}`} />
+                  <span className={`text-sm ${getTimeColor(medication)}`}>
+                    Next dose: {getNextDoseTime(medication)}
                   </span>
                 </div>
 
-                {medication.lastTaken && (
-                  <div className="text-xs text-slate-500">
-                    Last taken: {medication.lastTaken}
-                  </div>
-                )}
-
                 <div className="text-xs text-slate-500 mt-1">
-                  Prescribed by {medication.prescribedBy} • {medication.refillsRemaining} refills remaining
+                  Prescribed by {medication.prescribed_by} • {medication.refills_remaining} refills remaining
                 </div>
               </div>
             ))
