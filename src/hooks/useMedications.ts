@@ -5,14 +5,28 @@ import { useToast } from '@/hooks/use-toast';
 
 export interface Medication {
   id: string;
-  name: string;
+  medication_name: string;
   dosage: string;
   frequency: string;
-  nextDose: string;
-  lastTaken?: string;
-  prescribedBy: string;
   instructions?: string;
-  refillsRemaining: number;
+  start_date: string;
+  end_date?: string;
+  status: 'active' | 'completed' | 'discontinued';
+  refills_remaining: number;
+  total_refills: number;
+  prescribed_by: string;
+  provider_id: string;
+  patient_id: string;
+  created_at: string;
+}
+
+export interface MedicationAdherence {
+  id: string;
+  medication_id: string;
+  taken_at: string;
+  scheduled_time: string;
+  status: 'taken' | 'missed' | 'delayed';
+  notes?: string;
 }
 
 export function useMedications() {
@@ -21,62 +35,74 @@ export function useMedications() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Mock data that simulates real medications
-  useEffect(() => {
-    const now = new Date();
-    const mockMedications: Medication[] = [
-      {
-        id: '1',
-        name: 'Lisinopril',
-        dosage: '10mg',
-        frequency: 'Once daily',
-        nextDose: 'Today, 8:00 PM',
-        prescribedBy: 'Dr. Sarah Johnson',
-        instructions: 'Take with water, preferably in the evening',
-        refillsRemaining: 2
-      },
-      {
-        id: '2',
-        name: 'Metformin',
-        dosage: '500mg',
-        frequency: 'Twice daily',
-        nextDose: getNextDoseTime(now, 8, 20), // 8 AM and 8 PM
-        prescribedBy: 'Dr. Michael Lee',
-        instructions: 'Take with meals to reduce stomach upset',
-        refillsRemaining: 1
-      },
-      {
-        id: '3',
-        name: 'Vitamin D3',
-        dosage: '2000 IU',
-        frequency: 'Once daily',
-        nextDose: 'Tomorrow, 9:00 AM',
-        prescribedBy: 'Dr. Sarah Johnson',
-        instructions: 'Take with breakfast',
-        refillsRemaining: 0
+  // Fetch medications from Supabase
+  const fetchMedications = async () => {
+    if (!user) return;
+
+    try {
+      setLoading(true);
+      
+      // Get patient ID for current user
+      const { data: patient } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!patient) {
+        setMedications([]);
+        return;
       }
-    ];
 
-    setTimeout(() => {
-      setMedications(mockMedications);
+      // Fetch prescriptions for the patient
+      const { data: prescriptions, error } = await supabase
+        .from('prescriptions')
+        .select(`
+          id,
+          medication_name,
+          dosage,
+          frequency,
+          instructions,
+          start_date,
+          end_date,
+          status,
+          refills_remaining,
+          total_refills,
+          prescribed_by,
+          provider_id,
+          patient_id,
+          created_at
+        `)
+        .eq('patient_id', patient.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching medications:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load medications. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setMedications(prescriptions || []);
+    } catch (error) {
+      console.error('Error fetching medications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load medications. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
       setLoading(false);
-    }, 800);
-  }, []);
-
-  function getNextDoseTime(now: Date, morningHour: number, eveningHour: number): string {
-    const currentHour = now.getHours();
-    const today = new Date(now);
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    if (currentHour < morningHour) {
-      return `Today, ${morningHour}:00 AM`;
-    } else if (currentHour < eveningHour) {
-      return `Today, ${eveningHour === 20 ? '8:00' : '8:00'} PM`;
-    } else {
-      return `Tomorrow, ${morningHour}:00 AM`;
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchMedications();
+  }, [user]);
 
   const markAsTaken = async (medicationId: string) => {
     try {
@@ -85,18 +111,27 @@ export function useMedications() {
       
       if (!medication) return;
 
-      // Update the medication with last taken time and calculate next dose
-      setMedications(prev => 
-        prev.map(med => 
-          med.id === medicationId 
-            ? { 
-                ...med, 
-                lastTaken: now.toLocaleString(),
-                nextDose: calculateNextDose(med.frequency, now)
-              }
-            : med
-        )
-      );
+      // Record medication adherence
+      const { error: adherenceError } = await supabase
+        .from('medication_adherence')
+        .insert({
+          medication_id: medicationId,
+          patient_id: medication.patient_id,
+          taken_at: now.toISOString(),
+          scheduled_time: now.toISOString(), // In real app, this would be the scheduled time
+          status: 'taken',
+          notes: 'Taken via patient dashboard'
+        });
+
+      if (adherenceError) {
+        console.error('Error recording adherence:', adherenceError);
+        toast({
+          title: "Error",
+          description: "Failed to record medication. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
 
       // Log the medication intake
       await supabase.from('audit_logs').insert({
@@ -104,10 +139,10 @@ export function useMedications() {
         action: 'MEDICATION_TAKEN',
         resource: 'medications',
         status: 'success',
-        details: `Marked ${medication.name} as taken`,
+        details: `Marked ${medication.medication_name} as taken`,
         metadata: { 
           medication_id: medicationId,
-          medication_name: medication.name,
+          medication_name: medication.medication_name,
           dosage: medication.dosage,
           taken_at: now.toISOString()
         }
@@ -115,7 +150,7 @@ export function useMedications() {
 
       toast({
         title: "Medication Recorded",
-        description: `${medication.name} marked as taken at ${now.toLocaleTimeString()}.`,
+        description: `${medication.medication_name} marked as taken at ${now.toLocaleTimeString()}.`,
       });
     } catch (error) {
       console.error('Error marking medication as taken:', error);
@@ -132,23 +167,45 @@ export function useMedications() {
       const medication = medications.find(med => med.id === medicationId);
       if (!medication) return;
 
-      // In a real app, this would create a refill request
+      // Create refill request
+      const { error } = await supabase
+        .from('prescription_refill_requests')
+        .insert({
+          prescription_id: medicationId,
+          patient_id: medication.patient_id,
+          provider_id: medication.provider_id,
+          status: 'pending',
+          request_reason: 'Patient requested refill via dashboard',
+          requested_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error requesting refill:', error);
+        toast({
+          title: "Error",
+          description: "Failed to request refill. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Log the refill request
       await supabase.from('audit_logs').insert({
         user_id: user?.id,
         action: 'REFILL_REQUESTED',
         resource: 'medications',
         status: 'success',
-        details: `Refill requested for ${medication.name}`,
+        details: `Refill requested for ${medication.medication_name}`,
         metadata: { 
           medication_id: medicationId,
-          medication_name: medication.name,
-          prescribed_by: medication.prescribedBy
+          medication_name: medication.medication_name,
+          prescribed_by: medication.prescribed_by
         }
       });
 
       toast({
         title: "Refill Requested",
-        description: `Refill request sent for ${medication.name}. You'll be notified when it's ready.`,
+        description: `Refill request sent for ${medication.medication_name}. You'll be notified when it's ready.`,
       });
     } catch (error) {
       console.error('Error requesting refill:', error);
@@ -160,37 +217,31 @@ export function useMedications() {
     }
   };
 
-  function calculateNextDose(frequency: string, lastTaken: Date): string {
-    const nextDose = new Date(lastTaken);
-    
-    if (frequency.includes('Once daily')) {
-      nextDose.setDate(nextDose.getDate() + 1);
-      return `Tomorrow, ${nextDose.getHours()}:00 ${nextDose.getHours() >= 12 ? 'PM' : 'AM'}`;
-    } else if (frequency.includes('Twice daily')) {
-      nextDose.setHours(nextDose.getHours() + 12);
-      const isToday = nextDose.toDateString() === new Date().toDateString();
-      return `${isToday ? 'Today' : 'Tomorrow'}, ${nextDose.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-    } else if (frequency.includes('Three times daily')) {
-      nextDose.setHours(nextDose.getHours() + 8);
-      const isToday = nextDose.toDateString() === new Date().toDateString();
-      return `${isToday ? 'Today' : 'Tomorrow'}, ${nextDose.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-    }
-    
-    return 'Next dose calculated';
-  }
-
   const getDueMedications = () => {
-    const now = new Date();
-    return medications.filter(med => {
-      const nextDose = med.nextDose.toLowerCase();
-      return nextDose.includes('today') || 
-             (nextDose.includes('now') || 
-              nextDose.includes(now.getHours().toString()));
-    });
+    // In a real implementation, this would check against scheduled times
+    // For now, we'll consider all active medications as potentially due
+    return medications.filter(med => med.status === 'active');
   };
 
   const getLowRefillMedications = () => {
-    return medications.filter(med => med.refillsRemaining <= 1);
+    return medications.filter(med => med.refills_remaining <= 1);
+  };
+
+  // Helper function to get next dose time (simplified)
+  const getNextDoseTime = (medication: Medication): string => {
+    const now = new Date();
+    const startTime = new Date();
+    
+    if (medication.frequency.toLowerCase().includes('once')) {
+      startTime.setDate(now.getDate() + 1);
+      return `Tomorrow, 8:00 AM`;
+    } else if (medication.frequency.toLowerCase().includes('twice')) {
+      const nextDose = new Date(now);
+      nextDose.setHours(nextDose.getHours() + 12);
+      return `Today, ${nextDose.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+    }
+    
+    return 'Next dose calculated';
   };
 
   return {
@@ -199,6 +250,8 @@ export function useMedications() {
     dueMedications: getDueMedications(),
     lowRefillMedications: getLowRefillMedications(),
     markAsTaken,
-    requestRefill
+    requestRefill,
+    refetchMedications: fetchMedications,
+    getNextDoseTime
   };
 }
