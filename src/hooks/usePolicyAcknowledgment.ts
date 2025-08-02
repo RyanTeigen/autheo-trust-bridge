@@ -20,11 +20,42 @@ export const usePolicyAcknowledgment = (policyVersion: string = '1.0') => {
   const [acknowledged, setAcknowledged] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [acknowledgmentData, setAcknowledgmentData] = useState<PolicyAcknowledgment | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
+
+  // Validate authentication status
+  const validateAuth = async (): Promise<boolean> => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Session validation error:', error);
+        return false;
+      }
+      return !!session?.user?.id;
+    } catch (error) {
+      console.error('Auth validation failed:', error);
+      return false;
+    }
+  };
 
   // Check if user has acknowledged the policy
   const checkAcknowledgment = async () => {
     if (!user?.id) {
+      setAuthChecked(true);
       setLoading(false);
+      return;
+    }
+
+    // Validate authentication before proceeding
+    const isValidAuth = await validateAuth();
+    if (!isValidAuth) {
+      console.error('Authentication validation failed');
+      setAuthChecked(true);
+      setLoading(false);
+      toast({
+        title: "Authentication Error",
+        description: "Please refresh the page and try again.",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -49,7 +80,13 @@ export const usePolicyAcknowledgment = (policyVersion: string = '1.0') => {
       }
     } catch (error) {
       console.error('Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check policy status.",
+        variant: "destructive"
+      });
     } finally {
+      setAuthChecked(true);
       setLoading(false);
     }
   };
@@ -65,8 +102,23 @@ export const usePolicyAcknowledgment = (policyVersion: string = '1.0') => {
       return false;
     }
 
+    // Double-check authentication before critical operation
+    const isValidAuth = await validateAuth();
+    if (!isValidAuth) {
+      console.error('Authentication validation failed during acknowledgment');
+      toast({
+        title: "Authentication Error",
+        description: "Session expired. Please refresh and try again.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
     try {
       const userAgent = navigator.userAgent;
+      
+      // Log the attempt for debugging
+      console.log('Attempting policy acknowledgment for user:', user.id);
       
       const { data, error } = await supabase
         .from('policy_acknowledgments')
@@ -80,13 +132,23 @@ export const usePolicyAcknowledgment = (policyVersion: string = '1.0') => {
 
       if (error) {
         console.error('Error recording acknowledgment:', error);
+        
+        // Provide more specific error messages
+        let errorMessage = "Could not record policy acknowledgment.";
+        if (error.message?.includes('policy')) {
+          errorMessage = "Policy acknowledgment failed due to security policy restrictions.";
+        } else if (error.message?.includes('auth')) {
+          errorMessage = "Authentication error. Please refresh and try again.";
+        }
+        
         toast({
           title: "Error",
-          description: "Could not record policy acknowledgment.",
+          description: errorMessage,
           variant: "destructive"
         });
         return false;
       } else {
+        console.log('Policy acknowledgment recorded successfully:', data);
         setAcknowledged(true);
         setAcknowledgmentData(data);
         toast({
@@ -96,10 +158,10 @@ export const usePolicyAcknowledgment = (policyVersion: string = '1.0') => {
         return true;
       }
     } catch (error) {
-      console.error('Unexpected error:', error);
+      console.error('Unexpected error during acknowledgment:', error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred.",
+        description: "An unexpected error occurred while recording acknowledgment.",
         variant: "destructive"
       });
       return false;

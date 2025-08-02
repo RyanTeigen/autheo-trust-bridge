@@ -1,14 +1,21 @@
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { usePolicyAcknowledgment } from '@/hooks/usePolicyAcknowledgment';
-import { Shield, FileText, Lock, Users } from 'lucide-react';
+import { Shield, FileText, Lock, Users, Loader2 } from 'lucide-react';
 
 export default function PolicyAcknowledgmentModal() {
   const { acknowledged, loading, acknowledgePolicy } = usePolicyAcknowledgment();
+  const [acknowledging, setAcknowledging] = useState(false);
 
   const handleAcknowledge = async () => {
-    await acknowledgePolicy();
+    setAcknowledging(true);
+    try {
+      await acknowledgePolicy();
+    } finally {
+      setAcknowledging(false);
+    }
   };
 
   // Don't show modal if already acknowledged or still loading
@@ -85,8 +92,16 @@ export default function PolicyAcknowledgmentModal() {
             onClick={handleAcknowledge} 
             className="w-full"
             variant="autheo"
+            disabled={acknowledging}
           >
-            I Acknowledge and Agree
+            {acknowledging ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              'I Acknowledge and Agree'
+            )}
           </Button>
         </div>
       </DialogContent>
