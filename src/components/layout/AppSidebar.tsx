@@ -26,10 +26,13 @@ const AppSidebar: React.FC = () => {
 
   return (
     <Sidebar className={cn("transition-all duration-300", isFullscreen ? "w-16" : "w-64")}>
-      <SidebarHeader className="p-4 border-b border-slate-800">
+      <SidebarHeader className="p-4 border-b border-border bg-background/50">
         <div className="flex items-center justify-between">
           {!collapsed && !isFullscreen && (
-            <span className="text-sm font-medium text-slate-400">Navigation</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground">Navigation</span>
+              <span className="text-xs text-muted-foreground">Healthcare Portal</span>
+            </div>
           )}
           {isFullscreenSupported && (
             <Button
@@ -37,7 +40,7 @@ const AppSidebar: React.FC = () => {
               size="icon"
               onClick={handleFullscreenToggle}
               className={cn(
-                "h-8 w-8 text-slate-400 hover:text-slate-100 hover:bg-slate-800",
+                "h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted",
                 isFullscreen && "mx-auto"
               )}
               title={isFullscreen ? "Exit Fullscreen (F11)" : "Enter Fullscreen (F11)"}
@@ -61,20 +64,20 @@ const AppSidebar: React.FC = () => {
       </SidebarContent>
 
       {isFullscreenSupported && (
-        <SidebarFooter className="p-2 border-t border-slate-800">
+        <SidebarFooter className="p-3 border-t border-border bg-background/50">
           <div className="flex items-center justify-center">
             <Button
               variant="outline"
               size="sm"
               onClick={handleFullscreenToggle}
               className={cn(
-                "text-xs gap-2 bg-slate-800/50 border-slate-700 hover:bg-slate-700",
-                isFullscreen ? "w-full" : "w-full"
+                "text-xs gap-2 w-full transition-all duration-200",
+                "hover:scale-[1.02] hover:shadow-sm"
               )}
             >
               <Monitor className="h-3 w-3" />
               {!isFullscreen && !collapsed && (
-                <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
+                <span>{isFullscreen ? "Exit Fullscreen" : "Fullscreen Mode"}</span>
               )}
             </Button>
           </div>

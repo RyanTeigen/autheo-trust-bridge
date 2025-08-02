@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
   SidebarMenuButton, 
@@ -18,6 +18,7 @@ interface SubMenuItem {
   to: string;
   icon: LucideIcon;
   title: string;
+  description?: string;
 }
 
 interface ExpandableSidebarSectionProps {
@@ -46,19 +47,24 @@ const ExpandableSidebarSection: React.FC<ExpandableSidebarSectionProps> = ({
       <SidebarMenuButton 
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "group flex items-center rounded-md text-sm font-medium hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200 text-slate-400 cursor-pointer",
-          isCompact ? "justify-center px-2 py-3" : "space-x-3 px-3 py-2"
+          "group flex items-center rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
+          isCompact ? "justify-center px-2 py-3" : "space-x-3 px-3 py-2.5",
+          "text-muted-foreground hover:bg-muted hover:text-foreground",
+          "hover:scale-[1.02] hover:shadow-sm",
+          isOpen && "bg-muted/50"
         )}
         title={isCompact ? `${title} - ${description}` : undefined}
       >
-        <Icon className={cn("h-4 w-4", isCompact && "mx-auto")} />
+        <Icon className={cn("h-4 w-4 flex-shrink-0", isCompact && "mx-auto")} />
         {!isCompact && (
           <>
-            <div className="flex flex-col flex-1">
-              <span>{title}</span>
-              <span className="text-xs text-slate-500 group-hover:text-slate-400">{description}</span>
+            <div className="flex flex-col flex-1 min-w-0">
+              <span className="font-medium truncate">{title}</span>
+              <span className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 truncate">
+                {description}
+              </span>
             </div>
-            <ChevronRight className={cn("h-4 w-4 transition-transform", isOpen && "rotate-90")} />
+            <ChevronDown className={cn("h-4 w-4 transition-transform duration-200 flex-shrink-0", isOpen && "rotate-180")} />
           </>
         )}
       </SidebarMenuButton>
@@ -71,16 +77,22 @@ const ExpandableSidebarSection: React.FC<ExpandableSidebarSectionProps> = ({
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center space-x-2 rounded-md px-3 py-2 text-sm hover:bg-slate-800 hover:text-slate-100 transition-colors duration-200",
+                      "flex items-center space-x-2 rounded-lg text-sm transition-all duration-200 px-3 py-2 ml-2",
                       isActive
-                        ? "bg-slate-800 text-slate-100"
-                        : "text-slate-400"
+                        ? "bg-primary/10 text-primary border-l-2 border-primary shadow-sm"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      "hover:scale-[1.02] hover:shadow-sm"
                     )
                   }
                   onClick={() => toggleSidebar()}
                 >
-                  <item.icon className="h-4 w-4" />
-                  <span>{item.title}</span>
+                  <item.icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{item.title}</span>
+                  {item.description && (
+                    <span className="text-xs text-muted-foreground ml-auto truncate hidden sm:block">
+                      {item.description}
+                    </span>
+                  )}
                 </NavLink>
               </SidebarMenuSubButton>
             </SidebarMenuSubItem>
