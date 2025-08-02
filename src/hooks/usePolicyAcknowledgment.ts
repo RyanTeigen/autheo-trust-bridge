@@ -175,6 +175,7 @@ export const usePolicyAcknowledgment = (policyVersion: string = '1.0') => {
   return {
     acknowledged,
     loading,
+    authChecked,
     acknowledgmentData,
     acknowledgePolicy,
     refetch: checkAcknowledgment

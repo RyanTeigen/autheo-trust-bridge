@@ -1140,6 +1140,48 @@ export type Database = {
           },
         ]
       }
+      deployment_status: {
+        Row: {
+          build_number: string | null
+          commit_hash: string | null
+          created_at: string | null
+          deployed_at: string | null
+          deployed_by: string | null
+          environment: string
+          health_score: number | null
+          id: string
+          metadata: Json | null
+          status: string | null
+          version: string
+        }
+        Insert: {
+          build_number?: string | null
+          commit_hash?: string | null
+          created_at?: string | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          environment?: string
+          health_score?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string | null
+          version: string
+        }
+        Update: {
+          build_number?: string | null
+          commit_hash?: string | null
+          created_at?: string | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          environment?: string
+          health_score?: number | null
+          id?: string
+          metadata?: Json | null
+          status?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
       distributed_records: {
         Row: {
           created_at: string
@@ -2789,6 +2831,36 @@ export type Database = {
           },
         ]
       }
+      production_metrics: {
+        Row: {
+          created_at: string | null
+          id: string
+          metric_name: string
+          metric_unit: string | null
+          metric_value: number
+          recorded_at: string | null
+          tags: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metric_name: string
+          metric_unit?: string | null
+          metric_value: number
+          recorded_at?: string | null
+          tags?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metric_name?: string
+          metric_unit?: string | null
+          metric_value?: number
+          recorded_at?: string | null
+          tags?: Json | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -4363,6 +4435,10 @@ export type Database = {
       }
       mark_messages_as_read: {
         Args: { conversation_id_param: string; user_id_param: string }
+        Returns: undefined
+      }
+      monitor_security_metrics: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       provider_submit_record: {
