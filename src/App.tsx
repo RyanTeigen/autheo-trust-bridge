@@ -60,8 +60,8 @@ const App = () => {
     <ErrorBoundary>
       <div className="dark min-h-screen bg-slate-900 text-slate-100">
         <QueryClientProvider client={queryClient}>
-          <SecurityProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <SecurityProvider>
               <UserSettingsProvider>
                 <HealthRecordsProvider>
                   <TooltipProvider>
@@ -291,8 +291,8 @@ const App = () => {
                 </TooltipProvider>
               </HealthRecordsProvider>
             </UserSettingsProvider>
-          </AuthProvider>
-        </SecurityProvider>
+          </SecurityProvider>
+        </AuthProvider>
       </QueryClientProvider>
       </div>
     </ErrorBoundary>
