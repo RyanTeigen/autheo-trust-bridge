@@ -34,6 +34,13 @@ import RoleBasedDashboardRedirect from "./components/auth/RoleBasedDashboardRedi
 import CrossHospitalConsent from "./components/patient/CrossHospitalConsent";
 import SecurityDashboard from "./pages/SecurityDashboard";
 import QuantumSecurityPage from "./pages/QuantumSecurityPage";
+import AppointmentsPage from "./pages/AppointmentsPage";
+import MessagesPage from "./pages/MessagesPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import HelpPage from "./pages/HelpPage";
+import SystemSettingsPage from "./pages/SystemSettingsPage";
+import AuditReportsPage from "./pages/AuditReportsPage";
+import AdvancedAnalyticsPage from "./pages/AdvancedAnalyticsPage";
 
 
 // Create a stable query client instance
@@ -209,6 +216,68 @@ const App = () => {
                         <MainLayout>
                           <SettingsPage />
                         </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/appointments" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <AppointmentsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/messages" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <MessagesPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/notifications" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <NotificationsPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/help" element={
+                      <ProtectedRoute>
+                        <MainLayout>
+                          <HelpPage />
+                        </MainLayout>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/analytics" element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['admin', 'provider']}>
+                          <MainLayout>
+                            <AdvancedAnalyticsPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/system-settings" element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['admin', 'supervisor']}>
+                          <MainLayout>
+                            <SystemSettingsPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/audit-reports" element={
+                      <ProtectedRoute>
+                        <RoleBasedRoute allowedRoles={['admin', 'compliance', 'supervisor']}>
+                          <MainLayout>
+                            <AuditReportsPage />
+                          </MainLayout>
+                        </RoleBasedRoute>
                       </ProtectedRoute>
                     } />
                     

@@ -17,3 +17,10 @@ export const LazyDetailedHealthRecords = lazy(() => import('@/pages/DetailedHeal
 export const LazyPatientRecords = lazy(() => import('@/pages/PatientRecordsPage'));
 export const LazyMedicalNotes = lazy(() => import('@/pages/MedicalNotesPage'));
 export const LazyProviderAccess = lazy(() => import('@/pages/ProviderAccess'));
+export const LazyAppointmentsPage = lazy(() => import('@/pages/AppointmentsPage'));
+export const LazyMessagesPage = lazy(() => import('@/pages/MessagesPage'));
+export const LazyNotificationsPage = lazy(() => import('@/pages/NotificationsPage'));
+export const LazyHelpPage = lazy(() => import('@/pages/HelpPage'));
+export const LazySystemSettingsPage = lazy(() => import('@/pages/SystemSettingsPage'));
+export const LazyAuditReportsPage = lazy(() => import('@/pages/AuditReportsPage'));
+export const LazyAdvancedAnalyticsPage = lazy(() => import('@/pages/AdvancedAnalyticsPage'));
