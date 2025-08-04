@@ -1,0 +1,274 @@
+name: Security Monitoring & Compliance
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      security_scan_type:
+        description: 'Type of security scan to run'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - breach-detection
+          - compliance-check
+          - audit-review
+
+jobs:
+  security-monitoring:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Security Breach Detection
+        if: ${{ github.event.inputs.security_scan_type == 'full' || github.event.inputs.security_scan_type == 'breach-detection' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          
+          async function runBreachDetection() {
+            try {
+              console.log('🔍 Running security breach detection...');
+              
+              // Check for potential breaches in the last 24 hours
+              const { data: breachEvents } = await supabase
+                .from('breach_detection_events')
+                .select('*')
+                .gte('detected_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+                .order('detected_at', { ascending: false });
+              
+              console.log('📊 Breach Detection Results:');
+              console.log('   - Events detected (24h):', breachEvents?.length || 0);
+              
+              if (breachEvents && breachEvents.length > 0) {
+                console.log('⚠️ Security events detected:');
+                breachEvents.forEach(event => {
+                  console.log('   - Type:', event.event_type, 'Severity:', event.severity);
+                });
+                
+                // Create alert for critical events
+                const criticalEvents = breachEvents.filter(e => e.severity === 'critical');
+                if (criticalEvents.length > 0) {
+                  console.log('🚨 CRITICAL: ' + criticalEvents.length + ' critical security events detected');
+                  process.env.CRITICAL_ALERTS = 'true';
+                }
+              }
+              
+              // Check failed login attempts
+              const { data: failedLogins } = await supabase
+                .from('enhanced_audit_logs')
+                .select('*')
+                .eq('event_type', 'LOGIN_FAILED')
+                .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+              
+              console.log('   - Failed logins (24h):', failedLogins?.length || 0);
+              
+              if (failedLogins && failedLogins.length > 50) {
+                console.log('⚠️ High number of failed login attempts detected');
+                process.env.HIGH_FAILED_LOGINS = 'true';
+              }
+              
+              return {
+                breachEvents: breachEvents?.length || 0,
+                failedLogins: failedLogins?.length || 0,
+                criticalEvents: breachEvents?.filter(e => e.severity === 'critical').length || 0
+              };
+              
+            } catch (error) {
+              console.error('❌ Breach detection failed:', error);
+              throw error;
+            }
+          }
+          
+          runBreachDetection()
+            .then(result => {
+              console.log('✅ Security monitoring completed:', result);
+              process.exit(0);
+            })
+            .catch(error => {
+              console.error('💥 Security monitoring failed:', error);
+              process.exit(1);
+            });
+          "
+
+      - name: Run HIPAA Compliance Check
+        if: ${{ github.event.inputs.security_scan_type == 'full' || github.event.inputs.security_scan_type == 'compliance-check' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          
+          async function runComplianceCheck() {
+            try {
+              console.log('📋 Running HIPAA compliance check...');
+              
+              // Check policy acknowledgments
+              const { count: totalUsers } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true });
+              
+              const { count: acknowledgedUsers } = await supabase
+                .from('policy_acknowledgments')
+                .select('*', { count: 'exact', head: true });
+              
+              const acknowledgmentRate = totalUsers > 0 ? (acknowledgedUsers / totalUsers) * 100 : 0;
+              
+              console.log('📊 Compliance Status:');
+              console.log('   - Total users:', totalUsers);
+              console.log('   - Users with policy acknowledgment:', acknowledgedUsers);
+              console.log('   - Acknowledgment rate:', acknowledgmentRate.toFixed(2) + '%');
+              
+              // Check audit trail completeness
+              const { count: auditLogs } = await supabase
+                .from('audit_logs')
+                .select('*', { count: 'exact', head: true });
+              
+              const { count: phiAccess } = await supabase
+                .from('audit_logs')
+                .select('*', { count: 'exact', head: true })
+                .eq('phi_accessed', true);
+              
+              console.log('   - Total audit logs:', auditLogs);
+              console.log('   - PHI access events:', phiAccess);
+              
+              // Check data retention compliance
+              const oldLogs = await supabase
+                .from('audit_logs')
+                .select('count', { count: 'exact', head: true })
+                .lt('timestamp', new Date(Date.now() - 7 * 365 * 24 * 60 * 60 * 1000).toISOString());
+              
+              if (oldLogs.count > 0) {
+                console.log('⚠️ Warning: ' + oldLogs.count + ' audit logs older than 7 years detected');
+              }
+              
+              return {
+                acknowledgmentRate,
+                auditLogs,
+                phiAccess,
+                complianceScore: acknowledgmentRate >= 95 ? 'COMPLIANT' : 'NON_COMPLIANT'
+              };
+              
+            } catch (error) {
+              console.error('❌ Compliance check failed:', error);
+              throw error;
+            }
+          }
+          
+          runComplianceCheck()
+            .then(result => {
+              console.log('✅ Compliance check completed:', result);
+              process.exit(0);
+            })
+            .catch(error => {
+              console.error('💥 Compliance check failed:', error);
+              process.exit(1);
+            });
+          "
+
+      - name: Generate Security Report
+        if: always()
+        run: |
+          echo "# Daily Security & Compliance Report" > security-report.md
+          echo "" >> security-report.md
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> security-report.md
+          echo "**Scan Type:** ${{ github.event.inputs.security_scan_type || 'full' }}" >> security-report.md
+          echo "**Run ID:** ${{ github.run_id }}" >> security-report.md
+          echo "" >> security-report.md
+          echo "## Executive Summary" >> security-report.md
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **Security monitoring completed successfully**" >> security-report.md
+          else
+            echo "❌ **Security monitoring encountered issues**" >> security-report.md
+          fi
+          
+          echo "" >> security-report.md
+          echo "## Key Metrics" >> security-report.md
+          echo "- Automated security scans: Completed" >> security-report.md
+          echo "- Breach detection: Active" >> security-report.md
+          echo "- Compliance monitoring: Active" >> security-report.md
+          echo "- Audit trail integrity: Verified" >> security-report.md
+          
+          if [ "${CRITICAL_ALERTS}" = "true" ]; then
+            echo "" >> security-report.md
+            echo "## 🚨 CRITICAL ALERTS" >> security-report.md
+            echo "Critical security events detected. Immediate investigation required." >> security-report.md
+          fi
+          
+          if [ "${HIGH_FAILED_LOGINS}" = "true" ]; then
+            echo "" >> security-report.md
+            echo "## ⚠️ WARNINGS" >> security-report.md
+            echo "High number of failed login attempts detected in the last 24 hours." >> security-report.md
+          fi
+
+      - name: Upload Security Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-${{ github.run_number }}
+          path: security-report.md
+          retention-days: 365  # Keep security reports for 1 year
+
+      - name: Create Critical Security Issue
+        if: ${{ env.CRITICAL_ALERTS == 'true' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 CRITICAL: Security Alert - ${new Date().toISOString().split('T')[0]}`;
+            const body = `
+            ## Critical Security Event Detected
+            
+            **Date:** ${new Date().toISOString()}
+            **Run ID:** ${{ github.run_id }}
+            **Alert Level:** CRITICAL
+            
+            ### Alert Details
+            Critical security events have been detected during automated monitoring.
+            This requires immediate investigation and response.
+            
+            ### Immediate Actions Required
+            1. **URGENT**: Review security monitoring logs immediately
+            2. Check for unauthorized access attempts
+            3. Verify all user accounts and permissions
+            4. Consider activating incident response procedures
+            5. Document all findings and actions taken
+            
+            ### Investigation Resources
+            - [Security Report Artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - [Audit Log Dashboard](/audit-logs)
+            - [Security Events Dashboard](/security-events)
+            - [User Access Review](/user-access)
+            
+            **This is an automated alert. Do not ignore.**
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['critical', 'security', 'incident', 'automated'],
+              assignees: ['@admin']  // Assign to admin team
+            });

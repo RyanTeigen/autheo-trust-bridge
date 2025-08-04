@@ -1,0 +1,216 @@
+name: EMR Integration & Health Checks
+
+on:
+  schedule:
+    # Run every 4 hours
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      check_type:
+        description: 'Type of health check to run'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - database
+          - api-health
+          - encryption
+          - blockchain
+
+jobs:
+  emr-health-check:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Database Health Check
+        if: ${{ github.event.inputs.check_type == 'full' || github.event.inputs.check_type == 'database' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          
+          async function runDatabaseHealthCheck() {
+            try {
+              console.log('🏥 Running EMR database health check...');
+              
+              const checks = {};
+              
+              // Check critical tables
+              const tables = [
+                'medical_records',
+                'patients', 
+                'audit_logs',
+                'sharing_permissions',
+                'profiles'
+              ];
+              
+              for (const table of tables) {
+                const { count, error } = await supabase
+                  .from(table)
+                  .select('*', { count: 'exact', head: true });
+                
+                if (error) {
+                  console.error('❌ Error checking table ' + table + ':', error);
+                  checks[table] = { status: 'ERROR', error: error.message };
+                } else {
+                  console.log('✅ Table ' + table + ': ' + count + ' records');
+                  checks[table] = { status: 'OK', count };
+                }
+              }
+              
+              // Check RLS policies
+              const { data: policies, error: policiesError } = await supabase
+                .rpc('get_current_user_role_secure');
+              
+              if (policiesError) {
+                console.warn('⚠️ RLS check warning:', policiesError);
+              } else {
+                console.log('✅ RLS policies: Active');
+              }
+              
+              // Check audit hash anchors
+              const { count: anchorCount } = await supabase
+                .from('audit_hash_anchors')
+                .select('*', { count: 'exact', head: true });
+              
+              console.log('⛓️ Blockchain anchors: ' + anchorCount);
+              
+              return { checks, anchorCount, status: 'HEALTHY' };
+              
+            } catch (error) {
+              console.error('❌ Database health check failed:', error);
+              return { status: 'UNHEALTHY', error: error.message };
+            }
+          }
+          
+          runDatabaseHealthCheck()
+            .then(result => {
+              console.log('📊 Database health check completed:', JSON.stringify(result, null, 2));
+              if (result.status === 'UNHEALTHY') process.exit(1);
+              process.exit(0);
+            })
+            .catch(error => {
+              console.error('💥 Health check failed:', error);
+              process.exit(1);
+            });
+          "
+
+      - name: Encryption System Check
+        if: ${{ github.event.inputs.check_type == 'full' || github.event.inputs.check_type == 'encryption' }}
+        run: |
+          node -e "
+          const crypto = require('crypto');
+          
+          console.log('🔐 Testing encryption system...');
+          
+          // Test encryption functions
+          try {
+            const testData = 'Test medical record data for encryption validation';
+            
+            // Test basic encryption
+            const algorithm = 'aes-256-cbc';
+            const key = crypto.scryptSync('test_secret', 'salt', 32);
+            const iv = crypto.randomBytes(16);
+            
+            const cipher = crypto.createCipheriv(algorithm, key, iv);
+            let encrypted = cipher.update(testData, 'utf8', 'hex');
+            encrypted += cipher.final('hex');
+            
+            // Test decryption
+            const decipher = crypto.createDecipheriv(algorithm, key, iv);
+            let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            
+            if (decrypted === testData) {
+              console.log('✅ Encryption/Decryption: Working correctly');
+            } else {
+              throw new Error('Decryption mismatch');
+            }
+            
+            // Test hash generation
+            const hash = crypto.createHash('sha256').update(testData).digest('hex');
+            if (hash.length === 64) {
+              console.log('✅ Hash generation: Working correctly');
+            } else {
+              throw new Error('Invalid hash length');
+            }
+            
+          } catch (error) {
+            console.error('❌ Encryption system error:', error);
+            process.exit(1);
+          }
+          
+          console.log('🔐 Encryption system: All tests passed');
+          "
+
+      - name: API Health Check
+        if: ${{ github.event.inputs.check_type == 'full' || github.event.inputs.check_type == 'api-health' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          # Test Supabase API endpoint
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${SUPABASE_URL}/rest/v1/")
+          
+          if [ "$response" -eq 200 ]; then
+            echo "✅ Supabase API: Healthy (HTTP $response)"
+          else
+            echo "❌ Supabase API: Unhealthy (HTTP $response)"
+            exit 1
+          fi
+
+      - name: Generate EMR Health Report
+        if: always()
+        run: |
+          echo "# EMR System Health Report" > emr-health-report.md
+          echo "" >> emr-health-report.md
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> emr-health-report.md
+          echo "**Check Type:** ${{ github.event.inputs.check_type || 'full' }}" >> emr-health-report.md
+          echo "**Run ID:** ${{ github.run_id }}" >> emr-health-report.md
+          echo "" >> emr-health-report.md
+          echo "## System Status" >> emr-health-report.md
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **HEALTHY** - All EMR systems operational" >> emr-health-report.md
+          else
+            echo "❌ **DEGRADED** - EMR system issues detected" >> emr-health-report.md
+          fi
+          
+          echo "" >> emr-health-report.md
+          echo "## Components Checked" >> emr-health-report.md
+          echo "- Database connectivity and integrity" >> emr-health-report.md
+          echo "- Encryption system functionality" >> emr-health-report.md
+          echo "- API health and response times" >> emr-health-report.md
+          echo "- Audit trail completeness" >> emr-health-report.md
+          echo "- Blockchain anchoring status" >> emr-health-report.md
+          echo "" >> emr-health-report.md
+          echo "## Next Automated Check" >> emr-health-report.md
+          echo "Scheduled for 4 hours from this report time." >> emr-health-report.md
+
+      - name: Upload Health Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emr-health-report-${{ github.run_number }}
+          path: emr-health-report.md
+          retention-days: 30

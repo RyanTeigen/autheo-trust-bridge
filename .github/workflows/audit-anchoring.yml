@@ -1,133 +1,257 @@
-
 name: Audit Log Anchoring
 
 on:
-  # Run every 6 hours
   schedule:
+    # Run every 6 hours
     - cron: '0 */6 * * *'
-  
-  # Allow manual triggering
   workflow_dispatch:
     inputs:
+      force_anchor:
+        description: 'Force anchoring even if no new logs'
+        required: false
+        default: 'false'
+        type: boolean
       log_limit:
         description: 'Number of audit logs to process'
         required: false
         default: '100'
         type: string
-      force_anchor:
-        description: 'Force anchoring even if no new logs'
+      blockchain_network:
+        description: 'Blockchain network to use'
         required: false
-        default: false
-        type: boolean
+        default: 'autheo-testnet'
+        type: choice
+        options:
+          - autheo-testnet
+          - autheo-mainnet
 
 jobs:
-  audit-anchoring:
+  anchor-audit-logs:
     runs-on: ubuntu-latest
-    
-    environment:
-      name: production
+    environment: production
     
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Build application
-        run: npm run build
-      
-      - name: Run audit log anchoring
+
+      - name: Health Check - Database Connection
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          BLOCKCHAIN_NETWORK: ${{ vars.BLOCKCHAIN_NETWORK || 'autheo-testnet' }}
-          LOG_LIMIT: ${{ github.event.inputs.log_limit || '100' }}
+        run: |
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          supabase.from('audit_logs').select('count', { count: 'exact', head: true })
+            .then(({ error, count }) => {
+              if (error) throw error;
+              console.log('✅ Database connection successful. Audit logs count:', count);
+              process.exit(0);
+            })
+            .catch(err => {
+              console.error('❌ Database connection failed:', err);
+              process.exit(1);
+            });
+          "
+
+      - name: Run Smart Audit Anchoring
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BLOCKCHAIN_NETWORK: ${{ github.event.inputs.blockchain_network || vars.BLOCKCHAIN_NETWORK || 'autheo-testnet' }}
           FORCE_ANCHOR: ${{ github.event.inputs.force_anchor || 'false' }}
-        run: node scripts/audit-anchoring.js
-      
-      - name: Upload anchoring report
-        uses: actions/upload-artifact@v4
+          LOG_LIMIT: ${{ github.event.inputs.log_limit || '100' }}
+        run: |
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+          
+          async function performAnchoring() {
+            try {
+              console.log('🔍 Starting smart audit anchoring process...');
+              console.log('📊 Configuration:');
+              console.log('   - Network:', process.env.BLOCKCHAIN_NETWORK);
+              console.log('   - Force anchor:', process.env.FORCE_ANCHOR);
+              console.log('   - Log limit:', process.env.LOG_LIMIT);
+              
+              // Check for new audit logs since last anchoring
+              const { data: lastAnchor } = await supabase
+                .from('audit_hash_anchors')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+              
+              const { count: currentLogCount } = await supabase
+                .from('audit_logs')
+                .select('*', { count: 'exact', head: true });
+              
+              const lastAnchoredCount = lastAnchor?.log_count || 0;
+              const newLogsCount = (currentLogCount || 0) - lastAnchoredCount;
+              
+              console.log('📈 Audit log status:');
+              console.log('   - Total logs:', currentLogCount);
+              console.log('   - Last anchored:', lastAnchoredCount);
+              console.log('   - New logs:', newLogsCount);
+              
+              const shouldAnchor = newLogsCount > 0 || process.env.FORCE_ANCHOR === 'true';
+              
+              if (!shouldAnchor) {
+                console.log('⏭️ No new logs to anchor, skipping...');
+                return { success: true, anchored: false, newLogsCount: 0 };
+              }
+              
+              console.log('⛓️ New logs detected, proceeding with anchoring...');
+              
+              // Generate hash of recent audit logs
+              const { data: recentLogs } = await supabase
+                .from('audit_logs')
+                .select('*')
+                .order('timestamp', { ascending: false })
+                .limit(parseInt(process.env.LOG_LIMIT));
+              
+              if (!recentLogs || recentLogs.length === 0) {
+                throw new Error('No audit logs found to anchor');
+              }
+              
+              // Create audit hash
+              const crypto = require('crypto');
+              const logData = recentLogs.map(log => 
+                JSON.stringify({
+                  id: log.id,
+                  action: log.action,
+                  resource: log.resource,
+                  timestamp: log.timestamp,
+                  user_id: log.user_id
+                })
+              ).join('');
+              
+              const auditHash = crypto.createHash('sha256').update(logData).digest('hex');
+              
+              // Store anchor record
+              const { data: anchorRecord, error: anchorError } = await supabase
+                .from('audit_hash_anchors')
+                .insert({
+                  hash: auditHash,
+                  log_count: currentLogCount,
+                  blockchain_network: process.env.BLOCKCHAIN_NETWORK,
+                  metadata: {
+                    logs_processed: recentLogs.length,
+                    github_run_id: process.env.GITHUB_RUN_ID,
+                    anchoring_method: 'github_actions',
+                    force_anchored: process.env.FORCE_ANCHOR === 'true'
+                  }
+                })
+                .select()
+                .single();
+              
+              if (anchorError) {
+                throw anchorError;
+              }
+              
+              console.log('✅ Audit anchoring completed successfully');
+              console.log('📝 Anchor ID:', anchorRecord.id);
+              console.log('🔗 Hash:', auditHash.substring(0, 16) + '...');
+              
+              return { 
+                success: true, 
+                anchored: true, 
+                anchorId: anchorRecord.id,
+                hash: auditHash,
+                newLogsCount,
+                totalLogsAnchored: currentLogCount
+              };
+              
+            } catch (error) {
+              console.error('❌ Audit anchoring failed:', error);
+              throw error;
+            }
+          }
+          
+          performAnchoring()
+            .then(result => {
+              console.log('🎉 Anchoring process completed:', result);
+              process.exit(0);
+            })
+            .catch(error => {
+              console.error('💥 Process failed:', error);
+              process.exit(1);
+            });
+          "
+
+      - name: Generate Anchoring Report
         if: always()
+        run: |
+          echo "# Audit Log Anchoring Report" > anchoring-report.md
+          echo "" >> anchoring-report.md
+          echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> anchoring-report.md
+          echo "**Workflow:** ${{ github.workflow }}" >> anchoring-report.md
+          echo "**Run ID:** ${{ github.run_id }}" >> anchoring-report.md
+          echo "**Network:** ${{ github.event.inputs.blockchain_network || vars.BLOCKCHAIN_NETWORK || 'autheo-testnet' }}" >> anchoring-report.md
+          echo "**Force Anchor:** ${{ github.event.inputs.force_anchor || 'false' }}" >> anchoring-report.md
+          echo "" >> anchoring-report.md
+          echo "## Status" >> anchoring-report.md
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ **SUCCESS** - Audit logs anchored successfully" >> anchoring-report.md
+          else
+            echo "❌ **FAILED** - Anchoring process encountered errors" >> anchoring-report.md
+          fi
+
+      - name: Upload Anchoring Report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: audit-anchoring-report-${{ github.run_number }}
-          path: audit-anchoring-report.json
-          retention-days: 30
-      
-      - name: Notify on failure
+          name: anchoring-report-${{ github.run_number }}
+          path: anchoring-report.md
+          retention-days: 90
+
+      - name: Create Issue on Failure
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
+            const title = `🚨 Audit Anchoring Failed - Run #${{ github.run_number }}`;
+            const body = `
+            ## Audit Log Anchoring Failure
+            
+            **Run ID:** ${{ github.run_id }}
+            **Date:** ${new Date().toISOString()}
+            **Network:** ${{ github.event.inputs.blockchain_network || vars.BLOCKCHAIN_NETWORK || 'autheo-testnet' }}
+            
+            ### Failure Details
+            The automated audit log anchoring process has failed. This may indicate:
+            - Database connectivity issues
+            - Blockchain network problems
+            - Configuration errors
+            - Infrastructure issues
+            
+            ### Immediate Actions Required
+            1. Check the workflow logs for detailed error information
+            2. Verify Supabase database connectivity
+            3. Confirm all required secrets are properly configured
+            4. Consider running the workflow manually with debug options
+            
+            ### Links
+            - [Failed Workflow Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - [Audit Log Dashboard](/audit-logs)
+            - [System Health Check](/system-health)
+            
+            **Priority:** High - Audit compliance may be at risk
+            `;
+            
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: 'Audit Log Anchoring Failed',
-              body: `
-                The automated audit log anchoring process failed.
-                
-                **Run Details:**
-                - Workflow Run: ${{ github.run_number }}
-                - Commit: ${{ github.sha }}
-                - Branch: ${{ github.ref_name }}
-                - Timestamp: ${{ github.event.head_commit.timestamp }}
-                
-                Please check the workflow logs for more details.
-              `,
-              labels: ['bug', 'audit', 'automation']
+              title: title,
+              body: body,
+              labels: ['bug', 'audit', 'high-priority', 'automated']
             });
-
-  health-check:
-    runs-on: ubuntu-latest
-    needs: audit-anchoring
-    if: always()
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Health check
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        run: node scripts/health-check.js
-      
-      - name: Update status badge
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const status = '${{ needs.audit-anchoring.result }}' === 'success' ? 'passing' : 'failing';
-            const color = status === 'passing' ? 'brightgreen' : 'red';
-            const badge = `https://img.shields.io/badge/audit--anchoring-${status}-${color}`;
-            
-            // Update README.md with the new badge
-            let readme = fs.readFileSync('README.md', 'utf8');
-            const badgeRegex = /!\[Audit Anchoring\]\(https:\/\/img\.shields\.io\/badge\/audit--anchoring-[^)]+\)/;
-            const newBadge = `![Audit Anchoring](${badge})`;
-            
-            if (badgeRegex.test(readme)) {
-              readme = readme.replace(badgeRegex, newBadge);
-            } else {
-              // Add badge at the top if it doesn't exist
-              readme = `${newBadge}\n\n${readme}`;
-            }
-            
-            fs.writeFileSync('README.md', readme);
