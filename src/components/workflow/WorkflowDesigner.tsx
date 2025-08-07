@@ -18,6 +18,10 @@ import { PatientIntakeNode } from './nodes/PatientIntakeNode';
 import { SOAPNoteNode } from './nodes/SOAPNoteNode';
 import { DecisionNode } from './nodes/DecisionNode';
 import { NotificationNode } from './nodes/NotificationNode';
+import { MedicalRecordNode } from './nodes/MedicalRecordNode';
+import { ConsentNode } from './nodes/ConsentNode';
+import { AppointmentNode } from './nodes/AppointmentNode';
+import { ComplianceNode } from './nodes/ComplianceNode';
 import { WorkflowToolbar } from './WorkflowToolbar';
 import { WorkflowPropertiesPanel } from './WorkflowPropertiesPanel';
 import { Card } from '@/components/ui/card';
@@ -27,6 +31,10 @@ const nodeTypes: NodeTypes = {
   soapNote: SOAPNoteNode,
   decision: DecisionNode,
   notification: NotificationNode,
+  medicalRecord: MedicalRecordNode,
+  consent: ConsentNode,
+  appointment: AppointmentNode,
+  compliance: ComplianceNode,
 };
 
 const initialNodes: Node[] = [
@@ -212,12 +220,15 @@ function getDefaultNodeData(type: string) {
   switch (type) {
     case 'patientIntake':
       return {
+        patientName: '',
         intakeStatus: 'pending',
-        requiredForms: [],
+        requiredForms: ['Medical History', 'Insurance', 'Consent'],
         completedForms: [],
       };
     case 'soapNote':
       return {
+        patientName: '',
+        providerName: '',
         status: 'draft',
         sections: {
           subjective: false,
@@ -225,10 +236,48 @@ function getDefaultNodeData(type: string) {
           assessment: false,
           plan: false,
         },
+        lastUpdated: new Date().toISOString(),
+      };
+    case 'medicalRecord':
+      return {
+        recordType: 'consultation',
+        encrypted: true,
+        accessLevel: 'restricted',
+        status: 'draft',
+        requiresApproval: true,
+        lastUpdated: new Date().toISOString(),
+      };
+    case 'appointment':
+      return {
+        appointmentType: 'consultation',
+        status: 'scheduled',
+        urgencyLevel: 'routine',
+        requiresPrep: false,
+        telehealth: false,
+        duration: 30,
+      };
+    case 'consent':
+      return {
+        consentType: 'treatment',
+        status: 'pending',
+        urgencyLevel: 'normal',
+        digitalSignature: false,
+        witnessed: false,
+        autoExpiry: false,
+      };
+    case 'compliance':
+      return {
+        complianceType: 'hipaa',
+        status: 'pending-review',
+        riskLevel: 'medium',
+        automated: false,
+        requiresDocumentation: true,
+        violations: 0,
       };
     case 'decision':
       return {
         condition: 'New Decision',
+        description: '',
         type: 'manual',
         priority: 'medium',
         criteria: [],
@@ -236,8 +285,9 @@ function getDefaultNodeData(type: string) {
     case 'notification':
       return {
         type: 'in-app',
-        recipients: [],
+        subject: 'New Notification',
         priority: 'medium',
+        recipients: [],
         status: 'pending',
       };
     default:
