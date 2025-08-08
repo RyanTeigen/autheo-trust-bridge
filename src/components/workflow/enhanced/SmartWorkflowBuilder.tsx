@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { WorkflowTemplate } from '@/types/workflow';
+import { WorkflowTemplate, WorkflowNode } from '@/types/workflow';
 import { 
   Sparkles, 
   FileText, 
@@ -116,8 +116,8 @@ export const SmartWorkflowBuilder = ({ onCreateWorkflow, className }: SmartWorkf
     return 'patient-care';
   };
 
-  const generateSmartNodes = (type: string, requirements: string[]) => {
-    const baseNodes = [
+  const generateSmartNodes = (type: string, requirements: string[]): WorkflowNode[] => {
+    const baseNodes: WorkflowNode[] = [
       {
         id: '1',
         type: 'patientIntake',
