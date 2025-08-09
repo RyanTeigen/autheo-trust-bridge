@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Settings, History, UserCheck } from 'lucide-react';
+import { Shield, Settings, History, UserCheck, FileSignature } from 'lucide-react';
 import AccessRequestsTab from './AccessRequestsTab';
 import PatientSharingManager from '@/components/patient/PatientSharingManager';
 import PatientAccessLogViewer from '@/components/patient/PatientAccessLogViewer';
 import PatientAccessManager from '@/components/patient/PatientAccessManager';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import AdvancedConsentManagement from '@/components/consent/AdvancedConsentManagement';
+import ConsentHashDisplay from '@/components/compliance/ConsentHashDisplay';
 
 const PrivacySecurityTab: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState('access-control');
@@ -50,6 +52,13 @@ const PrivacySecurityTab: React.FC = () => {
           >
             <UserCheck className="h-4 w-4 mr-2" />
             Access Requests
+          </TabsTrigger>
+          <TabsTrigger 
+            value="consents"
+            className="data-[state=active]:bg-slate-900 data-[state=active]:text-autheo-primary"
+          >
+            <FileSignature className="h-4 w-4 mr-2" />
+            Consents
           </TabsTrigger>
           <TabsTrigger 
             value="access-logs"
@@ -108,6 +117,40 @@ const PrivacySecurityTab: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <AccessRequestsTab />
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="consents">
+          <div className="space-y-6">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-slate-200 flex items-center">
+                  <FileSignature className="h-5 w-5 mr-2 text-autheo-primary" />
+                  Consent Management
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Grant, modify, or revoke granular data sharing consents, durations, and scopes.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AdvancedConsentManagement />
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-slate-200 flex items-center">
+                  <FileSignature className="h-5 w-5 mr-2 text-autheo-primary" />
+                  Signed Consent Records (DID Hashes)
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  View cryptographically signed consent hashes anchored for auditability.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ConsentHashDisplay />
               </CardContent>
             </Card>
           </div>
