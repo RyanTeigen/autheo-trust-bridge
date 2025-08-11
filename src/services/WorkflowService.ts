@@ -188,6 +188,129 @@ export class WorkflowService {
         tags: ['follow-up', 'administrative', 'patient-care'],
       },
     },
+    {
+      id: 'consent-grant-workflow',
+      name: 'Consent Grant Workflow',
+      description: 'Patient grants consent, hash generated and anchored, parties notified',
+      category: 'compliance',
+      nodes: [
+        {
+          id: '1',
+          type: 'consentRequest',
+          position: { x: 100, y: 100 },
+          data: {
+            requester: 'provider_or_app',
+            dataTypes: ['demographics', 'labs'],
+            duration: '30d',
+            status: 'pending'
+          }
+        },
+        {
+          id: '2',
+          type: 'decision',
+          position: { x: 100, y: 300 },
+          data: {
+            condition: 'User grants consent?',
+            type: 'manual',
+            priority: 'high',
+            criteria: ['checkbox_acknowledged']
+          }
+        },
+        {
+          id: '3',
+          type: 'task',
+          position: { x: 400, y: 300 },
+          data: {
+            action: 'hash_and_anchor_consent',
+            integration: 'anchorConsentToBlockchain',
+            status: 'pending'
+          }
+        },
+        {
+          id: '4',
+          type: 'notification',
+          position: { x: 700, y: 300 },
+          data: {
+            type: 'in-app',
+            recipients: ['patient', 'requester'],
+            subject: 'Consent Recorded and Anchored',
+            priority: 'medium',
+            status: 'pending'
+          }
+        }
+      ],
+      edges: [
+        { id: 'e1-2', source: '1', target: '2' },
+        { id: 'e2-3', source: '2', target: '3', data: { condition: 'yes' } },
+        { id: 'e3-4', source: '3', target: '4' }
+      ],
+      metadata: {
+        version: '1.0.0',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        tags: ['consent', 'compliance', 'blockchain']
+      }
+    },
+    {
+      id: 'consent-revoke-workflow',
+      name: 'Consent Revocation Workflow',
+      description: 'Patient revokes consent, revocation hash queued/anchored, notify stakeholders',
+      category: 'compliance',
+      nodes: [
+        {
+          id: '1',
+          type: 'revokeConsent',
+          position: { x: 100, y: 100 },
+          data: {
+            reason: 'user_initiated',
+            status: 'pending'
+          }
+        },
+        {
+          id: '2',
+          type: 'task',
+          position: { x: 100, y: 300 },
+          data: {
+            action: 'generate_revocation_hash',
+            integration: 'revokeConsent',
+            status: 'pending'
+          }
+        },
+        {
+          id: '3',
+          type: 'task',
+          position: { x: 400, y: 300 },
+          data: {
+            action: 'queue_anchor_revocation',
+            integration: 'hash_anchor_queue',
+            status: 'pending'
+          }
+        },
+        {
+          id: '4',
+          type: 'notification',
+          position: { x: 700, y: 300 },
+          data: {
+            type: 'in-app',
+            recipients: ['patient', 'affected_providers'],
+            subject: 'Consent Revoked',
+            priority: 'high',
+            status: 'pending'
+          }
+        }
+      ],
+      edges: [
+        { id: 'e1-2', source: '1', target: '2' },
+        { id: 'e2-3', source: '2', target: '3' },
+        { id: 'e3-4', source: '3', target: '4' }
+      ],
+      metadata: {
+        version: '1.0.0',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        tags: ['consent', 'revocation', 'compliance', 'blockchain']
+      }
+    }
   ];
 
   private static executions: WorkflowExecution[] = [];
