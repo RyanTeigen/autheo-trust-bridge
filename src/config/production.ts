@@ -54,7 +54,7 @@ const productionConfig: ProductionConfig = {
     enforceRoleBasedAccess: true,
     enableAuditLogging: true,
     requireMFA: isProduction(),
-    sessionTimeout: isProduction() ? 30 : 120, // 30 min prod, 2 hours dev
+    sessionTimeout: isProduction() ? 10 : 120, // 10 min prod, 2 hours dev
     maxLoginAttempts: 5,
     enableCSPHeaders: true,
     enableXSSProtection: true,

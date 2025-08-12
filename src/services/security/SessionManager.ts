@@ -138,7 +138,7 @@ export class SessionManager {
       
       // Check for inactivity
       const timeSinceLastActivity = Date.now() - sessionInfo.lastActivity.getTime();
-      const inactivityThreshold = 30 * 60 * 1000; // 30 minutes
+      const inactivityThreshold = 10 * 60 * 1000; // 10 minutes
       
       if (timeSinceLastActivity > inactivityThreshold) {
         await this.signOut('inactive');

@@ -9,7 +9,7 @@ interface SessionTimeoutConfig {
 }
 
 const DEFAULT_CONFIG: SessionTimeoutConfig = {
-  timeoutDuration: 30, // 30 minutes
+  timeoutDuration: 10, // 10 minutes
   warningDuration: 5, // 5 minutes warning
   checkInterval: 30 // check every 30 seconds
 };

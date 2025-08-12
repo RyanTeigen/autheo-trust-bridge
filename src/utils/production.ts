@@ -111,7 +111,7 @@ export const monitoringConfig = {
 
 // Security configuration for production
 export const securityConfig = {
-  sessionTimeout: isProduction() ? 30 * 60 * 1000 : 2 * 60 * 60 * 1000, // 30 min prod, 2 hours dev
+  sessionTimeout: isProduction() ? 10 * 60 * 1000 : 2 * 60 * 60 * 1000, // 10 min prod, 2 hours dev
   maxLoginAttempts: 5,
   passwordMinLength: 8,
   requireMFA: isProduction(),
