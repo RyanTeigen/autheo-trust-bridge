@@ -2,9 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Shield, Hash, Clock, ExternalLink, Lock, Loader2 } from 'lucide-react';
+import { Shield, Hash, Clock, ExternalLink, Lock, Loader2, Anchor } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AuditHashManager from './AuditHashManager';
+import AnchoringControlPanel from '../anchoring/AnchoringControlPanel';
+import AnchoringStatusBadge from '../anchoring/AnchoringStatusBadge';
+import { useAnchoring } from '@/hooks/useAnchoring';
 import { BlockchainAnchorService } from '@/services/audit/BlockchainAnchorService';
 
 interface BlockchainAnchor {
@@ -20,6 +23,7 @@ const BlockchainAuditTrail: React.FC = () => {
   const [anchors, setAnchors] = useState<BlockchainAnchor[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { anchoredHashes, queueForAnchoring, getAnchoringStatus } = useAnchoring();
 
   const fetchAnchors = async () => {
     try {
@@ -44,6 +48,9 @@ const BlockchainAuditTrail: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Anchoring Control Panel */}
+      <AnchoringControlPanel />
+      
       <AuditHashManager onHashAnchored={fetchAnchors} />
       
       <Card className="bg-slate-800 border-slate-700">
