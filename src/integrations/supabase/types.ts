@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -143,7 +143,7 @@ export type Database = {
           implementation_status: string
           last_reviewed: string | null
           next_review_due: string | null
-          review_frequency: unknown | null
+          review_frequency: unknown
           safeguard_type: string
           title: string
           updated_at: string | null
@@ -159,7 +159,7 @@ export type Database = {
           implementation_status?: string
           last_reviewed?: string | null
           next_review_due?: string | null
-          review_frequency?: unknown | null
+          review_frequency?: unknown
           safeguard_type: string
           title: string
           updated_at?: string | null
@@ -175,7 +175,7 @@ export type Database = {
           implementation_status?: string
           last_reviewed?: string | null
           next_review_due?: string | null
-          review_frequency?: unknown | null
+          review_frequency?: unknown
           safeguard_type?: string
           title?: string
           updated_at?: string | null
@@ -519,7 +519,7 @@ export type Database = {
           phi_accessed: boolean | null
           resource: string
           resource_id: string | null
-          retention_period: unknown | null
+          retention_period: unknown
           status: string | null
           target_id: string | null
           target_type: string | null
@@ -539,7 +539,7 @@ export type Database = {
           phi_accessed?: boolean | null
           resource: string
           resource_id?: string | null
-          retention_period?: unknown | null
+          retention_period?: unknown
           status?: string | null
           target_id?: string | null
           target_type?: string | null
@@ -559,7 +559,7 @@ export type Database = {
           phi_accessed?: boolean | null
           resource?: string
           resource_id?: string | null
-          retention_period?: unknown | null
+          retention_period?: unknown
           status?: string | null
           target_id?: string | null
           target_type?: string | null
@@ -908,7 +908,7 @@ export type Database = {
         Row: {
           created_at: string
           data_types: string[]
-          duration: unknown | null
+          duration: unknown
           id: string
           requester: string
           revoked: boolean
@@ -921,7 +921,7 @@ export type Database = {
         Insert: {
           created_at?: string
           data_types: string[]
-          duration?: unknown | null
+          duration?: unknown
           id?: string
           requester: string
           revoked?: boolean
@@ -934,7 +934,7 @@ export type Database = {
         Update: {
           created_at?: string
           data_types?: string[]
-          duration?: unknown | null
+          duration?: unknown
           id?: string
           requester?: string
           revoked?: boolean
@@ -1182,6 +1182,75 @@ export type Database = {
         }
         Relationships: []
       }
+      did_documents: {
+        Row: {
+          controller: string
+          created_at: string | null
+          did: string
+          did_document: Json
+          id: string
+          is_active: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          wallet_address: string
+        }
+        Insert: {
+          controller: string
+          created_at?: string | null
+          did: string
+          did_document: Json
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_address: string
+        }
+        Update: {
+          controller?: string
+          created_at?: string | null
+          did?: string
+          did_document?: Json
+          id?: string
+          is_active?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
+      did_verifications: {
+        Row: {
+          created_at: string | null
+          did: string | null
+          expires_at: string
+          id: string
+          message: string
+          nonce: string
+          used: boolean | null
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          did?: string | null
+          expires_at: string
+          id?: string
+          message: string
+          nonce: string
+          used?: boolean | null
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          did?: string | null
+          expires_at?: string
+          id?: string
+          message?: string
+          nonce?: string
+          used?: boolean | null
+          wallet_address?: string
+        }
+        Relationships: []
+      }
       distributed_records: {
         Row: {
           created_at: string
@@ -1297,7 +1366,7 @@ export type Database = {
           details: Json | null
           event_type: Database["public"]["Enums"]["audit_event_type"]
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           phi_accessed: boolean | null
           resource_id: string | null
           resource_type: string | null
@@ -1316,7 +1385,7 @@ export type Database = {
           details?: Json | null
           event_type: Database["public"]["Enums"]["audit_event_type"]
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           phi_accessed?: boolean | null
           resource_id?: string | null
           resource_type?: string | null
@@ -1335,7 +1404,7 @@ export type Database = {
           details?: Json | null
           event_type?: Database["public"]["Enums"]["audit_event_type"]
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           phi_accessed?: boolean | null
           resource_id?: string | null
           resource_type?: string | null
@@ -1401,7 +1470,7 @@ export type Database = {
           device_fingerprint: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean
           last_activity: string
           location_data: Json | null
@@ -1417,7 +1486,7 @@ export type Database = {
           device_fingerprint?: string | null
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           location_data?: Json | null
@@ -1433,7 +1502,7 @@ export type Database = {
           device_fingerprint?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           location_data?: Json | null
@@ -1506,7 +1575,7 @@ export type Database = {
           compliance_category: string
           details: Json | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           resource_id: string | null
           resource_type: string
           status: string
@@ -1519,7 +1588,7 @@ export type Database = {
           compliance_category: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resource_id?: string | null
           resource_type: string
           status?: string
@@ -1532,7 +1601,7 @@ export type Database = {
           compliance_category?: string
           details?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           resource_id?: string | null
           resource_type?: string
           status?: string
@@ -1553,7 +1622,7 @@ export type Database = {
           digital_signature: string | null
           expiry_date: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           updated_at: string
           user_id: string
           withdrawal_date: string | null
@@ -1569,7 +1638,7 @@ export type Database = {
           digital_signature?: string | null
           expiry_date?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           updated_at?: string
           user_id: string
           withdrawal_date?: string | null
@@ -1585,7 +1654,7 @@ export type Database = {
           digital_signature?: string | null
           expiry_date?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           updated_at?: string
           user_id?: string
           withdrawal_date?: string | null
@@ -2621,7 +2690,7 @@ export type Database = {
           acknowledged_at: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           policy_version: string
           user_agent: string | null
           user_id: string
@@ -2630,7 +2699,7 @@ export type Database = {
           acknowledged_at?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           policy_version?: string
           user_agent?: string | null
           user_id: string
@@ -2639,7 +2708,7 @@ export type Database = {
           acknowledged_at?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           policy_version?: string
           user_agent?: string | null
           user_id?: string
@@ -3358,7 +3427,7 @@ export type Database = {
           device_fingerprint: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean
           last_activity: string
           security_flags: Json | null
@@ -3372,7 +3441,7 @@ export type Database = {
           device_fingerprint?: string | null
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           security_flags?: Json | null
@@ -3386,7 +3455,7 @@ export type Database = {
           device_fingerprint?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           security_flags?: Json | null
@@ -3465,7 +3534,7 @@ export type Database = {
           description: string
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resolved: boolean
           resolved_at: string | null
@@ -3484,7 +3553,7 @@ export type Database = {
           description: string
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resolved?: boolean
           resolved_at?: string | null
@@ -3503,7 +3572,7 @@ export type Database = {
           description?: string
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resolved?: boolean
           resolved_at?: string | null
@@ -3932,7 +4001,7 @@ export type Database = {
           action_type: string
           anomaly_score: number | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_anomalous: boolean | null
           metadata: Json | null
           resource_accessed: string | null
@@ -3946,7 +4015,7 @@ export type Database = {
           action_type: string
           anomaly_score?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_anomalous?: boolean | null
           metadata?: Json | null
           resource_accessed?: string | null
@@ -3960,7 +4029,7 @@ export type Database = {
           action_type?: string
           anomaly_score?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_anomalous?: boolean | null
           metadata?: Json | null
           resource_accessed?: string | null
@@ -4042,7 +4111,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_active: boolean
           last_activity: string
           security_flags: Json | null
@@ -4056,7 +4125,7 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           security_flags?: Json | null
@@ -4070,7 +4139,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_active?: boolean
           last_activity?: string
           security_flags?: Json | null
@@ -4328,108 +4397,87 @@ export type Database = {
     }
     Functions: {
       check_patient_ownership: {
-        Args: { _user_id: string; _patient_id: string }
+        Args: { _patient_id: string; _user_id: string }
         Returns: boolean
       }
       check_provider_access: {
-        Args: { _provider_id: string; _patient_id: string }
+        Args: { _patient_id: string; _provider_id: string }
         Returns: boolean
       }
       check_user_permission_secure: {
         Args: { required_permission: string }
         Returns: boolean
       }
-      cleanup_expired_otps: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_sessions: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_sessions_enhanced: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_otps: { Args: never; Returns: undefined }
+      cleanup_expired_sessions: { Args: never; Returns: undefined }
+      cleanup_expired_sessions_enhanced: { Args: never; Returns: undefined }
       extend_session: {
         Args: { session_token_param: string }
         Returns: boolean
       }
       generate_secure_otp: {
-        Args: { user_id_param: string; code_type_param?: string }
+        Args: { code_type_param?: string; user_id_param: string }
         Returns: string
       }
       get_access_logs_by_patient: {
         Args: { current_patient_id: string }
         Returns: {
-          id: string
-          provider_id: string
           action: string
-          record_id: string
+          id: string
           log_timestamp: string
+          provider_id: string
+          record_id: string
         }[]
       }
       get_appointment_details: {
         Args: { appointment_id_param: string }
         Returns: Json
       }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_current_user_role_secure: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_role: { Args: never; Returns: string }
+      get_current_user_role_secure: { Args: never; Returns: string }
       get_patient_records: {
         Args: { current_user_id: string }
         Returns: {
+          created_at: string
+          encrypted_data: string
           id: string
+          iv: string
           patient_id: string
           provider_id: string
-          record_type: string
-          encrypted_data: string
-          iv: string
-          created_at: string
-          record_hash: string
           recipient_id: string
+          record_hash: string
+          record_type: string
         }[]
       }
       get_provider_visible_records: {
         Args: { current_user_id: string }
         Returns: {
+          created_at: string
+          encrypted_data: string
           id: string
           patient_id: string
-          record_type: string
-          encrypted_data: string
-          created_at: string
-          permission_type: string
           patient_name: string
+          permission_type: string
+          record_type: string
         }[]
       }
-      get_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      has_role: {
-        Args: { _user_id: string; _role: string }
-        Returns: boolean
-      }
+      get_user_role: { Args: never; Returns: string }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       log_security_event_secure: {
         Args: {
-          event_type: string
-          severity: string
           description: string
+          event_type: string
           metadata?: Json
+          severity: string
         }
         Returns: undefined
       }
       log_sensitive_operation: {
         Args: {
-          operation_type: string
-          resource_type: string
-          resource_id?: string
           additional_details?: Json
+          operation_type: string
+          resource_id?: string
+          resource_type: string
         }
         Returns: undefined
       }
@@ -4437,17 +4485,14 @@ export type Database = {
         Args: { conversation_id_param: string; user_id_param: string }
         Returns: undefined
       }
-      monitor_security_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      monitor_security_metrics: { Args: never; Returns: undefined }
       provider_submit_record: {
         Args: {
-          provider_id_param: string
-          patient_id_param: string
-          record_type_param: string
           encrypted_data_param: string
           iv_param: string
+          patient_id_param: string
+          provider_id_param: string
+          record_type_param: string
         }
         Returns: string
       }
@@ -4463,19 +4508,16 @@ export type Database = {
         Args: { permission_id: string }
         Returns: undefined
       }
-      sanitize_text_input: {
-        Args: { input_text: string }
-        Returns: string
-      }
+      sanitize_text_input: { Args: { input_text: string }; Returns: string }
       update_wallet_address: {
         Args: { user_id: string; wallet: string }
         Returns: undefined
       }
       verify_otp: {
         Args: {
-          user_id_param: string
           code_param: string
           code_type_param?: string
+          user_id_param: string
         }
         Returns: boolean
       }

@@ -15,9 +15,9 @@ const AnchoringControlPanel: React.FC = () => {
     refreshData 
   } = useAnchoring();
 
-  const pendingCount = queueEntries.filter(entry => entry.status === 'pending').length;
-  const processingCount = queueEntries.filter(entry => entry.status === 'processing').length;
-  const failedCount = queueEntries.filter(entry => entry.status === 'failed').length;
+  const pendingCount = queueEntries.filter(entry => entry.anchor_status === 'pending').length;
+  const processingCount = queueEntries.filter(entry => entry.anchor_status === 'processing').length;
+  const failedCount = queueEntries.filter(entry => entry.anchor_status === 'failed').length;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -102,17 +102,16 @@ const AnchoringControlPanel: React.FC = () => {
               <div key={hash.id} className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
-                    {hash.audit_hash.slice(0, 16)}...
+                    {hash.hash.slice(0, 16)}...
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {hash.log_count} logs • Block {hash.block_number}
+                    {hash.log_count} logs • {hash.blockchain_network || 'Autheo'}
                   </div>
                 </div>
                 <AnchoringStatusBadge 
                   status="anchored"
-                  txHash={hash.tx_hash}
-                  blockNumber={hash.block_number}
-                  anchoredAt={hash.anchored_at}
+                  txHash={hash.blockchain_tx_hash || undefined}
+                  anchoredAt={hash.created_at}
                   compact
                 />
               </div>
@@ -123,14 +122,14 @@ const AnchoringControlPanel: React.FC = () => {
               <div key={entry.id} className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
-                    {entry.audit_hash.slice(0, 16)}...
+                    {entry.hash.slice(0, 16)}...
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {entry.log_count} logs • {new Date(entry.created_at).toLocaleDateString()}
+                    {entry.log_count} logs • {new Date(entry.queued_at).toLocaleDateString()}
                   </div>
                 </div>
                 <AnchoringStatusBadge 
-                  status={entry.status as any}
+                  status={entry.anchor_status as any}
                   errorMessage={entry.error_message}
                   compact
                 />

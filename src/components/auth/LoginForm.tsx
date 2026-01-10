@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Wallet, Key } from 'lucide-react';
 import { useWallet } from '@/hooks/use-wallet';
+import { useAutheoID } from '@/hooks/use-autheo-did';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
@@ -26,6 +28,7 @@ const LoginForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   const { wallet, isConnecting, connectMetaMask } = useWallet();
+  const { connectWithDID, isVerifying, did } = useAutheoID();
 
   // Get the page they were trying to visit from location state
   const from = location.state?.from || '/';
@@ -242,13 +245,16 @@ const LoginForm: React.FC = () => {
           variant="outline"
           className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
           type="button"
-          onClick={() => toast({
-            title: "Coming Soon",
-            description: "DID authentication will be available in the next update",
-          })}
+          disabled={isVerifying}
+          onClick={async () => {
+            const result = await connectWithDID();
+            if (result.success) {
+              navigate(from, { replace: true });
+            }
+          }}
         >
           <Key className="mr-2 h-4 w-4" />
-          Connect DID
+          {isVerifying ? "Verifying..." : did ? `Connected: ${did.substring(0, 20)}...` : "Connect Autheo ID"}
         </Button>
       </div>
     </div>
