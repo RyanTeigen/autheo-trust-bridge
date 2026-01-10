@@ -2,20 +2,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface AnchoringQueueEntry {
   id: string;
-  audit_hash: string;
+  hash: string;
   log_count: number;
-  status: 'pending' | 'processing' | 'anchored' | 'failed';
-  created_at: string;
-  updated_at: string;
+  anchor_status: 'pending' | 'processing' | 'anchored' | 'failed';
+  queued_at: string;
   error_message?: string;
 }
 
 export interface AnchoredHash {
   id: string;
-  audit_hash: string;
-  tx_hash: string;
-  block_number: number;
-  anchored_at: string;
+  hash: string;
+  blockchain_tx_hash: string | null;
+  blockchain_network: string | null;
   log_count: number;
   created_at: string;
 }
@@ -33,11 +31,11 @@ export class AnchoringService {
   async queueForAnchoring(auditHash: string, logCount: number): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('anchoring_queue')
+        .from('hash_anchor_queue')
         .insert({
-          audit_hash: auditHash,
-          log_count: logCount,
-          status: 'pending'
+          hash: auditHash,
+          anchor_status: 'pending',
+          metadata: { log_count: logCount }
         });
 
       return !error;
@@ -50,12 +48,20 @@ export class AnchoringService {
   async getQueueStatus(): Promise<AnchoringQueueEntry[]> {
     try {
       const { data, error } = await supabase
-        .from('anchoring_queue')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from('hash_anchor_queue')
+        .select('id, hash, anchor_status, queued_at, error_message, metadata')
+        .order('queued_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      return (data || []).map(item => ({
+        id: item.id,
+        hash: item.hash,
+        log_count: (item.metadata as any)?.log_count || 0,
+        anchor_status: item.anchor_status as AnchoringQueueEntry['anchor_status'],
+        queued_at: item.queued_at || '',
+        error_message: item.error_message || undefined
+      }));
     } catch (error) {
       console.error('Failed to fetch queue status:', error);
       return [];
@@ -65,12 +71,20 @@ export class AnchoringService {
   async getAnchoredHashes(): Promise<AnchoredHash[]> {
     try {
       const { data, error } = await supabase
-        .from('anchored_hashes')
+        .from('audit_hash_anchors')
         .select('*')
-        .order('anchored_at', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      
+      return (data || []).map(item => ({
+        id: item.id,
+        hash: item.hash,
+        blockchain_tx_hash: item.blockchain_tx_hash,
+        blockchain_network: item.blockchain_network,
+        log_count: item.log_count,
+        created_at: item.created_at
+      }));
     } catch (error) {
       console.error('Failed to fetch anchored hashes:', error);
       return [];
@@ -87,31 +101,30 @@ export class AnchoringService {
     try {
       // Check if already anchored
       const { data: anchored } = await supabase
-        .from('anchored_hashes')
-        .select('tx_hash, block_number, anchored_at')
-        .eq('audit_hash', auditHash)
+        .from('audit_hash_anchors')
+        .select('blockchain_tx_hash, created_at')
+        .eq('hash', auditHash)
         .single();
 
       if (anchored) {
         return {
           status: 'anchored',
-          txHash: anchored.tx_hash,
-          blockNumber: anchored.block_number,
-          anchoredAt: anchored.anchored_at
+          txHash: anchored.blockchain_tx_hash || undefined,
+          anchoredAt: anchored.created_at
         };
       }
 
       // Check queue status
       const { data: queued } = await supabase
-        .from('anchoring_queue')
-        .select('status, error_message')
-        .eq('audit_hash', auditHash)
+        .from('hash_anchor_queue')
+        .select('anchor_status, error_message')
+        .eq('hash', auditHash)
         .single();
 
       if (queued) {
         return {
-          status: queued.status as any,
-          errorMessage: queued.error_message
+          status: queued.anchor_status as any,
+          errorMessage: queued.error_message || undefined
         };
       }
 

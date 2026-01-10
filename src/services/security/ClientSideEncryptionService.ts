@@ -102,10 +102,15 @@ export class ClientSideEncryptionService {
         keyPair.keyId
       );
 
-      // Import symmetric key
+      // Import symmetric key - ensure ArrayBuffer type
+      const symmetricKeyBuffer = symmetricKey.buffer.slice(
+        symmetricKey.byteOffset,
+        symmetricKey.byteOffset + symmetricKey.byteLength
+      ) as ArrayBuffer;
+      
       const dataKey = await crypto.subtle.importKey(
         'raw',
-        symmetricKey,
+        symmetricKeyBuffer,
         'AES-GCM',
         false,
         ['decrypt']
@@ -115,9 +120,15 @@ export class ClientSideEncryptionService {
       const encryptedBuffer = new Uint8Array(
         encrypted.encryptedData.match(/.{2}/g)!.map(byte => parseInt(byte, 16))
       );
+      
+      // Ensure proper ArrayBuffer type for iv
+      const ivBuffer = iv.buffer.slice(
+        iv.byteOffset,
+        iv.byteOffset + iv.byteLength
+      ) as ArrayBuffer;
 
       const decryptedBuffer = await crypto.subtle.decrypt(
-        { name: 'AES-GCM', iv },
+        { name: 'AES-GCM', iv: new Uint8Array(ivBuffer) },
         dataKey,
         encryptedBuffer
       );
