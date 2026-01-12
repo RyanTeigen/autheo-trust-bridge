@@ -4293,6 +4293,9 @@ export type Database = {
           anchored_at: string | null
           created_at: string | null
           encrypted_data: string | null
+          encrypted_key: string | null
+          encrypted_payload: string | null
+          encryption_scheme: string | null
           id: string | null
           iv: string | null
           patient_id: string | null
@@ -4307,6 +4310,9 @@ export type Database = {
           anchored_at?: string | null
           created_at?: string | null
           encrypted_data?: string | null
+          encrypted_key?: string | null
+          encrypted_payload?: string | null
+          encryption_scheme?: string | null
           id?: string | null
           iv?: string | null
           patient_id?: string | null
@@ -4321,6 +4327,9 @@ export type Database = {
           anchored_at?: string | null
           created_at?: string | null
           encrypted_data?: string | null
+          encrypted_key?: string | null
+          encrypted_payload?: string | null
+          encryption_scheme?: string | null
           id?: string | null
           iv?: string | null
           patient_id?: string | null
@@ -4346,6 +4355,9 @@ export type Database = {
           anchored_at: string | null
           created_at: string | null
           encrypted_data: string | null
+          encrypted_key: string | null
+          encrypted_payload: string | null
+          encryption_scheme: string | null
           id: string | null
           iv: string | null
           patient_id: string | null
@@ -4360,6 +4372,9 @@ export type Database = {
           anchored_at?: string | null
           created_at?: string | null
           encrypted_data?: string | null
+          encrypted_key?: string | null
+          encrypted_payload?: string | null
+          encryption_scheme?: string | null
           id?: string | null
           iv?: string | null
           patient_id?: string | null
@@ -4374,6 +4389,9 @@ export type Database = {
           anchored_at?: string | null
           created_at?: string | null
           encrypted_data?: string | null
+          encrypted_key?: string | null
+          encrypted_payload?: string | null
+          encryption_scheme?: string | null
           id?: string | null
           iv?: string | null
           patient_id?: string | null
